@@ -19,6 +19,7 @@ authors:
 	git log --format='%aN <%aE>' | sort -u > AUTHORS
 
 test:
+	go get
 	go get github.com/stretchr/testify/assert
 	go test -v
 
