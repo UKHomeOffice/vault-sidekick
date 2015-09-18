@@ -54,7 +54,7 @@ The above say's
  - Apply the IAM policy, renew the policy when required and file the API tokens to .s3_creds in the /etc/secrets directory 
  - Read the template at /etc/templates/db.tmpl, produce the content from Vault and write to /etc/credentials file 
  
-**Output Format**
+**Output Formatting**
 
 The following output formats are supported: json, yaml, ini, txt
  
@@ -83,3 +83,10 @@ In order to change the output format:
 
 The default format is 'txt' which has the following behavour. If the number of keys in a resource is > 1, a file is created per key. Thus using the example 
 (build/vault-sidekick -cn=secret:password:fn=test) we would end up with files: test.this, test.nothing and test.demo 
+
+**Resource Options**
+
+- **fn**: (filaname) by default all file are relative to the output directory specified and will have the name NAME.RESOURCE; the fn options allows you to switch names and paths to write the files
+- **rn**: (renewal) allow you to set the renewal time on a resource, but default we take the lease time from the secret and use that, the rn feature allows use to override it
+- **fmt**: (format) allows you to specify the output format of the resource / secret. 
+- **cn**: (comman name) is used in conjunction with the PKI resource. The common argument is passed as an argument when make a request to issue the certs. 

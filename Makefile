@@ -12,12 +12,14 @@ build:
 	mkdir -p build
 	go build -o build/${NAME}
 
+clean:
+	rm -rf ./build 2>/dev/null
+	 
 authors:
 	git log --format='%aN <%aE>' | sort -u > AUTHORS
 
 test:
-	go get github.com/stretchr/testify
-	go get gopkg.in/yaml.v2
+	go get github.com/stretchr/testify/assert
 	go test -v
 
 changelog: release
