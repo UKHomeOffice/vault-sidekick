@@ -1,0 +1,24 @@
+
+NAME=vault-sidekick
+AUTHOR=gambol99
+HARDWARE=$(shell uname -m)
+VERSION=$(shell awk '/const Version/ { print $$4 }' version.go | sed 's/"//g')
+
+.PHONY: test examples authors changelog build
+
+default: build
+
+build:
+	mkdir -p build
+	go build -o build/${NAME}
+
+authors:
+	git log --format='%aN <%aE>' | sort -u > AUTHORS
+
+test:
+	go get github.com/stretchr/testify
+	go get gopkg.in/yaml.v2
+	go test -v
+
+changelog: release
+	git log $(shell git tag | tail -n1)..HEAD --no-merges --format=%B > changelog
