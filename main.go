@@ -54,9 +54,7 @@ func main() {
 		if err := rn.isValid(); err != nil {
 			showUsage("%s", err)
 		}
-		if err := vault.watch(rn, ch); err != nil {
-			showUsage("unable to add watch on resource: %s, %s", rn, err)
-		}
+		vault.watch(rn, ch)
 	}
 
 	// step: we simply wait for events i.e. secrets from vault and write them to the output directory
