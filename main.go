@@ -20,6 +20,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"os/signal"
 	"strings"
@@ -97,6 +98,28 @@ func processResource(rn *vaultResource, data map[string]interface{}) error {
 			buf.WriteString(fmt.Sprintf("%s = %s\n", key, val))
 		}
 		content = buf.Bytes()
+	// Less of a format and more of a standard naming scheme
+	case "cert":
+		files := map[string]string{
+			"certificate": "crt",
+			"issuing_ca": "ca",
+			"private_key": "key",
+		}
+		for key, suffix := range files {
+			filename := fmt.Sprintf("%s.%s", resourcePath, suffix)
+			content, found := data[key]
+			if !found {
+				continue
+			}
+
+			// step: write the file
+			if err := writeFile(filename, []byte(fmt.Sprintf("%s", content))); err != nil {
+				glog.Errorf("failed to write resource: %s, elemment: %s, filename: %s, error: %s", rn, suffix, filename, err)
+				continue
+			}
+		}
+		return nil
+
 	case "txt":
 		keys := getKeys(data)
 		if len(keys) > 1 {
@@ -140,13 +163,8 @@ func writeFile(filename string, content []byte) error {
 		return nil
 	}
 
-	file, err := os.Create(filename)
+	err := ioutil.WriteFile(filename, content, 0660)
 	if err != nil {
-		return err
-	}
-	defer file.Close()
-
-	if _, err := file.Write(content); err != nil {
 		return err
 	}
 
