@@ -33,7 +33,6 @@ func TestResourceFilename(t *testing.T) {
 	assert.Equal(t, "credentials", rn.filename())
 }
 
-
 func TestIsValid(t *testing.T) {
 	resource := defaultVaultResource()
 	resource.name = "/test/name"

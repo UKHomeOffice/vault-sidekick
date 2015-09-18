@@ -22,7 +22,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-
 func TestSetResources(t *testing.T) {
 	var items vaultResources
 
@@ -39,13 +38,6 @@ func TestSetResources(t *testing.T) {
 	assert.NotNil(t, items.Set("secret::fn=filename.test,fmt=yaml"))
 	assert.NotNil(t, items.Set("secret:te1st:fn=filename.test,fmt="))
 	assert.NotNil(t, items.Set("fn=filename.test,fmt=yaml"))
-}
-
-func TestResourceSize(t *testing.T) {
-	var items vaultResources
-	items.Set("secret:test:fn=filename.test,fmt=yaml")
-	items.Set("secret:test:fn=fileame.test")
-	assert.Equal(t, 2, items.size())
 }
 
 func TestResources(t *testing.T) {

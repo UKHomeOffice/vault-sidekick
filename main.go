@@ -102,7 +102,7 @@ func processResource(rn *vaultResource, data map[string]interface{}) error {
 	case "cert":
 		files := map[string]string{
 			"certificate": "crt",
-			"issuing_ca": "ca",
+			"issuing_ca":  "ca",
 			"private_key": "key",
 		}
 		for key, suffix := range files {

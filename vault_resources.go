@@ -33,10 +33,6 @@ type vaultResources struct {
 	items []*vaultResource
 }
 
-func (r vaultResources) size() int {
-	return len(r.items)
-}
-
 // Set ... implementation for the parser
 func (r *vaultResources) Set(value string) error {
 	rn := defaultVaultResource()
