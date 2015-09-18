@@ -35,7 +35,7 @@ func TestResourceFilename(t *testing.T) {
 
 
 func TestIsValid(t *testing.T) {
-	resource := newVaultResource()
+	resource := defaultVaultResource()
 	resource.name = "/test/name"
 	resource.resource = "secret"
 

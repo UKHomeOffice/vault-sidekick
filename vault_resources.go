@@ -39,7 +39,7 @@ func (r vaultResources) size() int {
 
 // Set ... implementation for the parser
 func (r *vaultResources) Set(value string) error {
-	rn := new(vaultResource)
+	rn := defaultVaultResource()
 
 	// step: extract the resource type and name
 	if matched := resourceRegex.MatchString(value); !matched {

@@ -20,7 +20,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/signal"
 	"strings"
@@ -84,10 +83,9 @@ func processResource(rn *vaultResource, data map[string]interface{}) error {
 	}
 
 	// step: get the output format
-	contentFormat := rn.getFormat()
-	glog.V(3).Infof("saving resource: %s, format: %s", rn, contentFormat)
+	glog.V(3).Infof("saving resource: %s, format: %s", rn, rn.format)
 
-	switch contentFormat {
+	switch rn.format {
 	case "yaml":
 		// marshall the content to yaml
 		if content, err = yaml.Marshal(data); err != nil {
@@ -142,7 +140,13 @@ func writeFile(filename string, content []byte) error {
 		return nil
 	}
 
-	if err := ioutil.WriteFile(filename, content, 0440); err != nil {
+	file, err := os.Create(filename)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	if _, err := file.Write(content); err != nil {
 		return err
 	}
 

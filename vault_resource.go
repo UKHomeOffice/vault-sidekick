@@ -20,6 +20,8 @@ import (
 	"fmt"
 	"regexp"
 	"time"
+	"strconv"
+"github.com/golang/glog"
 )
 
 const (
@@ -32,7 +34,13 @@ const (
 	// OptionTemplatePath ... the full path to a template
 	OptionsTemplatePath = "tpl"
 	// OptionRenew ... a duration to renew the resource
-	OptionRenew = "rn"
+	OptionRenewal = "rn"
+	// OptionRevoke ... revoke an old lease when retrieving a new one
+	OptionRevoke = "rv"
+	// OptionUpdate ... override the lease of the resource
+	OptionUpdate = "up"
+
+	DefaultRenewable = "false"
 )
 
 var (
@@ -46,11 +54,13 @@ var (
 		"mysql":  true,
 		"tpl":    true,
 	}
-
 )
 
-func newVaultResource() *vaultResource {
+func defaultVaultResource() *vaultResource {
 	return &vaultResource{
+		format: "yaml",
+		renewable: false,
+		revoked: false,
 		options: make(map[string]string, 0),
 	}
 }
@@ -61,22 +71,20 @@ type vaultResource struct {
 	resource string
 	// the name of the resource
 	name string
+	// the format of the resource
+	format string
+	// whether the resource should be renewed?
+	renewable bool
+	// whether the resource should be revoked?
+	revoked bool
+	// the lease duration
+	update time.Duration
 	// additional options to the resource
 	options map[string]string
 }
 
-// leaseTime ... get the renew time otherwise return 0
-func (r vaultResource) leaseTime() time.Duration {
-	if _, found := r.options[OptionRenew]; found {
-		duration, _ := time.ParseDuration(r.options[OptionRenew])
-		return duration
-	}
-
-	return time.Duration(0)
-}
-
 // isValid ... checks to see if the resource is valid
-func (r vaultResource) isValid() error {
+func (r *vaultResource) isValid() error {
 	// step: check the resource type
 	if _, found := validResources[r.resource]; !found {
 		return fmt.Errorf("unsupported resource type: %s", r.resource)
@@ -84,7 +92,7 @@ func (r vaultResource) isValid() error {
 
 	// step: check the options
 	if err := r.isValidOptions(); err != nil {
-		return fmt.Errorf("invalid resource options: %s, %s", r.options, err)
+		return fmt.Errorf("invalid resource options, %s", err)
 	}
 
 	// step: check is have all the required options to this resource type
@@ -95,17 +103,8 @@ func (r vaultResource) isValid() error {
 	return nil
 }
 
-// getFormat ... get the format of the resource
-func (r vaultResource) getFormat() string {
-	if format, found := r.options[OptionFormat]; found {
-		return format
-	}
-	return "txt"
-}
-
-
 // isValidResource ... validate the resource meets the requirements
-func (r vaultResource) isValidResource() error {
+func (r *vaultResource) isValidResource() error {
 	switch r.resource {
 	case "pki":
 		if _, found := r.options[OptionCommonName]; !found {
@@ -120,8 +119,8 @@ func (r vaultResource) isValidResource() error {
 	return nil
 }
 
-// isValidOptions ... iterates through the options and check they are ok
-func (r vaultResource) isValidOptions() error {
+// isValidOptions ... iterates through the options, converts the options and so forth
+func (r *vaultResource) isValidOptions() error {
 	// check the filename directive
 	for opt, val := range r.options {
 		switch opt {
@@ -129,12 +128,33 @@ func (r vaultResource) isValidOptions() error {
 			if matched := resourceFormatRegex.MatchString(r.options[OptionFormat]); !matched {
 				return fmt.Errorf("unsupported output format: %s", r.options[OptionFormat])
 			}
-		case OptionRenew:
-			if _, err := time.ParseDuration(val); err != nil {
-				return fmt.Errorf("the renew option: %s is not value", val)
+			glog.V(20).Infof("setting the format: %s on resource: %s", val, r)
+			r.format = val
+		case OptionUpdate:
+			duration, err := time.ParseDuration(val)
+			if err != nil {
+				return fmt.Errorf("the update option: %s is not value, should be a duration format", val)
 			}
+			glog.V(20).Infof("setting the update time: %s on resource: %s", duration, r)
+			r.update = duration
+		case OptionRevoke:
+			choice, err := strconv.ParseBool(val)
+			if err != nil {
+				return fmt.Errorf("the revoke option: %s is invalid, should be a boolean", val)
+			}
+			glog.V(20).Infof("setting the revoked: %t on resource: %s", choice, r)
+			r.revoked = choice
+		case OptionRenewal:
+			choice, err := strconv.ParseBool(val)
+			if err != nil {
+				return fmt.Errorf("the renewal option: %s is invalid, should be a boolean", val)
+			}
+			glog.V(20).Infof("setting the renewable: %t on resource: %s", choice, r)
+			r.renewable = choice
 		case OptionFilename:
+			// @TODO need to check it's valid filename / path
 		case OptionCommonName:
+			// @TODO need to check it's a valid hostname
 		case OptionsTemplatePath:
 			if exists, _ := fileExists(val); !exists {
 				return fmt.Errorf("the template file: %s does not exist", val)
@@ -157,5 +177,5 @@ func (r vaultResource) filename() string {
 
 // String ... a string representation of the struct
 func (r vaultResource) String() string {
-	return fmt.Sprintf("%s/%s", r.resource, r.name)
+	return fmt.Sprintf("%s/%s (%s|%t|%t)", r.resource, r.name, r.update, r.renewable, r.revoked)
 }

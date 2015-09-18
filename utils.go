@@ -40,6 +40,11 @@ func showUsage(message string, args ... interface{}) {
 	os.Exit(0)
 }
 
+// randomWait ... wait for a random amout of time
+func randomWait(min, max int ) <-chan time.Time {
+	return time.After(time.Duration(getRandomWithin(min,max)) * time.Second)
+}
+
 // getKeys ... retrieve a list of keys from the map
 func getKeys(data map[string]interface{}) []string {
 	var list []string

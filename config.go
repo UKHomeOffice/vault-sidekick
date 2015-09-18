@@ -35,8 +35,6 @@ type config struct {
 	vaultTokenFile string
 	// the place to write the resources
 	secretsDirectory string
-	// whether or not to renew the leases on our resources
-	renewResources bool
 	// whether of not to remove the token post connection
 	deleteToken bool
 	// switch on dry run
@@ -58,7 +56,6 @@ func init() {
 	flag.StringVar(&options.vaultTokenFile, "tokenfile", getEnv("VAULT_TOKEN_FILE", ""), "the full path to file containing the vault token used for authentication (VAULT_TOKEN_FILE if available)")
 	flag.StringVar(&options.secretsDirectory, "output", getEnv("VAULT_OUTPUT", "/etc/secrets"), "the full path to write the protected resources (VAULT_OUTPUT if available)")
 	flag.BoolVar(&options.deleteToken, "delete-token", false, "once the we have connected to vault, delete the token file from disk")
-	flag.BoolVar(&options.renewResources, "renew", true, "whether or not to renew secrets from vault")
 	flag.BoolVar(&options.dryRun, "dry-run", false, "perform a dry run, printing the content to screen")
 	flag.DurationVar(&options.statsInterval, "stats", time.Duration(5) * time.Minute, "the interval to produce statistics on the accessed resources")
 	flag.Var(options.resources, "cn", "a resource to retrieve and monitor from vault (e.g. pki:name:cert.name, secret:db_password, aws:s3_backup)")

@@ -35,9 +35,7 @@ type vaultService struct {
 	// the vault config
 	config *api.Config
 	// a channel to inform of a new resource to processor
-	resourceCh chan *watchedResource
-	// the statistics channel
-	statCh *time.Ticker
+	resourceChannel chan *watchedResource
 }
 
 type vaultResourceEvent struct {
@@ -67,20 +65,11 @@ type watchedResource struct {
 	secret *api.Secret
 }
 
-// updateSecret ... sets the secret for the watched resource and updates the various counters / timers
-func (r *watchedResource) updateSecret(secret *api.Secret) {
-	r.secret = secret
-	r.lastUpdated = time.Now()
-	r.leaseExpireTime = r.lastUpdated.Add(time.Duration(secret.LeaseDuration))
-	glog.V(10).Infof("updating secret on resource: %s, leaseId: %s, lease: %s, expiration: %s",
-		r.resource, r.secret.LeaseID, r.secret.LeaseID, r.leaseExpireTime)
-}
-
 // notifyOnRenewal ... creates a trigger and notifies when a resource is up for renewal
 func (r *watchedResource) notifyOnRenewal(ch chan *watchedResource) {
 	go func() {
 		// step: check if the resource has a pre-configured renewal time
-		r.renewalTime = r.resource.leaseTime()
+		r.renewalTime = r.resource.update
 
 		// step: if the answer is no, we set the notification between 80-95% of the lease time of the secret
 		if r.renewalTime <= 0 {
@@ -89,6 +78,7 @@ func (r *watchedResource) notifyOnRenewal(ch chan *watchedResource) {
 				int(float64(r.secret.LeaseDuration) * 0.8),
 				int(float64(r.secret.LeaseDuration) * 0.95))) * time.Second
 		}
+
 		glog.V(3).Infof("setting a renewal notification on resource: %s, time: %s", r.resource, r.renewalTime)
 		// step: wait for the duration
 		<- time.After(r.renewalTime)
@@ -110,8 +100,7 @@ func newVaultService(url, token string) (*vaultService, error) {
 	service.config.Address = url
 
 	// step: create the service processor channels
-	service.resourceCh = make(chan *watchedResource, 20)
-	service.statCh = time.NewTicker(options.statsInterval)
+	service.resourceChannel = make(chan *watchedResource, 20)
 
 	// step: create the actual client
 	service.client, err = api.NewClient(service.config)
@@ -135,7 +124,10 @@ func (r vaultService) vaultServiceProcessor() {
 		// a list of resource being watched
 		items := make([]*watchedResource, 0)
 		// the channel to receive renewal notifications on
-		renewing := make(chan *watchedResource, 5)
+		renewChannel:= make(chan *watchedResource, 10)
+		retrieveChannel := make(chan *watchedResource, 10)
+		revokeChannel := make(chan string, 10)
+		statsChannel := time.NewTicker(options.statsInterval)
 
 		for {
 			select {
@@ -143,65 +135,102 @@ func (r vaultService) vaultServiceProcessor() {
 			//  - we retrieve the resource from vault
 			//  - if we error attempting to retrieve the secret, we background and reschedule an attempt to add it
 			//  - if ok, we grab the lease it and lease time, we setup a notification on renewal
-			case x := <-r.resourceCh:
-				glog.V(3).Infof("adding a resource into the service processor, resource: %s", x.resource)
+			case x := <-r.resourceChannel:
+				glog.Infof("adding a resource into the service processor, resource: %s", x.resource)
+				// step: add to the list of resources
+				items = append(items, x)
+				// step: push into the retrieval channel
+				retrieveChannel <- x
+
+			case x := <- retrieveChannel:
+				// step: save the current lease if we have one
+				leaseId := ""
+				if x.secret != nil && x.secret.LeaseID != "" {
+					leaseId = x.secret.LeaseID
+					glog.V(10).Infof("resource: %s has a previous lease: %s", x.resource, leaseId)
+				}
 
 				// step: retrieve the resource from vault
 				err := r.get(x)
 				if err != nil {
 					glog.Errorf("failed to retrieve the resource: %s from vault, error: %s", x.resource, err)
 					// reschedule the attempt for later
-					go func(x *watchedResource) {
-						<- time.After(time.Duration(getRandomWithin(2,10)) * time.Second)
-						r.resourceCh <- x
-					}(x)
+					r.reschedule(x, retrieveChannel, 3, 10)
+
 					break
 				}
 
-				// step: setup a timer for renewal
-				x.notifyOnRenewal(renewing)
+				glog.Infof("succesfully retrieved resournce: %s, leaseID: %s", x.resource, x.secret.LeaseID)
 
-				// step: add to the list of resources
-				items = append(items, x)
+				// step: if we had a previous lease and the option is to revoke, lets throw into the revoke channel
+				if leaseId != "" && x.resource.revoked {
+					revokeChannel <- leaseId
+				}
+
+				// step: setup a timer for renewal
+				x.notifyOnRenewal(renewChannel)
 
 				// step: update the upstream consumers
 				r.upstream(x, x.secret)
 
 			// A watched resource is coming up for renewal
-			// 	- we attempt to grab the resource from vault
+			// 	- we attempt to renew the resource from vault
 			//	- if we encounter an error, we reschedule the attempt for the future
 			//	- if we're ok, we update the watchedResource and we send a notification of the change upstream
-			case x := <-renewing:
-				glog.V(3).Infof("resource: %s, lease: %s coming up for renewal, attempting to renew now", x.resource, x.secret.LeaseID)
-				// step: we attempt to renew the lease on a resource and if not successfully we reschedule
-				// a renewal notification for the future
-				// 	- we also have to handle the scenario where the lease has expired
+			case x := <-renewChannel:
+
+				glog.V(4).Infof("resource: %s, lease: %s up for renewal, renewable: %t, revoked: %t", x.resource,
+					x.secret.LeaseID, x.resource.renewable, x.resource.revoked)
 
 				// step: we need to check if the lease has expired?
 				if time.Now().Before(x.leaseExpireTime) {
 					glog.V(3).Infof("the lease on resource: %s has expired, we need to get a new lease", x.resource)
-					x.secret.Renewable = false
+					// push into the retrieval channel and break
+					retrieveChannel <- x
+					break
 				}
 
-				err := r.renew(x)
-				if err != nil {
-					glog.Errorf("failed to renew the resounce: %s for renewal, error: %s", x.resource, err)
-					// reschedule the attempt for later
-					go func(x *watchedResource) {
-						<- time.After(time.Duration(getRandomWithin(3,20)) * time.Second)
-						renewing <- x
-					}(x)
+				// step: are we renewing the resource?
+				if x.resource.renewable {
+					// step: is the underlining resource even renewable? - otherwise we can just grab a new lease
+					if !x.secret.Renewable {
+						glog.V(10).Infof("the resource: %s is not renewable, retrieving a new lease instead", x.resource)
+						retrieveChannel <- x
+						break
+					}
+
+					// step: lets renew the resource
+					err := r.renew(x)
+					if err != nil {
+						glog.Errorf("failed to renew the resounce: %s for renewal, error: %s", x.resource, err)
+						// reschedule the attempt for later
+						r.reschedule(x, renewChannel, 3, 10)
+						break
+					}
+				}
+
+				// step: the option for this resource is not to renew the secret but regenerate a new secret
+				if !x.resource.renewable {
+					glog.V(4).Infof("resource: %s flagged as not renewable, shifting to regenerating the resource", x.resource)
+					retrieveChannel <- x
 					break
 				}
 
 				// step: setup a timer for renewal
-				x.notifyOnRenewal(renewing)
+				x.notifyOnRenewal(renewChannel)
 
 				// step: update any listener upstream
 				r.upstream(x, x.secret)
 
+			case lease := <-revokeChannel:
+
+				err := r.revoke(lease)
+				if err != nil {
+					glog.Errorf("failed to revoke the lease: %s, error: %s", lease, err)
+				}
+
 			// The statistics timer has gone off; we iterate the watched items and
-			case <-r.statCh.C:
+			case <-statsChannel.C:
 				glog.V(3).Infof("stats: %d resources being watched", len(items))
 				for _, item := range items {
 					glog.V(3).Infof("resourse: %s, lease id: %s, renewal in: %s seconds, expiration: %s",
@@ -210,6 +239,14 @@ func (r vaultService) vaultServiceProcessor() {
 			}
 		}
 	}()
+}
+
+func (r vaultService) reschedule(rn *watchedResource, ch chan *watchedResource, min, max int) {
+	go func(x *watchedResource) {
+		glog.V(3).Infof("rescheduling the resource: %s, channel: %s", rn.resource, ch)
+		<-randomWait(min, max)
+		ch <- x
+	}(rn)
 }
 
 func (r vaultService) upstream(item *watchedResource, s *api.Secret) {
@@ -226,23 +263,39 @@ func (r vaultService) upstream(item *watchedResource, s *api.Secret) {
 // renew ... attempts to renew the lease on a resource
 // 	rn			: the resource we wish to renew the lease on
 func (r vaultService) renew(rn *watchedResource) error {
-
-	// step: can this secret be renewed - otherwise we can just grab a new lease
+	// step: extend the lease on a resource
+	glog.V(4).Infof("attempting to renew the lease: %s on resource: %s", rn.secret.LeaseID, rn.resource)
+	// step: check the resource is renewable
 	if !rn.secret.Renewable {
-		glog.V(4).Infof("the resource: %s is not renewable, retrieving a new lease instead", rn.resource)
-		return r.get(rn)
+		return fmt.Errorf("the resource: %s is not renewable", rn.resource)
 	}
 
-	// step: extend the lease on a resource
-	glog.V(3).Infof("attempting to renew the lease: %s on resource: %s", rn.secret.LeaseID, rn.resource)
 	secret, err := r.client.Sys().Renew(rn.secret.LeaseID, 0)
 	if err != nil {
-		glog.V(4).Infof("unable to renew the lease on resource: %s", rn.resource)
+		glog.Errorf("unable to renew the lease on resource: %s", rn.resource)
 		return err
 	}
 
-	// step: update the secret
-	rn.updateSecret(secret)
+	// step: update the resource
+	rn.lastUpdated = time.Now()
+	rn.leaseExpireTime = rn.lastUpdated.Add(time.Duration(secret.LeaseDuration))
+
+	glog.V(3).Infof("renewed resource: %s, leaseId: %s, lease_time: %s, expiration: %s",
+		rn.resource, rn.secret.LeaseID, rn.secret.LeaseID, rn.leaseExpireTime)
+
+	return nil
+}
+
+// revoke ... attempt to revoke the lease of a resource
+//	lease			: the lease lease which was given when you got it
+func (r vaultService) revoke(lease string) error {
+	glog.V(3).Infof("attemping to revoking the lease: %s", lease)
+
+	err := r.client.Sys().Revoke(lease)
+	if err != nil {
+		return err
+	}
+	glog.V(3).Infof("successfully revoked the leaseId: %s", lease)
 
 	return nil
 }
@@ -250,8 +303,8 @@ func (r vaultService) renew(rn *watchedResource) error {
 // get ... retrieve a secret from the vault
 func (r vaultService) get(rn *watchedResource) (err error) {
 	var secret *api.Secret
-
 	glog.V(5).Infof("attempting to retrieve the resource: %s from vault", rn.resource)
+
 	switch rn.resource.resource {
 	case "pki":
 		secret, err = r.client.Logical().Write(fmt.Sprintf("%s/issue/%s", rn.resource.resource, rn.resource.name),
@@ -265,12 +318,25 @@ func (r vaultService) get(rn *watchedResource) (err error) {
 	case "secret":
 		secret, err = r.client.Logical().Read(fmt.Sprintf("%s/%s", rn.resource.resource, rn.resource.name))
 	}
-	if secret == nil && err == nil {
-		return fmt.Errorf("does not exist")
+	// step: return on error
+	if err != nil {
+		return err
+	}
+	if secret == nil && err != nil {
+		return fmt.Errorf("the resource does not exist")
+	}
+
+	if secret == nil {
+		return fmt.Errorf("unable to retrieve the secret")
 	}
 
 	// step: update the watched resource
-	rn.updateSecret(secret)
+	rn.lastUpdated = time.Now()
+	rn.secret = secret
+	rn.leaseExpireTime = rn.lastUpdated.Add(time.Duration(secret.LeaseDuration))
+
+	glog.V(3).Infof("retrieved resource: %s, leaseId: %s, lease_time: %s",
+		rn.resource, rn.secret.LeaseID, time.Duration(rn.secret.LeaseDuration) * time.Second)
 
 	return err
 }
@@ -278,10 +344,10 @@ func (r vaultService) get(rn *watchedResource) (err error) {
 // watch ... add a watch on a resource and inform, renew which required and inform us when
 // the resource is ready
 func (r *vaultService) watch(rn *vaultResource, ch vaultEventsChannel) {
-	glog.V(10).Infof("adding the resource: %s, listener: %v to service processor", rn, ch)
-	r.resourceCh <- &watchedResource{
+	glog.V(6).Infof("adding the resource: %s, listener: %v to service processor", rn, ch)
+
+	r.resourceChannel <- &watchedResource{
 		resource: rn,
 		listener: ch,
 	}
-
 }
