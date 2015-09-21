@@ -24,11 +24,10 @@ import (
 
 func TestValidateOptions(t *testing.T) {
 	cfg := config{
-		vaultToken: "",
 		vaultURL:   "https://127.0.0.1:8200",
+		vaultToken: "d0ds09dis09ids09ifsd",
 	}
-	assert.NotNil(t, validateOptions(&cfg))
-	cfg.vaultToken = "dkskdkskdsjdkjs"
+
 	assert.Nil(t, validateOptions(&cfg))
 	cfg.vaultURL = "https://127.0.0.1"
 	assert.Nil(t, validateOptions(&cfg))

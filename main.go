@@ -37,9 +37,9 @@ func main() {
 	}
 
 	// step: create a client to vault
-	vault, err := newVaultService(options.vaultURL, options.vaultToken)
+	vault, err := newVaultService(options.vaultURL)
 	if err != nil {
-		glog.Errorf("failed to create a vault client, error: %s", err)
+		showUsage("unable to create the vault client: %s", err)
 	}
 
 	// step: setup the termination signals
@@ -47,7 +47,7 @@ func main() {
 	signal.Notify(signalChannel, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
 
 	// step: create a channel to receive events upon and add our resources for renewal
-	ch := make(vaultEventsChannel, 10)
+	ch := make(chan vaultResourceEvent, 10)
 
 	for _, rn := range options.resources.items {
 		// step: valid the resource
@@ -80,7 +80,7 @@ func processResource(rn *vaultResource, data map[string]interface{}) error {
 	// step: determine the resource path
 	resourcePath := rn.filename()
 	if !strings.HasPrefix(resourcePath, "/") {
-		resourcePath = fmt.Sprintf("%s/%s", options.secretsDirectory, resourcePath)
+		resourcePath = fmt.Sprintf("%s/%s", options.outputDir, resourcePath)
 	}
 
 	// step: get the output format
@@ -120,13 +120,19 @@ func processResource(rn *vaultResource, data map[string]interface{}) error {
 		}
 		return nil
 
+	case "csv":
+		var buf bytes.Buffer
+		for key, val := range data {
+			buf.WriteString(fmt.Sprintf("%s,%s\n", key, val))
+		}
+		content = buf.Bytes()
+
 	case "txt":
 		keys := getKeys(data)
 		if len(keys) > 1 {
 			// step: for plain formats we need to iterate the keys and produce a file per key
 			for suffix, content := range data {
 				filename := fmt.Sprintf("%s.%s", resourcePath, suffix)
-				// step: write the file
 				if err := writeFile(filename, []byte(fmt.Sprintf("%s", content))); err != nil {
 					glog.Errorf("failed to write resource: %s, elemment: %s, filename: %s, error: %s",
 						rn, suffix, filename, err)

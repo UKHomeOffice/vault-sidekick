@@ -22,6 +22,10 @@ import (
 	"math/rand"
 	"os"
 	"time"
+"io/ioutil"
+	"encoding/json"
+	"gopkg.in/yaml.v2"
+	"path"
 )
 
 func init() {
@@ -40,18 +44,80 @@ func showUsage(message string, args ...interface{}) {
 	os.Exit(0)
 }
 
-// randomWait ... wait for a random amout of time
+// randomWait ... wait for a random amount of time
+// 	min			: the minimum amount of time willing to wait
+//	max			: the maximum amount of time willing to wait
 func randomWait(min, max int) <-chan time.Time {
 	return time.After(time.Duration(getRandomWithin(min, max)) * time.Second)
 }
 
+// hasKey ... checks to see if a key is present
+//	key			: the key we are looking for
+//	data		: a map of strings to something we are looking at
+func hasKey(key string, data map [string]interface{}) bool {
+	_, found := data[key]
+	return found
+}
+
 // getKeys ... retrieve a list of keys from the map
+// 	data		: the map which you wish to extract the keys from
 func getKeys(data map[string]interface{}) []string {
 	var list []string
 	for key := range data {
 		list = append(list, key)
 	}
 	return list
+}
+
+// readConfigFile ... read in a configuration file
+//	filename		: the path to the file
+func readConfigFile(filename string) (map[string]string, error) {
+	suffix := path.Ext(filename)
+	switch suffix {
+	case ".json":
+		return readJsonFile(filename)
+	case ".yaml":
+		return readYamlFile(filename)
+	case ".yml":
+		return readYamlFile(filename)
+	}
+	return nil, fmt.Errorf("unsupported config file format: %s", suffix)
+}
+
+// readJsonFile ... read in and unmarshall the data into a map
+//	filename	: the path to the file container the json data
+func readJsonFile(filename string) (map[string]string, error) {
+	data := make(map[string]string, 0)
+
+	content, err := ioutil.ReadFile(filename)
+	if err != nil {
+		return data, err
+	}
+	// unmarshall the data
+	err = json.Unmarshal(content, data)
+	if err != nil {
+		return data, err
+	}
+
+	return data, nil
+}
+
+// readYamlFile ... read in and unmarshall the data into a map
+//	filename	: the path to the file container the yaml data
+func readYamlFile(filename string) (map[string]string, error) {
+	data := make(map[string]string, 0)
+
+	content, err := ioutil.ReadFile(filename)
+	if err != nil {
+		return data, err
+	}
+	// unmarshall the data
+	err = yaml.Unmarshal(content, data)
+	if err != nil {
+		return data, err
+	}
+
+	return data, nil
 }
 
 // randomInt ... generate a random integer between min and max
