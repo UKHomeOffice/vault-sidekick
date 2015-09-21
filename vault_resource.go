@@ -19,28 +19,25 @@ package main
 import (
 	"fmt"
 	"regexp"
-	"time"
 	"strconv"
-"github.com/golang/glog"
+	"time"
 )
 
 const (
 	// OptionFilename ... option to set the filename of the resource
 	OptionFilename = "fn"
-	// OptionsFormat ... option to set the output format (yaml, xml, json)
-	OptionFormat  = "fmt"
-	// OptionsCommonName ... use by the PKI resource
+	// OptionFormat ... option to set the output format (yaml, xml, json)
+	OptionFormat = "fmt"
+	// OptionCommonName ... use by the PKI resource
 	OptionCommonName = "cn"
 	// OptionTemplatePath ... the full path to a template
-	OptionsTemplatePath = "tpl"
-	// OptionRenew ... a duration to renew the resource
+	OptionTemplatePath = "tpl"
+	// OptionRenewal ... a duration to renew the resource
 	OptionRenewal = "rn"
 	// OptionRevoke ... revoke an old lease when retrieving a new one
 	OptionRevoke = "rv"
 	// OptionUpdate ... override the lease of the resource
 	OptionUpdate = "up"
-
-	DefaultRenewable = "false"
 )
 
 var (
@@ -48,20 +45,22 @@ var (
 
 	// a map of valid resource to retrieve from vault
 	validResources = map[string]bool{
-		"pki":    true,
-		"aws":    true,
-		"secret": true,
-		"mysql":  true,
-		"tpl":    true,
+		"pki":       true,
+		"aws":       true,
+		"secret":    true,
+		"mysql":     true,
+		"tpl":       true,
+		"postgres":  true,
+		"cassandra": true,
 	}
 )
 
 func defaultVaultResource() *vaultResource {
 	return &vaultResource{
-		format: "yaml",
+		format:    "yaml",
 		renewable: false,
-		revoked: false,
-		options: make(map[string]string, 0),
+		revoked:   false,
+		options:   make(map[string]string, 0),
 	}
 }
 
@@ -111,7 +110,7 @@ func (r *vaultResource) isValidResource() error {
 			return fmt.Errorf("pki resource requires a common name specified")
 		}
 	case "tpl":
-		if _, found := r.options[OptionsTemplatePath]; !found {
+		if _, found := r.options[OptionTemplatePath]; !found {
 			return fmt.Errorf("template resource requires a template path option")
 		}
 	}
@@ -128,34 +127,30 @@ func (r *vaultResource) isValidOptions() error {
 			if matched := resourceFormatRegex.MatchString(r.options[OptionFormat]); !matched {
 				return fmt.Errorf("unsupported output format: %s", r.options[OptionFormat])
 			}
-			glog.V(20).Infof("setting the format: %s on resource: %s", val, r)
 			r.format = val
 		case OptionUpdate:
 			duration, err := time.ParseDuration(val)
 			if err != nil {
 				return fmt.Errorf("the update option: %s is not value, should be a duration format", val)
 			}
-			glog.V(20).Infof("setting the update time: %s on resource: %s", duration, r)
 			r.update = duration
 		case OptionRevoke:
 			choice, err := strconv.ParseBool(val)
 			if err != nil {
 				return fmt.Errorf("the revoke option: %s is invalid, should be a boolean", val)
 			}
-			glog.V(20).Infof("setting the revoked: %t on resource: %s", choice, r)
 			r.revoked = choice
 		case OptionRenewal:
 			choice, err := strconv.ParseBool(val)
 			if err != nil {
 				return fmt.Errorf("the renewal option: %s is invalid, should be a boolean", val)
 			}
-			glog.V(20).Infof("setting the renewable: %t on resource: %s", choice, r)
 			r.renewable = choice
 		case OptionFilename:
 			// @TODO need to check it's valid filename / path
 		case OptionCommonName:
 			// @TODO need to check it's a valid hostname
-		case OptionsTemplatePath:
+		case OptionTemplatePath:
 			if exists, _ := fileExists(val); !exists {
 				return fmt.Errorf("the template file: %s does not exist", val)
 			}

@@ -17,11 +17,11 @@ limitations under the License.
 package main
 
 import (
-"os"
-"math/rand"
-"time"
 	"flag"
 	"fmt"
+	"math/rand"
+	"os"
+	"time"
 )
 
 func init() {
@@ -30,10 +30,10 @@ func init() {
 
 // showUsage ... prints the command usage and exits
 //	message		: an error message to display if exiting with an error
-func showUsage(message string, args ... interface{}) {
+func showUsage(message string, args ...interface{}) {
 	flag.PrintDefaults()
 	if message != "" {
-		fmt.Printf("\n[error] " + message + "\n", args...)
+		fmt.Printf("\n[error] "+message+"\n", args...)
 		os.Exit(1)
 	}
 
@@ -41,14 +41,14 @@ func showUsage(message string, args ... interface{}) {
 }
 
 // randomWait ... wait for a random amout of time
-func randomWait(min, max int ) <-chan time.Time {
-	return time.After(time.Duration(getRandomWithin(min,max)) * time.Second)
+func randomWait(min, max int) <-chan time.Time {
+	return time.After(time.Duration(getRandomWithin(min, max)) * time.Second)
 }
 
 // getKeys ... retrieve a list of keys from the map
 func getKeys(data map[string]interface{}) []string {
 	var list []string
-	for key, _ := range data {
+	for key := range data {
 		list = append(list, key)
 	}
 	return list
@@ -58,7 +58,7 @@ func getKeys(data map[string]interface{}) []string {
 //	min			: the smallest number we can accept
 //	max			: the largest number we can accept
 func getRandomWithin(min, max int) int {
-	return rand.Intn(max - min) + min
+	return rand.Intn(max-min) + min
 }
 
 // getEnv ... checks to see if an environment variable exists otherwise uses the default

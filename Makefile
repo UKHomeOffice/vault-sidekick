@@ -14,6 +14,7 @@ build:
 
 docker: build
 	sudo docker build -t ${AUTHOR}/${NAME} .
+	sudo docker build -t ${AUTHOR}/${NAME} .
 
 clean:
 	rm -rf ./build 2>/dev/null

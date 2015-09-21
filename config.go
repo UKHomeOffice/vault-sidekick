@@ -21,8 +21,9 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/url"
-	"github.com/golang/glog"
 	"time"
+
+	"github.com/golang/glog"
 )
 
 // config ... the command line configuration
@@ -57,7 +58,7 @@ func init() {
 	flag.StringVar(&options.secretsDirectory, "output", getEnv("VAULT_OUTPUT", "/etc/secrets"), "the full path to write the protected resources (VAULT_OUTPUT if available)")
 	flag.BoolVar(&options.deleteToken, "delete-token", false, "once the we have connected to vault, delete the token file from disk")
 	flag.BoolVar(&options.dryRun, "dry-run", false, "perform a dry run, printing the content to screen")
-	flag.DurationVar(&options.statsInterval, "stats", time.Duration(5) * time.Minute, "the interval to produce statistics on the accessed resources")
+	flag.DurationVar(&options.statsInterval, "stats", time.Duration(5)*time.Minute, "the interval to produce statistics on the accessed resources")
 	flag.Var(options.resources, "cn", "a resource to retrieve and monitor from vault (e.g. pki:name:cert.name, secret:db_password, aws:s3_backup)")
 }
 
