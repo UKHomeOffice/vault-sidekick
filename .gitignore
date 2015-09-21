@@ -2,7 +2,8 @@
 *.iml
 *.swp
 .idea/
-build/
+bin/
+release/
 
 # Compiled Object files, Static and Dynamic libs (Shared Objects)
 *.o

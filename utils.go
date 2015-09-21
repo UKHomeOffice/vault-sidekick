@@ -17,15 +17,19 @@ limitations under the License.
 package main
 
 import (
+	"bytes"
+	"encoding/json"
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"math/rand"
 	"os"
-	"time"
-"io/ioutil"
-	"encoding/json"
-	"gopkg.in/yaml.v2"
 	"path"
+	"strings"
+	"time"
+
+	"github.com/golang/glog"
+	"gopkg.in/yaml.v2"
 )
 
 func init() {
@@ -54,7 +58,7 @@ func randomWait(min, max int) <-chan time.Time {
 // hasKey ... checks to see if a key is present
 //	key			: the key we are looking for
 //	data		: a map of strings to something we are looking at
-func hasKey(key string, data map [string]interface{}) bool {
+func hasKey(key string, data map[string]interface{}) bool {
 	_, found := data[key]
 	return found
 }
@@ -75,7 +79,7 @@ func readConfigFile(filename string) (map[string]string, error) {
 	suffix := path.Ext(filename)
 	switch suffix {
 	case ".json":
-		return readJsonFile(filename)
+		return readJSONFile(filename)
 	case ".yaml":
 		return readYamlFile(filename)
 	case ".yml":
@@ -86,7 +90,7 @@ func readConfigFile(filename string) (map[string]string, error) {
 
 // readJsonFile ... read in and unmarshall the data into a map
 //	filename	: the path to the file container the json data
-func readJsonFile(filename string) (map[string]string, error) {
+func readJSONFile(filename string) (map[string]string, error) {
 	data := make(map[string]string, 0)
 
 	content, err := ioutil.ReadFile(filename)
@@ -149,4 +153,119 @@ func fileExists(filename string) (bool, error) {
 	}
 
 	return true, nil
+}
+
+// writeResourceContent ... is resposinle for generate the specific content from the resource
+// 	rn			: a point to the vault resource
+//	data		: a map of the related secret associated to the resource
+func writeResource(rn *vaultResource, data map[string]interface{}) error {
+	var content []byte
+	var err error
+
+	// step: determine the resource path
+	resourcePath := rn.filename()
+	if !strings.HasPrefix(resourcePath, "/") {
+		resourcePath = fmt.Sprintf("%s/%s", options.outputDir, resourcePath)
+	}
+
+	// step: get the output format
+	glog.V(3).Infof("saving resource: %s, format: %s", rn, rn.format)
+
+	if rn.format == "yaml" {
+		// marshall the content to yaml
+		if content, err = yaml.Marshal(data); err != nil {
+			return err
+		}
+
+		return writeFile(resourcePath, content)
+	}
+
+	if rn.format == "ini" {
+		var buf bytes.Buffer
+		for key, val := range data {
+			buf.WriteString(fmt.Sprintf("%s = %s\n", key, val))
+		}
+		content = buf.Bytes()
+
+		return writeFile(resourcePath, content)
+	}
+
+	if rn.format == "cert" {
+		files := map[string]string{
+			"certificate": "crt",
+			"issuing_ca":  "ca",
+			"private_key": "key",
+		}
+		for key, suffix := range files {
+			filename := fmt.Sprintf("%s.%s", resourcePath, suffix)
+			content, found := data[key]
+			if !found {
+				continue
+			}
+
+			// step: write the file
+			if err := writeFile(filename, []byte(fmt.Sprintf("%s", content))); err != nil {
+				glog.Errorf("failed to write resource: %s, elemment: %s, filename: %s, error: %s", rn, suffix, filename, err)
+				continue
+			}
+		}
+
+		return nil
+	}
+
+	if rn.format == "csv" {
+		var buf bytes.Buffer
+		for key, val := range data {
+			buf.WriteString(fmt.Sprintf("%s,%s\n", key, val))
+		}
+		content = buf.Bytes()
+
+		return writeFile(resourcePath, content)
+	}
+
+	if rn.format == "txt" {
+		keys := getKeys(data)
+		if len(keys) > 1 {
+			// step: for plain formats we need to iterate the keys and produce a file per key
+			for suffix, content := range data {
+				filename := fmt.Sprintf("%s.%s", resourcePath, suffix)
+				if err := writeFile(filename, []byte(fmt.Sprintf("%s", content))); err != nil {
+					glog.Errorf("failed to write resource: %s, elemment: %s, filename: %s, error: %s",
+						rn, suffix, filename, err)
+					continue
+				}
+			}
+			return nil
+		}
+
+		// step: we only have the one key, so will write plain
+		value, _ := data[keys[0]]
+		content = []byte(fmt.Sprintf("%s", value))
+
+		return writeFile(resourcePath, content)
+
+	}
+
+	if rn.format == "json" {
+		if content, err = json.MarshalIndent(data, "", "    "); err != nil {
+			return err
+		}
+
+		return writeFile(resourcePath, content)
+	}
+
+	return fmt.Errorf("unknown output format: %s", rn.format)
+}
+
+// writeFile ... writes the content to a file .. dah
+//	filename		: the path to the file
+//	content			: the content to be written
+func writeFile(filename string, content []byte) error {
+	if options.dryRun {
+		glog.Infof("dry-run: filename: %s, content:", filename)
+		fmt.Printf("%s\n", string(content))
+		return nil
+	}
+
+	return ioutil.WriteFile(filename, content, 0660)
 }

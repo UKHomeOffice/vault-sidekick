@@ -17,17 +17,11 @@ limitations under the License.
 package main
 
 import (
-	"bytes"
-	"encoding/json"
-	"fmt"
-	"io/ioutil"
 	"os"
 	"os/signal"
-	"strings"
 	"syscall"
 
 	"github.com/golang/glog"
-	"gopkg.in/yaml.v2"
 )
 
 func main() {
@@ -35,7 +29,6 @@ func main() {
 	if err := parseOptions(); err != nil {
 		showUsage("invalid options, %s", err)
 	}
-
 	// step: create a client to vault
 	vault, err := newVaultService(options.vaultURL)
 	if err != nil {
@@ -48,7 +41,7 @@ func main() {
 
 	// step: create a channel to receive events upon and add our resources for renewal
 	ch := make(chan vaultResourceEvent, 10)
-
+	// step: add each of the resources to the service processor
 	for _, rn := range options.resources.items {
 		// step: valid the resource
 		if err := rn.isValid(); err != nil {
@@ -62,117 +55,11 @@ func main() {
 		select {
 		case evt := <-ch:
 			// step: write the secret to the output directory
-			go processResource(evt.resource, evt.secret)
+			go writeResource(evt.resource, evt.secret)
 
 		case <-signalChannel:
 			glog.Infof("recieved a termination signal, shutting down the service")
 			os.Exit(0)
 		}
 	}
-
-}
-
-// processResource ... write the resource to file, converting into the selected format
-func processResource(rn *vaultResource, data map[string]interface{}) error {
-	var content []byte
-	var err error
-
-	// step: determine the resource path
-	resourcePath := rn.filename()
-	if !strings.HasPrefix(resourcePath, "/") {
-		resourcePath = fmt.Sprintf("%s/%s", options.outputDir, resourcePath)
-	}
-
-	// step: get the output format
-	glog.V(3).Infof("saving resource: %s, format: %s", rn, rn.format)
-
-	switch rn.format {
-	case "yaml":
-		// marshall the content to yaml
-		if content, err = yaml.Marshal(data); err != nil {
-			return err
-		}
-	case "ini":
-		var buf bytes.Buffer
-		for key, val := range data {
-			buf.WriteString(fmt.Sprintf("%s = %s\n", key, val))
-		}
-		content = buf.Bytes()
-	// Less of a format and more of a standard naming scheme
-	case "cert":
-		files := map[string]string{
-			"certificate": "crt",
-			"issuing_ca":  "ca",
-			"private_key": "key",
-		}
-		for key, suffix := range files {
-			filename := fmt.Sprintf("%s.%s", resourcePath, suffix)
-			content, found := data[key]
-			if !found {
-				continue
-			}
-
-			// step: write the file
-			if err := writeFile(filename, []byte(fmt.Sprintf("%s", content))); err != nil {
-				glog.Errorf("failed to write resource: %s, elemment: %s, filename: %s, error: %s", rn, suffix, filename, err)
-				continue
-			}
-		}
-		return nil
-
-	case "csv":
-		var buf bytes.Buffer
-		for key, val := range data {
-			buf.WriteString(fmt.Sprintf("%s,%s\n", key, val))
-		}
-		content = buf.Bytes()
-
-	case "txt":
-		keys := getKeys(data)
-		if len(keys) > 1 {
-			// step: for plain formats we need to iterate the keys and produce a file per key
-			for suffix, content := range data {
-				filename := fmt.Sprintf("%s.%s", resourcePath, suffix)
-				if err := writeFile(filename, []byte(fmt.Sprintf("%s", content))); err != nil {
-					glog.Errorf("failed to write resource: %s, elemment: %s, filename: %s, error: %s",
-						rn, suffix, filename, err)
-					continue
-				}
-			}
-			return nil
-		}
-
-		// step: we only have the one key, so will write plain
-		value, _ := data[keys[0]]
-		content = []byte(fmt.Sprintf("%s", value))
-	case "json":
-		if content, err = json.MarshalIndent(data, "", "    "); err != nil {
-			return err
-		}
-	}
-
-	// step: write the content to file
-	if err := writeFile(resourcePath, content); err != nil {
-		glog.Errorf("failed to write the resource: %s to file: %s, error: %s", rn, resourcePath, err)
-		return err
-	}
-
-	return nil
-}
-
-// writeFile ... writes the content of a file
-func writeFile(filename string, content []byte) error {
-	// step: are we dry running?
-	if options.dryRun {
-		glog.Infof("dry-run: filename: %s, content:", filename)
-		fmt.Printf("%s\n", string(content))
-		return nil
-	}
-
-	err := ioutil.WriteFile(filename, content, 0660)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }

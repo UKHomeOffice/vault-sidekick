@@ -23,6 +23,10 @@ import (
 	"github.com/hashicorp/vault/api"
 )
 
+const (
+	renewalMinimum = 0.8
+	renewalMaximum = 0.95
+)
 
 // watchedResource ... is a resource which is being watched - i.e. when the item is coming up for renewal
 // lets grab it and renew the lease
@@ -46,19 +50,21 @@ func (r *watchedResource) notifyOnRenewal(ch chan *watchedResource) {
 	go func() {
 		// step: check if the resource has a pre-configured renewal time
 		r.renewalTime = r.resource.update
-
 		// step: if the answer is no, we set the notification between 80-95% of the lease time of the secret
 		if r.renewalTime <= 0 {
-			glog.V(10).Infof("calculating the renewal between 80-95 pcent of lease time: %d seconds", r.secret.LeaseDuration)
-			r.renewalTime = time.Duration(getRandomWithin(
-				int(float64(r.secret.LeaseDuration)*0.8),
-				int(float64(r.secret.LeaseDuration)*0.95))) * time.Second
+			r.renewalTime = r.calculateRenewal()
 		}
-
 		glog.V(3).Infof("setting a renewal notification on resource: %s, time: %s", r.resource, r.renewalTime)
 		// step: wait for the duration
 		<-time.After(r.renewalTime)
 		// step: send the notification on the renewal channel
 		ch <- r
 	}()
+}
+
+// calculateRenewal ... calculate the renewal between
+func (r watchedResource) calculateRenewal() time.Duration {
+	return time.Duration(getRandomWithin(
+		int(float64(r.secret.LeaseDuration)*renewalMinimum),
+		int(float64(r.secret.LeaseDuration)*renewalMaximum))) * time.Second
 }

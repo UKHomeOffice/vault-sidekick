@@ -2,22 +2,30 @@
 NAME=vault-sidekick
 AUTHOR=gambol99
 HARDWARE=$(shell uname -m)
-VERSION=$(shell awk '/const Version/ { print $$4 }' version.go | sed 's/"//g')
+VERSION=$(shell awk '/Version =/ { print $$3 }' version.go | sed 's/"//g')
 
-.PHONY: test examples authors changelog build docker
+.PHONY: test authors changelog build docker static release
 
 default: build
 
 build:
-	mkdir -p build
-	go build -o build/${NAME}
+	mkdir -p bin
+	go build -o bin/${NAME}
 
 docker: build
 	sudo docker build -t ${AUTHOR}/${NAME} .
-	sudo docker build -t ${AUTHOR}/${NAME} .
+
+static:
+	mkdir -p bin
+	CGO_ENABLED=0 GOOS=linux go build -a -tags netgo -ldflags '-w' -o bin/${NAME}
+
+release: static
+	mkdir -p release
+	gzip -c bin/${NAME} > release/${NAME}_${VERSION}_linux_${HARDWARE}.gz
+	rm -f release/${NAME}
 
 clean:
-	rm -rf ./build 2>/dev/null
+	rm -rf ./bin 2>/dev/null
 
 authors:
 	git log --format='%aN <%aE>' | sort -u > AUTHORS
