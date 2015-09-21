@@ -120,13 +120,19 @@ func processResource(rn *vaultResource, data map[string]interface{}) error {
 		}
 		return nil
 
+	case "csv":
+		var buf bytes.Buffer
+		for key, val := range data {
+			buf.WriteString(fmt.Sprintf("%s,%s\n", key, val))
+		}
+		content = buf.Bytes()
+
 	case "txt":
 		keys := getKeys(data)
 		if len(keys) > 1 {
 			// step: for plain formats we need to iterate the keys and produce a file per key
 			for suffix, content := range data {
 				filename := fmt.Sprintf("%s.%s", resourcePath, suffix)
-				// step: write the file
 				if err := writeFile(filename, []byte(fmt.Sprintf("%s", content))); err != nil {
 					glog.Errorf("failed to write resource: %s, elemment: %s, filename: %s, error: %s",
 						rn, suffix, filename, err)
