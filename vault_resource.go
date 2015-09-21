@@ -172,5 +172,5 @@ func (r vaultResource) filename() string {
 
 // String ... a string representation of the struct
 func (r vaultResource) String() string {
-	return fmt.Sprintf("%s/%s (%s|%t|%t)", r.resource, r.name, r.update, r.renewable, r.revoked)
+	return fmt.Sprintf("%s/%s", r.resource, r.name)
 }

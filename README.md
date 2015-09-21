@@ -53,6 +53,10 @@ The above say's
  - Apply the IAM policy, renew the policy when required and file the API tokens to .s3_creds in the /etc/secrets directory
  - Read the template at /etc/templates/db.tmpl, produce the content from Vault and write to /etc/credentials file
 
+**Authentication**
+
+A authentication file can be specified 
+
 **Secret Renewals**
 
 The default behaviour of vault-sidekick is **not** to renew a lease, but to retrieve a new secret and allow the previous to

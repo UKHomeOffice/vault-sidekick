@@ -45,52 +45,9 @@ type vaultResourceEvent struct {
 	secret map[string]interface{}
 }
 
-// a channel of events
-type vaultEventsChannel chan vaultResourceEvent
-
-// watchedResource ... is a resource which is being watched - i.e. when the item is coming up for renewal
-// lets grab it and renew the lease
-type watchedResource struct {
-	// the upstream listener to the event
-	listener vaultEventsChannel
-	// the resource itself
-	resource *vaultResource
-	// the last time the resource was retrieved
-	lastUpdated time.Time
-	// the time which the lease expires
-	leaseExpireTime time.Time
-	// the duration until we next time to renew lease
-	renewalTime time.Duration
-	// the secret
-	secret *api.Secret
-}
-
-// notifyOnRenewal ... creates a trigger and notifies when a resource is up for renewal
-func (r *watchedResource) notifyOnRenewal(ch chan *watchedResource) {
-	go func() {
-		// step: check if the resource has a pre-configured renewal time
-		r.renewalTime = r.resource.update
-
-		// step: if the answer is no, we set the notification between 80-95% of the lease time of the secret
-		if r.renewalTime <= 0 {
-			glog.V(10).Infof("calculating the renewal between 80-95 pcent of lease time: %d seconds", r.secret.LeaseDuration)
-			r.renewalTime = time.Duration(getRandomWithin(
-				int(float64(r.secret.LeaseDuration)*0.8),
-				int(float64(r.secret.LeaseDuration)*0.95))) * time.Second
-		}
-
-		glog.V(3).Infof("setting a renewal notification on resource: %s, time: %s", r.resource, r.renewalTime)
-		// step: wait for the duration
-		<-time.After(r.renewalTime)
-		// step: send the notification on the renewal channel
-		ch <- r
-	}()
-}
-
 // newVaultService ... creates a new implementation to speak to vault and retrieve the resources
 //	url			: the url of the vault service
-//	token		: the token to use when speaking to vault
-func newVaultService(url, token string) (*vaultService, error) {
+func newVaultService(url string) (*vaultService, error) {
 	var err error
 	glog.Infof("creating a new vault client: %s", url)
 
@@ -108,8 +65,16 @@ func newVaultService(url, token string) (*vaultService, error) {
 		return nil, err
 	}
 
+	// step: are we using a token? or do we need to authenticate and grab a token
+	if options.vaultToken == "" {
+		options.vaultToken, err = service.authenticate(options.vaultAuthOptions)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	// step: set the token for the client
-	service.client.SetToken(token)
+	service.client.SetToken(options.vaultToken)
 
 	// step: start the service processor off
 	service.vaultServiceProcessor()
@@ -172,7 +137,7 @@ func (r vaultService) vaultServiceProcessor() {
 				x.notifyOnRenewal(renewChannel)
 
 				// step: update the upstream consumers
-				r.upstream(x, x.secret)
+				r.upstream(x)
 
 			// A watched resource is coming up for renewal
 			// 	- we attempt to renew the resource from vault
@@ -221,7 +186,7 @@ func (r vaultService) vaultServiceProcessor() {
 				x.notifyOnRenewal(renewChannel)
 
 				// step: update any listener upstream
-				r.upstream(x, x.secret)
+				r.upstream(x)
 
 			case lease := <-revokeChannel:
 
@@ -242,6 +207,42 @@ func (r vaultService) vaultServiceProcessor() {
 	}()
 }
 
+// authenticate ... we need to authenticate to teh vault to grab a toke
+//	auth		: a map containing the options required for authentication
+func (r vaultService) authenticate(auth map[string]string) (string, error) {
+	var secret *api.Secret
+	var err error
+
+	plugin, _ := auth["method"]
+	switch plugin {
+	case "userpass":
+		// step: get the options for this plugin
+		username, _ := auth["username"]
+		password, _ := auth["password"]
+		secret, err = newUserPass(r.client).create(username, password)
+
+	default:
+		return "", fmt.Errorf("unsupported authentication plugin: %s", plugin)
+	}
+	// step: was there an error?
+	if err != nil {
+		return "", err
+	}
+
+	// step: do we have auth information
+	if secret.Auth == nil {
+		return "", fmt.Errorf("invalid authentication response, no auth response")
+	}
+
+	// step: return the client token
+	return secret.Auth.ClientToken, nil
+}
+
+// reschedule ... reschedules an event back into a channel after n seconds
+//	rn			: a pointer to the watched resource you wish to reschedule
+//	ch			: the channel the resource should be placed into
+//	min			: the minimum amount of time i'm willing to wait
+//	max			: the maximum amount of time i'm willing to wait
 func (r vaultService) reschedule(rn *watchedResource, ch chan *watchedResource, min, max int) {
 	go func(x *watchedResource) {
 		glog.V(3).Infof("rescheduling the resource: %s, channel: %s", rn.resource, ch)
@@ -250,13 +251,15 @@ func (r vaultService) reschedule(rn *watchedResource, ch chan *watchedResource, 
 	}(rn)
 }
 
-func (r vaultService) upstream(item *watchedResource, s *api.Secret) {
+// upstream ... the resource has changed thus we notify the upstream listener
+//	item		: the item which has changed
+func (r vaultService) upstream(item *watchedResource) {
 	// step: chunk this into a go-routine not to block us
 	go func() {
 		glog.V(6).Infof("sending the event for resource: %s upstream to listener: %v", item.resource, item.listener)
 		item.listener <- vaultResourceEvent{
 			resource: item.resource,
-			secret:   s.Data,
+			secret:   item.secret.Data,
 		}
 	}()
 }
@@ -344,7 +347,7 @@ func (r vaultService) get(rn *watchedResource) (err error) {
 
 // watch ... add a watch on a resource and inform, renew which required and inform us when
 // the resource is ready
-func (r *vaultService) watch(rn *vaultResource, ch vaultEventsChannel) {
+func (r *vaultService) watch(rn *vaultResource, ch chan vaultResourceEvent) {
 	glog.V(6).Infof("adding the resource: %s, listener: %v to service processor", rn, ch)
 
 	r.resourceChannel <- &watchedResource{
