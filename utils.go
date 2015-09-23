@@ -76,14 +76,21 @@ func getKeys(data map[string]interface{}) []string {
 // readConfigFile ... read in a configuration file
 //	filename		: the path to the file
 func readConfigFile(filename string) (map[string]string, error) {
+	// step: check the file exists
+	if exists, err := fileExists(filename); !exists {
+		return nil, fmt.Errorf("the file: %s does not exist", filename)
+	} else if err != nil {
+		return nil, err
+	}
+	// step: we only read in json or yaml formats
 	suffix := path.Ext(filename)
 	switch suffix {
 	case ".json":
 		return readJSONFile(filename)
 	case ".yaml":
-		return readYamlFile(filename)
+		return readYAMLFile(filename)
 	case ".yml":
-		return readYamlFile(filename)
+		return readYAMLFile(filename)
 	}
 	return nil, fmt.Errorf("unsupported config file format: %s", suffix)
 }
@@ -106,16 +113,14 @@ func readJSONFile(filename string) (map[string]string, error) {
 	return data, nil
 }
 
-// readYamlFile ... read in and unmarshall the data into a map
+// readYAMLFile ... read in and unmarshall the data into a map
 //	filename	: the path to the file container the yaml data
-func readYamlFile(filename string) (map[string]string, error) {
+func readYAMLFile(filename string) (map[string]string, error) {
 	data := make(map[string]string, 0)
-
 	content, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return data, err
 	}
-	// unmarshall the data
 	err = yaml.Unmarshal(content, data)
 	if err != nil {
 		return data, err
@@ -155,21 +160,18 @@ func fileExists(filename string) (bool, error) {
 	return true, nil
 }
 
-// writeResourceContent ... is resposinle for generate the specific content from the resource
+// writeResourceContent ... is responsible for generating the specific content from the resource
 // 	rn			: a point to the vault resource
 //	data		: a map of the related secret associated to the resource
-func writeResource(rn *vaultResource, data map[string]interface{}) error {
+func writeResource(rn *VaultResource, data map[string]interface{}) error {
 	var content []byte
 	var err error
 
 	// step: determine the resource path
-	resourcePath := rn.filename()
+	resourcePath := rn.GetFilename()
 	if !strings.HasPrefix(resourcePath, "/") {
 		resourcePath = fmt.Sprintf("%s/%s", options.outputDir, resourcePath)
 	}
-
-	// step: get the output format
-	glog.V(3).Infof("saving resource: %s, format: %s", rn, rn.format)
 
 	if rn.format == "yaml" {
 		// marshall the content to yaml
@@ -266,6 +268,8 @@ func writeFile(filename string, content []byte) error {
 		fmt.Printf("%s\n", string(content))
 		return nil
 	}
+
+	glog.V(3).Infof("saving the file: %s", filename)
 
 	return ioutil.WriteFile(filename, content, 0660)
 }

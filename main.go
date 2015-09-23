@@ -24,14 +24,25 @@ import (
 	"github.com/golang/glog"
 )
 
+const (
+	Prog    = "vault-sidekick"
+	Version = "0.0.1"
+	GitSha  = ""
+)
+
 func main() {
+	var err error
+	var vault *VaultService
+
 	// step: parse and validate the command line / environment options
-	if err := parseOptions(); err != nil {
+	if err = parseOptions(); err != nil {
 		showUsage("invalid options, %s", err)
 	}
+
+	glog.Infof("starting the %s, version: %s", Prog, Version)
+
 	// step: create a client to vault
-	vault, err := newVaultService(options.vaultURL)
-	if err != nil {
+	if vault, err = NewVaultService(options.vaultURL); err != nil {
 		showUsage("unable to create the vault client: %s", err)
 	}
 
@@ -40,22 +51,22 @@ func main() {
 	signal.Notify(signalChannel, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
 
 	// step: create a channel to receive events upon and add our resources for renewal
-	ch := make(chan vaultResourceEvent, 10)
+	updates := make(chan VaultEvent, 10)
+	vault.AddListener(updates)
+
 	// step: add each of the resources to the service processor
 	for _, rn := range options.resources.items {
-		// step: valid the resource
-		if err := rn.isValid(); err != nil {
+		if err := rn.IsValid(); err != nil {
 			showUsage("%s", err)
 		}
-		vault.watch(rn, ch)
+		vault.Watch(rn)
 	}
 
 	// step: we simply wait for events i.e. secrets from vault and write them to the output directory
 	for {
 		select {
-		case evt := <-ch:
-			// step: write the secret to the output directory
-			go writeResource(evt.resource, evt.secret)
+		case evt := <-updates:
+			go writeResource(evt.Resource, evt.Secret)
 
 		case <-signalChannel:
 			glog.Infof("recieved a termination signal, shutting down the service")

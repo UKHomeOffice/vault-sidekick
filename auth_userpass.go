@@ -20,42 +20,49 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/vault/api"
-	"github.com/golang/glog"
 )
 
 // the userpass authentication plugin
-type authUserPass struct {
-	// the vault client
+type authUserPassPlugin struct {
 	client *api.Client
 }
 
 // auth token
-type UserPassLogin struct {
+type userPassLogin struct {
 	// the password for the account
 	Password string `json:"password,omitempty"`
 }
 
-func newUserPass(client *api.Client) *authUserPass {
-	return &authUserPass{
+// NewUserPassPlugin ... creates a new User Pass plugin
+func NewUserPassPlugin(client *api.Client) AuthInterface {
+	return &authUserPassPlugin{
 		client: client,
 	}
 }
 
-// create ... login with the username and password an
-func (r authUserPass) create(username, password string) (*api.Secret, error) {
-	glog.V(10).Infof("using the userpass plugin, username: %s, password: %s", username, password)
+// create ... login with the username and password provide in the file
+func (r authUserPassPlugin) Create(cfg map[string]string) (string, error) {
+	// step: extract the options
+	username, _ := cfg["username"]
+	password, _ := cfg["password"]
 
-	req := r.client.NewRequest("POST", fmt.Sprintf("/v1/auth/userpass/login/%s", username))
 	// step: create the token request
-	if err := req.SetJSONBody(UserPassLogin{Password: password}); err != nil {
-		return nil, err
+	request := r.client.NewRequest("POST", fmt.Sprintf("/v1/auth/userpass/login/%s", username))
+	if err := request.SetJSONBody(userPassLogin{Password: password}); err != nil {
+		return "", err
 	}
 	// step: make the request
-	resp, err := r.client.RawRequest(req)
+	resp, err := r.client.RawRequest(request)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 	defer resp.Body.Close()
+
 	// step: parse and return auth
-	return api.ParseSecret(resp.Body)
+	secret, err := api.ParseSecret(resp.Body)
+	if err != nil {
+		return "", err
+	}
+
+	return secret.Auth.ClientToken, nil
 }

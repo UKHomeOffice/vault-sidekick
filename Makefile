@@ -2,7 +2,7 @@
 NAME=vault-sidekick
 AUTHOR=gambol99
 HARDWARE=$(shell uname -m)
-VERSION=$(shell awk '/Version =/ { print $$3 }' version.go | sed 's/"//g')
+VERSION=$(shell awk '/Version =/ { print $$3 }' main.go | sed 's/"//g')
 
 .PHONY: test authors changelog build docker static release
 

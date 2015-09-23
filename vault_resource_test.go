@@ -23,14 +23,14 @@ import (
 )
 
 func TestResourceFilename(t *testing.T) {
-	rn := vaultResource{
+	rn := VaultResource{
 		name:     "test_secret",
 		resource: "secret",
 		options:  map[string]string{},
 	}
-	assert.Equal(t, "test_secret.secret", rn.filename())
+	assert.Equal(t, "test_secret.secret", rn.GetFilename())
 	rn.options[OptionFilename] = "credentials"
-	assert.Equal(t, "credentials", rn.filename())
+	assert.Equal(t, "credentials", rn.GetFilename())
 }
 
 func TestIsValid(t *testing.T) {
@@ -38,12 +38,12 @@ func TestIsValid(t *testing.T) {
 	resource.name = "/test/name"
 	resource.resource = "secret"
 
-	assert.Nil(t, resource.isValid())
+	assert.Nil(t, resource.IsValid())
 	resource.resource = "nothing"
-	assert.NotNil(t, resource.isValid())
+	assert.NotNil(t, resource.IsValid())
 	resource.resource = "pki"
-	assert.NotNil(t, resource.isValid())
+	assert.NotNil(t, resource.IsValid())
 	resource.options[OptionCommonName] = "common.example.com"
-	assert.Nil(t, resource.isValid())
+	assert.Nil(t, resource.IsValid())
 
 }

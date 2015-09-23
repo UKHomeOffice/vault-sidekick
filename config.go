@@ -27,22 +27,18 @@ import (
 type config struct {
 	// the url for th vault server
 	vaultURL string
-	// the token to connect to vault with
-	vaultToken string
 	// a file containing the authenticate options
 	vaultAuthFile string
 	// the authentication options
 	vaultAuthOptions map[string]string
 	// the place to write the resources
 	outputDir string
-	// whether of not to remove the token post connection
-	deleteToken bool
 	// switch on dry run
 	dryRun bool
 	// skip tls verify
-	skipTLSVerify bool
+	tlsVerify bool
 	// the resource items to retrieve
-	resources *vaultResources
+	resources *VaultResources
 	// the interval for producing statistics
 	statsInterval time.Duration
 }
@@ -52,14 +48,15 @@ var (
 )
 
 func init() {
-	options.resources = new(vaultResources)
+	// step: setup some defaults
+	options.resources = new(VaultResources)
+	options.vaultAuthOptions = map[string]string{VaultAuth: "token"}
+
 	flag.StringVar(&options.vaultURL, "vault", getEnv("VAULT_ADDR", "https://127.0.0.1:8200"), "the url the vault service is running behind (VAULT_ADDR if available)")
-	flag.StringVar(&options.vaultToken, "token", "", "the token used to authenticate to teh vault service (VAULT_TOKEN if available)")
 	flag.StringVar(&options.vaultAuthFile, "auth", "", "a configuration file in a json or yaml containing authentication arguments")
 	flag.StringVar(&options.outputDir, "output", getEnv("VAULT_OUTPUT", "/etc/secrets"), "the full path to write the protected resources (VAULT_OUTPUT if available)")
-	flag.BoolVar(&options.deleteToken, "delete-token", false, "once the we have connected to vault, delete the token file from disk")
 	flag.BoolVar(&options.dryRun, "dryrun", false, "perform a dry run, printing the content to screen")
-	flag.BoolVar(&options.skipTLSVerify, "tls-skip-verify", false, "skip verifying the vault certificate")
+	flag.BoolVar(&options.tlsVerify, "tls-skip-verify", false, "whether to check and verify the vault service certificate")
 	flag.DurationVar(&options.statsInterval, "stats", time.Duration(5)*time.Minute, "the interval to produce statistics on the accessed resources")
 	flag.Var(options.resources, "cn", "a resource to retrieve and monitor from vault (e.g. pki:name:cert.name, secret:db_password, aws:s3_backup)")
 }
@@ -77,16 +74,6 @@ func validateOptions(cfg *config) error {
 	_, err := url.Parse(cfg.vaultURL)
 	if err != nil {
 		return fmt.Errorf("invalid vault url: '%s' specified", cfg.vaultURL)
-	}
-
-	// step: check if the token is in the VAULT_TOKEN var
-	if cfg.vaultToken == "" {
-		cfg.vaultToken = getEnv("VAULT_TOKEN", "")
-	}
-
-	// step: ensure we have a token
-	if cfg.vaultToken == "" && cfg.vaultAuthFile == "" {
-		return fmt.Errorf("you have not either a token or a authentication file to authenticate to vault with")
 	}
 
 	// step: read in the token if required
