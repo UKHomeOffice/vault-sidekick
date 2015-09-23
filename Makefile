@@ -13,11 +13,15 @@ build:
 	go build -o bin/${NAME}
 
 docker: build
-	sudo docker build -t ${AUTHOR}/${NAME} .
+	sudo docker build -t ${AUTHOR}/${NAME}:${VERSION} .
 
 static:
 	mkdir -p bin
 	CGO_ENABLED=0 GOOS=linux go build -a -tags netgo -ldflags '-w' -o bin/${NAME}
+
+push: docker
+	sudo docker tag -f ${AUTHOR}/${NAME}:${VERSION} docker.io/${AUTHOR}/${NAME}:${VERSION}
+	sudo docker push docker.io/${AUTHOR}/${NAME}:${VERSION}
 
 release: static
 	mkdir -p release

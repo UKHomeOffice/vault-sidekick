@@ -22,6 +22,8 @@ import (
 
 	"github.com/golang/glog"
 	"github.com/hashicorp/vault/api"
+	"crypto/tls"
+"net/http"
 )
 
 // a channel to send resource
@@ -55,6 +57,13 @@ func newVaultService(url string) (*vaultService, error) {
 	service := new(vaultService)
 	service.config = api.DefaultConfig()
 	service.config.Address = url
+
+	// step: skip the cert verification if requested
+	if options.skipTLSVerify {
+		service.config.HttpClient.Transport = &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		}
+	}
 
 	// step: create the service processor channels
 	service.resourceChannel = make(chan *watchedResource, 20)
@@ -245,7 +254,7 @@ func (r vaultService) authenticate(auth map[string]string) (string, error) {
 //	max			: the maximum amount of time i'm willing to wait
 func (r vaultService) reschedule(rn *watchedResource, ch chan *watchedResource, min, max int) {
 	go func(x *watchedResource) {
-		glog.V(3).Infof("rescheduling the resource: %s, channel: %s", rn.resource, ch)
+		glog.V(3).Infof("rescheduling the resource: %s, channel: %v", rn.resource, ch)
 		<-randomWait(min, max)
 		ch <- x
 	}(rn)
