@@ -8,17 +8,21 @@ Vault Sidekick is a add-on container which can be used as a generic entry-point 
 **Usage:**
 
 ```shell
-[jest@starfury vault-sidekick]$ build/vault-sidekick -help
-Usage of build/vault-sidekick:
+[jest@starfury vault-sidekick]$ bin/vault-sidekick --help
+Usage of bin/vault-sidekick:
   -alsologtostderr=false: log to standard error as well as files
+  -auth="": a configuration file in a json or yaml containing authentication arguments
   -cn=: a resource to retrieve and monitor from vault (e.g. pki:name:cert.name, secret:db_password, aws:s3_backup)
+  -delete-token=false: once the we have connected to vault, delete the token file from disk
+  -dryrun=false: perform a dry run, printing the content to screen
   -log_backtrace_at=:0: when logging hits line file:N, emit a stack trace
   -log_dir="": If non-empty, write log files in this directory
   -logtostderr=false: log to standard error instead of files
   -output="/etc/secrets": the full path to write the protected resources (VAULT_OUTPUT if available)
+  -stats=5m0s: the interval to produce statistics on the accessed resources
   -stderrthreshold=0: logs at or above this threshold go to stderr
+  -tls-skip-verify=false: skip verifying the vault certificate
   -token="": the token used to authenticate to teh vault service (VAULT_TOKEN if available)
-  -tokenfile="": the full path to file containing the vault token used for authentication (VAULT_TOKEN_FILE if available)
   -v=0: log level for V logs
   -vault="https://127.0.0.1:8200": the url the vault service is running behind (VAULT_ADDR if available)
   -vmodule=: comma-separated list of pattern=N settings for file-filtered logging
@@ -55,7 +59,7 @@ The above say's
 
 **Authentication**
 
-A authentication file can be specified 
+A authentication file can be specified
 
 **Secret Renewals**
 
