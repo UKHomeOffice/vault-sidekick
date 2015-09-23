@@ -30,6 +30,7 @@ release: static
 
 clean:
 	rm -rf ./bin 2>/dev/null
+	rm -rf ./release 2>/dev/null
 
 authors:
 	git log --format='%aN <%aE>' | sort -u > AUTHORS
