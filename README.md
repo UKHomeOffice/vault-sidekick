@@ -39,11 +39,11 @@ spec:
         image: gambol99/vault-sidekick:latest
         args:
           - -output=/etc/secrets
-          - -rn=pki:example.com:cn=commons.example.com,exec=/usr/bin/nginx_restart.sh,ctr=.*nginx_server.*
-          - -rn=secret:db/prod/username:fn=.credentials
-          - -rn=secret:db/prod/password
-          - -rn=aws:s3_backsup:fn=.s3_creds
-          - -rb=template:database_credentials:tpl=/etc/templates/db.tmpl,fn=/etc/credentials
+          - -cn=pki:example.com:cn=commons.example.com,rv=true,up=2h
+          - -cn=secret:db/prod/username:fn=.credentials
+          - -cn=secret:db/prod/password
+          - -cn=aws:s3_backsup:fn=.s3_creds
+          - -cn=template:database_credentials:tpl=/etc/templates/db.tmpl,fn=/etc/credentials
         volumeMounts:
           - name: secrets
             mountPath: /etc/secrets
@@ -59,7 +59,8 @@ The above say's
 
 **Authentication**
 
-A authentication file can be specified
+A authentication file can be specified in either yaml of json format which contains a method field, indicating one of the authentication
+methods provided by vault i.e. userpass, token, github etc and then followed by the required arguments for that plugin.
 
 **Secret Renewals**
 
@@ -106,9 +107,6 @@ In order to change the output format:
 [jest@starfury vault-sidekick]$ build/vault-sidekick -cn=secret:password:fmt=json -logtostderr=true -dry-run
 [jest@starfury vault-sidekick]$ build/vault-sidekick -cn=secret:password:fmt=yaml -logtostderr=true -dry-run
 ```
-
-The default format is 'txt' which has the following behavour. If the number of keys in a resource is > 1, a file is created per key. Thus using the example
-(build/vault-sidekick -cn=secret:password:fn=test) we would end up with files: test.this, test.nothing and test.demo
 
 Format: 'cert' is less of a format of more file scheme i.e. is just extracts the 'certificate', 'issuing_ca' and 'private_key' and creates the three files FILE.{ca,key,crt}
 

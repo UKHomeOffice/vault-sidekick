@@ -41,7 +41,7 @@ const (
 )
 
 var (
-	resourceFormatRegex = regexp.MustCompile("^(yaml|json|ini|txt|cert)$")
+	resourceFormatRegex = regexp.MustCompile("^(yaml|json|ini|txt|cert|csv)$")
 
 	// a map of valid resource to retrieve from vault
 	validResources = map[string]bool{
@@ -55,8 +55,8 @@ var (
 	}
 )
 
-func defaultVaultResource() *vaultResource {
-	return &vaultResource{
+func defaultVaultResource() *VaultResource {
+	return &VaultResource{
 		format:    "yaml",
 		renewable: false,
 		revoked:   false,
@@ -64,8 +64,8 @@ func defaultVaultResource() *vaultResource {
 	}
 }
 
-// resource ... the structure which defined a resource set from vault
-type vaultResource struct {
+// VaultResource ... the structure which defined a resource set from vault
+type VaultResource struct {
 	// the namespace of the resource
 	resource string
 	// the name of the resource
@@ -82,8 +82,18 @@ type vaultResource struct {
 	options map[string]string
 }
 
-// isValid ... checks to see if the resource is valid
-func (r *vaultResource) isValid() error {
+// GetFilename ... generates a resource filename by default the resource name and resource type, which
+// can override by the OPTION_FILENAME option
+func (r VaultResource) GetFilename() string {
+	if path, found := r.options[OptionFilename]; found {
+		return path
+	}
+
+	return fmt.Sprintf("%s.%s", r.name, r.resource)
+}
+
+// IsValid ... checks to see if the resource is valid
+func (r *VaultResource) IsValid() error {
 	// step: check the resource type
 	if _, found := validResources[r.resource]; !found {
 		return fmt.Errorf("unsupported resource type: %s", r.resource)
@@ -103,7 +113,7 @@ func (r *vaultResource) isValid() error {
 }
 
 // isValidResource ... validate the resource meets the requirements
-func (r *vaultResource) isValidResource() error {
+func (r *VaultResource) isValidResource() error {
 	switch r.resource {
 	case "pki":
 		if _, found := r.options[OptionCommonName]; !found {
@@ -119,7 +129,7 @@ func (r *vaultResource) isValidResource() error {
 }
 
 // isValidOptions ... iterates through the options, converts the options and so forth
-func (r *vaultResource) isValidOptions() error {
+func (r *VaultResource) isValidOptions() error {
 	// check the filename directive
 	for opt, val := range r.options {
 		switch opt {
@@ -160,17 +170,7 @@ func (r *vaultResource) isValidOptions() error {
 	return nil
 }
 
-// resourceFilename ... generates a resource filename by default the resource name and resource type, which
-// can override by the OPTION_FILENAME option
-func (r vaultResource) filename() string {
-	if path, found := r.options[OptionFilename]; found {
-		return path
-	}
-
-	return fmt.Sprintf("%s.%s", r.name, r.resource)
-}
-
 // String ... a string representation of the struct
-func (r vaultResource) String() string {
+func (r VaultResource) String() string {
 	return fmt.Sprintf("%s/%s", r.resource, r.name)
 }

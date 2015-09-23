@@ -23,7 +23,7 @@ import (
 )
 
 func TestSetResources(t *testing.T) {
-	var items vaultResources
+	var items VaultResources
 
 	assert.Nil(t, items.Set("secret:test:fn=filename.test,fmt=yaml"))
 	assert.Nil(t, items.Set("secret:test:fn=filename.test,"))
@@ -41,7 +41,7 @@ func TestSetResources(t *testing.T) {
 }
 
 func TestResources(t *testing.T) {
-	var items vaultResources
+	var items VaultResources
 	items.Set("secret:test:fn=filename.test,fmt=yaml")
 	items.Set("secret:test:fn=fileame.test")
 

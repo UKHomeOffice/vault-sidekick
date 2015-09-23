@@ -27,14 +27,14 @@ var (
 	resourceOptionsRegex = regexp.MustCompile("([\\w\\d]{2,3})=([\\w\\d\\/\\.\\-_]+)[,]?")
 )
 
-// resources ... a collection of type resource
-type vaultResources struct {
+// VaultResources ... a collection of type resource
+type VaultResources struct {
 	// an array of resource to retrieve
-	items []*vaultResource
+	items []*VaultResource
 }
 
 // Set ... implementation for the parser
-func (r *vaultResources) Set(value string) error {
+func (r *VaultResources) Set(value string) error {
 	rn := defaultVaultResource()
 
 	// step: extract the resource type and name
@@ -68,6 +68,6 @@ func (r *vaultResources) Set(value string) error {
 }
 
 // String ... returns a string representation of the struct
-func (r vaultResources) String() string {
+func (r VaultResources) String() string {
 	return ""
 }

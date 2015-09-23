@@ -31,10 +31,8 @@ const (
 // watchedResource ... is a resource which is being watched - i.e. when the item is coming up for renewal
 // lets grab it and renew the lease
 type watchedResource struct {
-	// the upstream listener to the event
-	listener chan vaultResourceEvent
 	// the resource itself
-	resource *vaultResource
+	resource *VaultResource
 	// the last time the resource was retrieved
 	lastUpdated time.Time
 	// the time which the lease expires
