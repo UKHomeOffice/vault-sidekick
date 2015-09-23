@@ -39,6 +39,8 @@ type config struct {
 	deleteToken bool
 	// switch on dry run
 	dryRun bool
+	// skip tls verify
+	skipTLSVerify bool
 	// the resource items to retrieve
 	resources *vaultResources
 	// the interval for producing statistics
@@ -57,6 +59,7 @@ func init() {
 	flag.StringVar(&options.outputDir, "output", getEnv("VAULT_OUTPUT", "/etc/secrets"), "the full path to write the protected resources (VAULT_OUTPUT if available)")
 	flag.BoolVar(&options.deleteToken, "delete-token", false, "once the we have connected to vault, delete the token file from disk")
 	flag.BoolVar(&options.dryRun, "dryrun", false, "perform a dry run, printing the content to screen")
+	flag.BoolVar(&options.skipTLSVerify, "tls-skip-verify", false, "skip verifying the vault certificate")
 	flag.DurationVar(&options.statsInterval, "stats", time.Duration(5)*time.Minute, "the interval to produce statistics on the accessed resources")
 	flag.Var(options.resources, "cn", "a resource to retrieve and monitor from vault (e.g. pki:name:cert.name, secret:db_password, aws:s3_backup)")
 }
