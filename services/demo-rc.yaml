@@ -16,13 +16,14 @@ spec:
       containers:
       - name: vault-sidekick
         image: gambol99/vault-sidekick:0.0.1
+        imagePullPolicy: Always
         args:
           - -logtostderr=true
           - -v=4
           - -tls-skip-verify=true
           - -auth=/etc/token/vault-token.yml
           - -output=/etc/secrets
-          - -cn=secret:db:up=30s,rv=true
+          - -cn=secret:db:up=3h,rv=true
           - -cn=pki:example-dot-com:cn=demo.example.com,fmt=cert,fn=demo.example.com
           - -vault=https://vault.services.cluster.local:8200
         volumeMounts:
@@ -30,6 +31,18 @@ spec:
             mountPath: /etc/secrets
           - name: token
             mountPath: /etc/token
+      - name: nginx-tls-sidekick
+        image: quay.io/ukhomeofficedigital/nginx-tls-sidekick
+        imagePullPolicy: Always
+        args:
+          - ./run.sh
+          - -p
+          - 443:127.0.0.1:80:demo.example.com
+        ports:
+          - containerPort: 443
+        volumeMounts:
+          - name: secrets
+            mountPath: /etc/secrets
       - name: apache
         image: fedora/apache
         ports:
