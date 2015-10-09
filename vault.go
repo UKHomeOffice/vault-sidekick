@@ -18,7 +18,9 @@ package main
 
 import (
 	"crypto/tls"
+	"crypto/x509"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"time"
 
@@ -46,6 +48,7 @@ type VaultService struct {
 	config *api.Config
 	// the token to authenticate with
 	token string
+
 	// the listener channel - technically we only have the one listener but there a long term reasons for adding this
 	listeners []chan VaultEvent
 	// a channel to inform of a new resource to processor
@@ -71,11 +74,10 @@ func NewVaultService(url string) (*VaultService, error) {
 	service.config.Address = url
 	service.listeners = make([]chan VaultEvent, 0)
 
-	// step: skip the cert verification if requested
-	if options.tlsVerify {
-		service.config.HttpClient.Transport = &http.Transport{
-			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-		}
+	// step: setup and generate the tls options
+	service.config.HttpClient.Transport, err = service.getHttpTransport()
+	if err != nil {
+		return nil, err
 	}
 
 	// step: create the service processor channels
@@ -97,6 +99,29 @@ func NewVaultService(url string) (*VaultService, error) {
 	service.vaultServiceProcessor()
 
 	return service, nil
+}
+
+func (r *VaultService) getHttpTransport() (*http.Transport, error) {
+	transport := &http.Transport{}
+
+	// step: are we skip the tls verify?
+	if options.tlsVerify {
+		transport.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
+	}
+	// step: are we loading a CA file
+	if options.vaultCaFile != "" {
+		// step: load the ca file
+		caCert, err := ioutil.ReadFile(options.vaultCaFile)
+		if err != nil {
+			return nil, fmt.Errorf("unable to read in the ca: %s, reason: %s", options.vaultCaFile, err)
+		}
+		caCertPool := x509.NewCertPool()
+		caCertPool.AppendCertsFromPEM(caCert)
+		// step: add the ca to the root
+		transport.TLSClientConfig.RootCAs = caCertPool
+	}
+
+	return transport, nil
 }
 
 // AddListener ... add a listener to the events listeners

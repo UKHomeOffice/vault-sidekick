@@ -28,6 +28,10 @@ Usage of bin/vault-sidekick:
   -vmodule=: comma-separated list of pattern=N settings for file-filtered logging
 ```
 
+**Building**
+
+There is a Makefile in the base repository, so assuming you have make and go: # make 
+
 **Example Usage**
 
 The below is taken from a [Kubernetes](https://github.com/kubernetes/kubernetes) pod specification;

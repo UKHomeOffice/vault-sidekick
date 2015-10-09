@@ -27,7 +27,6 @@ import (
 const (
 	Prog    = "vault-sidekick"
 	Version = "0.0.1"
-	GitSha  = ""
 )
 
 func main() {
