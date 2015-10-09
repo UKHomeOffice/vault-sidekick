@@ -285,7 +285,7 @@ func (r VaultService) authenticate(auth map[string]string) (string, error) {
 //	rn			: a pointer to the watched resource you wish to reschedule
 //	ch			: the channel the resource should be placed into
 func (r VaultService) scheduleNow(rn *watchedResource, ch chan *watchedResource) {
-	return r.scheduleIn(rn, ch, 0, 0)
+	r.scheduleIn(rn, ch, 0, 0)
 }
 
 // scheduleIn ... schedules an event back into a channel after n seconds
