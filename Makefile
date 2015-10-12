@@ -38,10 +38,11 @@ authors:
 cover:
 	go list ./... | xargs -n1 go test --cover
 
-test: cover
+test:
 	go get
 	go get github.com/stretchr/testify/assert
 	go test -v
+	make cover
 
 changelog: release
 	git log $(shell git tag | tail -n1)..HEAD --no-merges --format=%B > changelog
