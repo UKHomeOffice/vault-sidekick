@@ -35,7 +35,10 @@ clean:
 authors:
 	git log --format='%aN <%aE>' | sort -u > AUTHORS
 
-test:
+cover:
+	go list ./... | xargs -n1 go test --cover
+
+test: cover
 	go get
 	go get github.com/stretchr/testify/assert
 	go test -v
