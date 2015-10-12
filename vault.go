@@ -29,17 +29,17 @@ import (
 )
 
 const (
-	// VaultAuth ... the method to use when authenticating to vault
+	// VaultAuth the method to use when authenticating to vault
 	VaultAuth = "method"
 )
 
-// AuthInterface .. the auth interface
+// AuthInterface is the authentication interface
 type AuthInterface interface {
 	// Create and handle renewals of the token
 	Create(map[string]string) (string, error)
 }
 
-// VaultService ... is the main interface into the vault API - placing into a structure
+// VaultService is the main interface into the vault API - placing into a structure
 // allows one to easily mock it and two to simplify the interface for us
 type VaultService struct {
 	// the vault client
@@ -48,14 +48,13 @@ type VaultService struct {
 	config *api.Config
 	// the token to authenticate with
 	token string
-
 	// the listener channel - technically we only have the one listener but there a long term reasons for adding this
 	listeners []chan VaultEvent
 	// a channel to inform of a new resource to processor
 	resourceChannel chan *watchedResource
 }
 
-// VaultEvent ... the definition which captures a change
+// VaultEvent is the definition which captures a change
 type VaultEvent struct {
 	// the resource this relates to
 	Resource *VaultResource
@@ -63,7 +62,7 @@ type VaultEvent struct {
 	Secret map[string]interface{}
 }
 
-// NewVaultService ... creates a new implementation to speak to vault and retrieve the resources
+// NewVaultService creates a new implementation to speak to vault and retrieve the resources
 //	url			: the url of the vault service
 func NewVaultService(url string) (*VaultService, error) {
 	var err error
@@ -74,10 +73,11 @@ func NewVaultService(url string) (*VaultService, error) {
 	service.config.Address = url
 	service.listeners = make([]chan VaultEvent, 0)
 
-	// step: setup and generate the tls options
-	service.config.HttpClient.Transport, err = service.getHttpTransport()
-	if err != nil {
-		return nil, err
+	// step: skip the cert verification if requested
+	if options.tlsVerify {
+		service.config.HttpClient.Transport = &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		}
 	}
 
 	// step: create the service processor channels
@@ -130,13 +130,13 @@ func (r *VaultService) AddListener(ch chan VaultEvent) {
 	r.listeners = append(r.listeners, ch)
 }
 
-// Watch ... add a watch on a resource and inform, renew which required and inform us when
+// Watch adds a watch on a resource and inform, renew which required and inform us when
 // the resource is ready
 func (r VaultService) Watch(rn *VaultResource) {
 	r.resourceChannel <- &watchedResource{resource: rn}
 }
 
-// vaultServiceProcessor ... is the background routine responsible for retrieving the resources, renewing when required and
+// vaultServiceProcessor is the background routine responsible for retrieving the resources, renewing when required and
 // informing those who are watching the resource that something has changed
 func (r *VaultService) vaultServiceProcessor() {
 	go func() {
@@ -319,7 +319,7 @@ func (r VaultService) upstream(item *watchedResource) {
 	}
 }
 
-// renew ... attempts to renew the lease on a resource
+// renew attempts to renew the lease on a resource
 // 	rn			: the resource we wish to renew the lease on
 func (r VaultService) renew(rn *watchedResource) error {
 	glog.V(4).Infof("attempting to renew the lease: %s on resource: %s", rn.secret.LeaseID, rn.resource)
@@ -343,7 +343,7 @@ func (r VaultService) renew(rn *watchedResource) error {
 	return nil
 }
 
-// revoke ... attempt to revoke the lease of a resource
+// revoke attempts to revoke the lease of a resource
 //	lease		: the lease lease which was given when you got it
 func (r VaultService) revoke(lease string) error {
 	glog.V(3).Infof("attemping to revoking the lease: %s", lease)
@@ -357,7 +357,7 @@ func (r VaultService) revoke(lease string) error {
 	return nil
 }
 
-// get ... retrieve a secret from the vault
+// get retrieves a secret from the vault
 //	rn			: the watched resource
 func (r VaultService) get(rn *watchedResource) (err error) {
 	var secret *api.Secret
@@ -367,7 +367,7 @@ func (r VaultService) get(rn *watchedResource) (err error) {
 	case "pki":
 		secret, err = r.client.Logical().Write(fmt.Sprintf("%s/issue/%s", rn.resource.resource, rn.resource.name),
 			map[string]interface{}{
-				"common_name": rn.resource.options[OptionCommonName],
+				"common_name": rn.resource.options[optionCommonName],
 			})
 	case "aws":
 		secret, err = r.client.Logical().Read(fmt.Sprintf("%s/creds/%s", rn.resource.resource, rn.resource.name))

@@ -36,7 +36,7 @@ func init() {
 	rand.Seed(int64(time.Now().Nanosecond()))
 }
 
-// showUsage ... prints the command usage and exits
+// showUsage prints the command usage and exits
 //	message		: an error message to display if exiting with an error
 func showUsage(message string, args ...interface{}) {
 	flag.PrintDefaults()
@@ -48,14 +48,14 @@ func showUsage(message string, args ...interface{}) {
 	os.Exit(0)
 }
 
-// randomWait ... wait for a random amount of time
+// randomWait waits for a random amount of time
 // 	min			: the minimum amount of time willing to wait
 //	max			: the maximum amount of time willing to wait
 func randomWait(min, max int) <-chan time.Time {
 	return time.After(time.Duration(getRandomWithin(min, max)) * time.Second)
 }
 
-// hasKey ... checks to see if a key is present
+// hasKey checks to see if a key is present
 //	key			: the key we are looking for
 //	data		: a map of strings to something we are looking at
 func hasKey(key string, data map[string]interface{}) bool {
@@ -63,7 +63,7 @@ func hasKey(key string, data map[string]interface{}) bool {
 	return found
 }
 
-// getKeys ... retrieve a list of keys from the map
+// getKeys retrieves a list of keys from the map
 // 	data		: the map which you wish to extract the keys from
 func getKeys(data map[string]interface{}) []string {
 	var list []string
@@ -73,7 +73,7 @@ func getKeys(data map[string]interface{}) []string {
 	return list
 }
 
-// readConfigFile ... read in a configuration file
+// readConfigFile read in a configuration file
 //	filename		: the path to the file
 func readConfigFile(filename string) (map[string]string, error) {
 	// step: check the file exists
@@ -95,7 +95,7 @@ func readConfigFile(filename string) (map[string]string, error) {
 	return nil, fmt.Errorf("unsupported config file format: %s", suffix)
 }
 
-// readJsonFile ... read in and unmarshall the data into a map
+// readJsonFile read in and unmarshall the data into a map
 //	filename	: the path to the file container the json data
 func readJSONFile(filename string) (map[string]string, error) {
 	data := make(map[string]string, 0)
@@ -113,7 +113,7 @@ func readJSONFile(filename string) (map[string]string, error) {
 	return data, nil
 }
 
-// readYAMLFile ... read in and unmarshall the data into a map
+// readYAMLFile read in and unmarshall the data into a map
 //	filename	: the path to the file container the yaml data
 func readYAMLFile(filename string) (map[string]string, error) {
 	data := make(map[string]string, 0)
@@ -129,14 +129,14 @@ func readYAMLFile(filename string) (map[string]string, error) {
 	return data, nil
 }
 
-// randomInt ... generate a random integer between min and max
+// randomInt generate a random integer between min and max
 //	min			: the smallest number we can accept
 //	max			: the largest number we can accept
 func getRandomWithin(min, max int) int {
 	return rand.Intn(max-min) + min
 }
 
-// getEnv ... checks to see if an environment variable exists otherwise uses the default
+// getEnv checks to see if an environment variable exists otherwise uses the default
 //	env			: the name of the environment variable you are checking for
 //	value		: the default value to return if the value is not there
 func getEnv(env, value string) string {
@@ -147,7 +147,7 @@ func getEnv(env, value string) string {
 	return value
 }
 
-// fileExists ... checks to see if a file exists
+// fileExists checks to see if a file exists
 //	filename		: the full path to the file you are checking for
 func fileExists(filename string) (bool, error) {
 	if _, err := os.Stat(filename); err != nil {
@@ -160,7 +160,7 @@ func fileExists(filename string) (bool, error) {
 	return true, nil
 }
 
-// writeResourceContent ... is responsible for generating the specific content from the resource
+// writeResourceContent is responsible for generating the specific content from the resource
 // 	rn			: a point to the vault resource
 //	data		: a map of the related secret associated to the resource
 func writeResource(rn *VaultResource, data map[string]interface{}) error {
