@@ -72,12 +72,9 @@ func NewVaultService(url string) (*VaultService, error) {
 	service.config = api.DefaultConfig()
 	service.config.Address = url
 	service.listeners = make([]chan VaultEvent, 0)
-
-	// step: skip the cert verification if requested
-	if options.tlsVerify {
-		service.config.HttpClient.Transport = &http.Transport{
-			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-		}
+	service.config.HttpClient.Transport, err = service.getHTTPTransport()
+	if err != nil {
+		return nil, err
 	}
 
 	// step: create the service processor channels
@@ -101,7 +98,7 @@ func NewVaultService(url string) (*VaultService, error) {
 	return service, nil
 }
 
-func (r *VaultService) getHttpTransport() (*http.Transport, error) {
+func (r *VaultService) getHTTPTransport() (*http.Transport, error) {
 	transport := &http.Transport{}
 
 	// step: are we skip the tls verify?
@@ -309,13 +306,12 @@ func (r VaultService) scheduleIn(rn *watchedResource, ch chan *watchedResource, 
 func (r VaultService) upstream(item *watchedResource) {
 	// step: chunk this into a go-routine not to block us
 	for _, listener := range r.listeners {
-		go func() {
-			glog.V(6).Infof("sending the event for resource: %s upstream to listener: %v", item.resource, listener)
-			listener <- VaultEvent{
+		go func(ch chan VaultEvent) {
+			ch <- VaultEvent{
 				Resource: item.resource,
 				Secret:   item.secret.Data,
 			}
-		}()
+		}(listener)
 	}
 }
 
