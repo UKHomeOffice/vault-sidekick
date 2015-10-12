@@ -18,7 +18,9 @@ package main
 
 import (
 	"crypto/tls"
+	"crypto/x509"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"time"
 
@@ -46,6 +48,7 @@ type VaultService struct {
 	config *api.Config
 	// the token to authenticate with
 	token string
+
 	// the listener channel - technically we only have the one listener but there a long term reasons for adding this
 	listeners []chan VaultEvent
 	// a channel to inform of a new resource to processor
@@ -71,11 +74,10 @@ func NewVaultService(url string) (*VaultService, error) {
 	service.config.Address = url
 	service.listeners = make([]chan VaultEvent, 0)
 
-	// step: skip the cert verification if requested
-	if options.tlsVerify {
-		service.config.HttpClient.Transport = &http.Transport{
-			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-		}
+	// step: setup and generate the tls options
+	service.config.HttpClient.Transport, err = service.getHttpTransport()
+	if err != nil {
+		return nil, err
 	}
 
 	// step: create the service processor channels
@@ -97,6 +99,29 @@ func NewVaultService(url string) (*VaultService, error) {
 	service.vaultServiceProcessor()
 
 	return service, nil
+}
+
+func (r *VaultService) getHttpTransport() (*http.Transport, error) {
+	transport := &http.Transport{}
+
+	// step: are we skip the tls verify?
+	if options.tlsVerify {
+		transport.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
+	}
+	// step: are we loading a CA file
+	if options.vaultCaFile != "" {
+		// step: load the ca file
+		caCert, err := ioutil.ReadFile(options.vaultCaFile)
+		if err != nil {
+			return nil, fmt.Errorf("unable to read in the ca: %s, reason: %s", options.vaultCaFile, err)
+		}
+		caCertPool := x509.NewCertPool()
+		caCertPool.AppendCertsFromPEM(caCert)
+		// step: add the ca to the root
+		transport.TLSClientConfig.RootCAs = caCertPool
+	}
+
+	return transport, nil
 }
 
 // AddListener ... add a listener to the events listeners
@@ -127,16 +152,17 @@ func (r *VaultService) vaultServiceProcessor() {
 		for {
 			select {
 			// A new resource is being added to the service processor;
-			//  - we retrieve the resource from vault
-			//  - if we error attempting to retrieve the secret, we background and reschedule an attempt to add it
-			//  - if ok, we grab the lease it and lease time, we setup a notification on renewal
+			//  - schedule the resource for retrieval
 			case x := <-r.resourceChannel:
 				glog.V(4).Infof("adding a resource into the service processor, resource: %s", x.resource)
 				// step: add to the list of resources
 				items = append(items, x)
 				// step: push into the retrieval channel
-				retrieveChannel <- x
-
+				r.scheduleNow(x, retrieveChannel)
+			// Retrieve a resource from vault
+			//  - we retrieve the resource from vault
+			//  - if we error attempting to retrieve the secret, we background and reschedule an attempt to add it
+			//  - if ok, we grab the lease it and lease time, we setup a notification on renewal
 			case x := <-retrieveChannel:
 				// step: save the current lease if we have one
 				leaseID := ""
@@ -150,7 +176,7 @@ func (r *VaultService) vaultServiceProcessor() {
 				if err != nil {
 					glog.Errorf("failed to retrieve the resource: %s from vault, error: %s", x.resource, err)
 					// reschedule the attempt for later
-					r.reschedule(x, retrieveChannel, 3, 10)
+					r.scheduleIn(x, retrieveChannel, 3, 10)
 					break
 				}
 
@@ -180,7 +206,7 @@ func (r *VaultService) vaultServiceProcessor() {
 				if time.Now().Before(x.leaseExpireTime) {
 					glog.V(3).Infof("the lease on resource: %s has expired, we need to get a new lease", x.resource)
 					// push into the retrieval channel and break
-					retrieveChannel <- x
+					r.scheduleNow(x, retrieveChannel)
 					break
 				}
 
@@ -189,7 +215,7 @@ func (r *VaultService) vaultServiceProcessor() {
 					// step: is the underlining resource even renewable? - otherwise we can just grab a new lease
 					if !x.secret.Renewable {
 						glog.V(10).Infof("the resource: %s is not renewable, retrieving a new lease instead", x.resource)
-						retrieveChannel <- x
+						r.scheduleNow(x, retrieveChannel)
 						break
 					}
 
@@ -198,7 +224,7 @@ func (r *VaultService) vaultServiceProcessor() {
 					if err != nil {
 						glog.Errorf("failed to renew the resounce: %s for renewal, error: %s", x.resource, err)
 						// reschedule the attempt for later
-						r.reschedule(x, renewChannel, 3, 10)
+						r.scheduleIn(x, renewChannel, 3, 10)
 						break
 					}
 				}
@@ -206,7 +232,7 @@ func (r *VaultService) vaultServiceProcessor() {
 				// step: the option for this resource is not to renew the secret but regenerate a new secret
 				if !x.resource.renewable {
 					glog.V(4).Infof("resource: %s flagged as not renewable, shifting to regenerating the resource", x.resource)
-					retrieveChannel <- x
+					r.scheduleNow(x, retrieveChannel)
 					break
 				}
 
@@ -255,15 +281,25 @@ func (r VaultService) authenticate(auth map[string]string) (string, error) {
 	return secret, err
 }
 
-// reschedule ... reschedules an event back into a channel after n seconds
+// scheduleNow ... a helper method to perform an immediate reschedule into a channel
+//	rn			: a pointer to the watched resource you wish to reschedule
+//	ch			: the channel the resource should be placed into
+func (r VaultService) scheduleNow(rn *watchedResource, ch chan *watchedResource) {
+	r.scheduleIn(rn, ch, 0, 0)
+}
+
+// scheduleIn ... schedules an event back into a channel after n seconds
 //	rn			: a pointer to the watched resource you wish to reschedule
 //	ch			: the channel the resource should be placed into
 //	min			: the minimum amount of time i'm willing to wait
 //	max			: the maximum amount of time i'm willing to wait
-func (r VaultService) reschedule(rn *watchedResource, ch chan *watchedResource, min, max int) {
+func (r VaultService) scheduleIn(rn *watchedResource, ch chan *watchedResource, min, max int) {
 	go func(x *watchedResource) {
 		glog.V(3).Infof("rescheduling the resource: %s, channel: %v", rn.resource, ch)
-		<-randomWait(min, max)
+		// step: are we doing a random wait?
+		if min > 0 {
+			<-randomWait(min, max)
+		}
 		ch <- x
 	}(rn)
 }

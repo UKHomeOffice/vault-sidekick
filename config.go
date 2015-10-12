@@ -31,6 +31,8 @@ type config struct {
 	vaultAuthFile string
 	// the authentication options
 	vaultAuthOptions map[string]string
+	// the vault ca file
+	vaultCaFile string
 	// the place to write the resources
 	outputDir string
 	// switch on dry run
@@ -52,13 +54,14 @@ func init() {
 	options.resources = new(VaultResources)
 	options.vaultAuthOptions = map[string]string{VaultAuth: "token"}
 
-	flag.StringVar(&options.vaultURL, "vault", getEnv("VAULT_ADDR", "https://127.0.0.1:8200"), "the url the vault service is running behind (VAULT_ADDR if available)")
-	flag.StringVar(&options.vaultAuthFile, "auth", "", "a configuration file in a json or yaml containing authentication arguments")
-	flag.StringVar(&options.outputDir, "output", getEnv("VAULT_OUTPUT", "/etc/secrets"), "the full path to write the protected resources (VAULT_OUTPUT if available)")
+	flag.StringVar(&options.vaultURL, "vault", getEnv("VAULT_ADDR", "https://127.0.0.1:8200"), "url the vault service or VAULT_ADDR")
+	flag.StringVar(&options.vaultAuthFile, "auth", "", "a configuration file in json or yaml containing authentication arguments")
+	flag.StringVar(&options.outputDir, "output", getEnv("VAULT_OUTPUT", "/etc/secrets"), "the full path to write resources or VAULT_OUTPUT")
 	flag.BoolVar(&options.dryRun, "dryrun", false, "perform a dry run, printing the content to screen")
 	flag.BoolVar(&options.tlsVerify, "tls-skip-verify", false, "whether to check and verify the vault service certificate")
+	flag.StringVar(&options.vaultCaFile, "ca-cert", "", "the path to the file container the CA used to verify the vault service")
 	flag.DurationVar(&options.statsInterval, "stats", time.Duration(5)*time.Minute, "the interval to produce statistics on the accessed resources")
-	flag.Var(options.resources, "cn", "a resource to retrieve and monitor from vault (e.g. pki:name:cert.name, secret:db_password, aws:s3_backup)")
+	flag.Var(options.resources, "cn", "a resource to retrieve and monitor from vault")
 }
 
 // parseOptions ... validate the command line options and validates them
@@ -85,6 +88,16 @@ func validateOptions(cfg *config) error {
 		if options.vaultAuthOptions, err = readConfigFile(options.vaultAuthFile); err != nil {
 			return fmt.Errorf("unable to read in authentication options from: %s, error: %s", cfg.vaultAuthFile, err)
 		}
+	}
+
+	if cfg.vaultCaFile != "" {
+		if exists, _ := fileExists(cfg.vaultCaFile); !exists {
+			return fmt.Errorf("the ca certificate file: %s does not exist", cfg.vaultCaFile)
+		}
+	}
+
+	if cfg.tlsVerify == true && cfg.vaultCaFile != "" {
+		return fmt.Errorf("you are skipping the tls but supplying a CA, doesn't make sense")
 	}
 
 	return nil
