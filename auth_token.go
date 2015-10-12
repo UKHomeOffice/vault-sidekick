@@ -29,14 +29,14 @@ type authTokenPlugin struct {
 	client *api.Client
 }
 
-// NewUserTokenPlugin ... creates a new User Token plugin
+// NewUserTokenPlugin creates a new User Token plugin
 func NewUserTokenPlugin(client *api.Client) AuthInterface {
 	return &authTokenPlugin{
 		client: client,
 	}
 }
 
-// create ... retrieves the token from an environment variable or file
+// Create retrieves the token from an environment variable or file
 func (r authTokenPlugin) Create(cfg map[string]string) (string, error) {
 	filename, _ := cfg["filename"]
 	if filename != "" {
@@ -48,7 +48,7 @@ func (r authTokenPlugin) Create(cfg map[string]string) (string, error) {
 		// check: ensure we have a token in the file
 		token, found := content["token"]
 		if !found {
-			fmt.Errorf("the auth file: %s does not contain a token", filename)
+			return "", fmt.Errorf("the auth file: %s does not contain a token", filename)
 		}
 
 		return token, nil

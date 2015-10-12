@@ -27,20 +27,19 @@ type authUserPassPlugin struct {
 	client *api.Client
 }
 
-// auth token
 type userPassLogin struct {
 	// the password for the account
 	Password string `json:"password,omitempty"`
 }
 
-// NewUserPassPlugin ... creates a new User Pass plugin
+// NewUserPassPlugin creates a new User Pass plugin
 func NewUserPassPlugin(client *api.Client) AuthInterface {
 	return &authUserPassPlugin{
 		client: client,
 	}
 }
 
-// create ... login with the username and password provide in the file
+// Create a userpass plugin with the username and password provide in the file
 func (r authUserPassPlugin) Create(cfg map[string]string) (string, error) {
 	// step: extract the options
 	username, _ := cfg["username"]

@@ -23,7 +23,6 @@ import (
 	"time"
 )
 
-// config ... the command line configuration
 type config struct {
 	// the url for th vault server
 	vaultURL string
@@ -64,14 +63,14 @@ func init() {
 	flag.Var(options.resources, "cn", "a resource to retrieve and monitor from vault")
 }
 
-// parseOptions ... validate the command line options and validates them
+// parseOptions validate the command line options and validates them
 func parseOptions() error {
 	flag.Parse()
 
 	return validateOptions(&options)
 }
 
-// validateOptions ... parses and validates the command line options
+// validateOptions parses and validates the command line options
 func validateOptions(cfg *config) error {
 	// step: validate the vault url
 	_, err := url.Parse(cfg.vaultURL)

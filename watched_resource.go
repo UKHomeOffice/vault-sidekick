@@ -28,7 +28,7 @@ const (
 	renewalMaximum = 0.95
 )
 
-// watchedResource ... is a resource which is being watched - i.e. when the item is coming up for renewal
+// watchedResource is a resource which is being watched - i.e. when the item is coming up for renewal
 // lets grab it and renew the lease
 type watchedResource struct {
 	// the resource itself
@@ -43,7 +43,7 @@ type watchedResource struct {
 	secret *api.Secret
 }
 
-// notifyOnRenewal ... creates a trigger and notifies when a resource is up for renewal
+// notifyOnRenewal creates a trigger and notifies when a resource is up for renewal
 func (r *watchedResource) notifyOnRenewal(ch chan *watchedResource) {
 	go func() {
 		// step: check if the resource has a pre-configured renewal time
@@ -60,7 +60,7 @@ func (r *watchedResource) notifyOnRenewal(ch chan *watchedResource) {
 	}()
 }
 
-// calculateRenewal ... calculate the renewal between
+// calculateRenewal calculate the renewal between
 func (r watchedResource) calculateRenewal() time.Duration {
 	return time.Duration(getRandomWithin(
 		int(float64(r.secret.LeaseDuration)*renewalMinimum),

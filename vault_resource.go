@@ -24,20 +24,20 @@ import (
 )
 
 const (
-	// OptionFilename ... option to set the filename of the resource
-	OptionFilename = "fn"
-	// OptionFormat ... option to set the output format (yaml, xml, json)
-	OptionFormat = "fmt"
-	// OptionCommonName ... use by the PKI resource
-	OptionCommonName = "cn"
-	// OptionTemplatePath ... the full path to a template
-	OptionTemplatePath = "tpl"
-	// OptionRenewal ... a duration to renew the resource
-	OptionRenewal = "rn"
-	// OptionRevoke ... revoke an old lease when retrieving a new one
-	OptionRevoke = "rv"
-	// OptionUpdate ... override the lease of the resource
-	OptionUpdate = "up"
+	// optionFilename option to set the filename of the resource
+	optionFilename = "fn"
+	// optionFormat ... option to set the output format (yaml, xml, json)
+	optionFormat = "fmt"
+	// optionCommonName ... use by the PKI resource
+	optionCommonName = "cn"
+	// optionTemplatePath ... the full path to a template
+	optionTemplatePath = "tpl"
+	// optionRenewal ... a duration to renew the resource
+	optionRenewal = "rn"
+	// optionRevoke ... revoke an old lease when retrieving a new one
+	optionRevoke = "rv"
+	// optionUpdate ... override the lease of the resource
+	optionUpdate = "up"
 )
 
 var (
@@ -64,7 +64,7 @@ func defaultVaultResource() *VaultResource {
 	}
 }
 
-// VaultResource ... the structure which defined a resource set from vault
+// VaultResource is the structure which defined a resource set from vault
 type VaultResource struct {
 	// the namespace of the resource
 	resource string
@@ -82,17 +82,17 @@ type VaultResource struct {
 	options map[string]string
 }
 
-// GetFilename ... generates a resource filename by default the resource name and resource type, which
+// GetFilename generates a resource filename by default the resource name and resource type, which
 // can override by the OPTION_FILENAME option
 func (r VaultResource) GetFilename() string {
-	if path, found := r.options[OptionFilename]; found {
+	if path, found := r.options[optionFilename]; found {
 		return path
 	}
 
 	return fmt.Sprintf("%s.%s", r.name, r.resource)
 }
 
-// IsValid ... checks to see if the resource is valid
+// IsValid checks to see if the resource is valid
 func (r *VaultResource) IsValid() error {
 	// step: check the resource type
 	if _, found := validResources[r.resource]; !found {
@@ -112,15 +112,15 @@ func (r *VaultResource) IsValid() error {
 	return nil
 }
 
-// isValidResource ... validate the resource meets the requirements
+// isValidResource validates the resource meets the requirements
 func (r *VaultResource) isValidResource() error {
 	switch r.resource {
 	case "pki":
-		if _, found := r.options[OptionCommonName]; !found {
+		if _, found := r.options[optionCommonName]; !found {
 			return fmt.Errorf("pki resource requires a common name specified")
 		}
 	case "tpl":
-		if _, found := r.options[OptionTemplatePath]; !found {
+		if _, found := r.options[optionTemplatePath]; !found {
 			return fmt.Errorf("template resource requires a template path option")
 		}
 	}
@@ -128,39 +128,39 @@ func (r *VaultResource) isValidResource() error {
 	return nil
 }
 
-// isValidOptions ... iterates through the options, converts the options and so forth
+// isValidOptions iterates through the options, converts the options and so forth
 func (r *VaultResource) isValidOptions() error {
 	// check the filename directive
 	for opt, val := range r.options {
 		switch opt {
-		case OptionFormat:
-			if matched := resourceFormatRegex.MatchString(r.options[OptionFormat]); !matched {
-				return fmt.Errorf("unsupported output format: %s", r.options[OptionFormat])
+		case optionFormat:
+			if matched := resourceFormatRegex.MatchString(r.options[optionFormat]); !matched {
+				return fmt.Errorf("unsupported output format: %s", r.options[optionFormat])
 			}
 			r.format = val
-		case OptionUpdate:
+		case optionUpdate:
 			duration, err := time.ParseDuration(val)
 			if err != nil {
 				return fmt.Errorf("the update option: %s is not value, should be a duration format", val)
 			}
 			r.update = duration
-		case OptionRevoke:
+		case optionRevoke:
 			choice, err := strconv.ParseBool(val)
 			if err != nil {
 				return fmt.Errorf("the revoke option: %s is invalid, should be a boolean", val)
 			}
 			r.revoked = choice
-		case OptionRenewal:
+		case optionRenewal:
 			choice, err := strconv.ParseBool(val)
 			if err != nil {
 				return fmt.Errorf("the renewal option: %s is invalid, should be a boolean", val)
 			}
 			r.renewable = choice
-		case OptionFilename:
+		case optionFilename:
 			// @TODO need to check it's valid filename / path
-		case OptionCommonName:
+		case optionCommonName:
 			// @TODO need to check it's a valid hostname
-		case OptionTemplatePath:
+		case optionTemplatePath:
 			if exists, _ := fileExists(val); !exists {
 				return fmt.Errorf("the template file: %s does not exist", val)
 			}
@@ -170,7 +170,7 @@ func (r *VaultResource) isValidOptions() error {
 	return nil
 }
 
-// String ... a string representation of the struct
+// String returns a string representation of the struct
 func (r VaultResource) String() string {
 	return fmt.Sprintf("%s/%s", r.resource, r.name)
 }
