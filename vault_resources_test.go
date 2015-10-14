@@ -25,25 +25,25 @@ import (
 func TestSetResources(t *testing.T) {
 	var items VaultResources
 
-	assert.Nil(t, items.Set("secret:test:fn=filename.test,fmt=yaml"))
-	assert.Nil(t, items.Set("secret:test:fn=filename.test,"))
+	assert.Nil(t, items.Set("secret:test:file=filename.test,fmt=yaml"))
+	assert.Nil(t, items.Set("secret:test:file=filename.test,"))
 	assert.Nil(t, items.Set("secret:/db/prod/username"))
-	assert.Nil(t, items.Set("secret:/db/prod:fn=filename.test,fmt=yaml"))
+	assert.Nil(t, items.Set("secret:/db/prod:file=filename.test,fmt=yaml"))
 	assert.Nil(t, items.Set("secret:test:fn=filename.test,"))
 	assert.Nil(t, items.Set("pki:example-dot-com:cn=blah.example.com"))
-	assert.Nil(t, items.Set("pki:example-dot-com:cn=blah.example.com,fn=/etc/certs/ssl/blah.example.com"))
-	assert.Nil(t, items.Set("pki:example-dot-com:cn=blah.example.com,rn=10s"))
+	assert.Nil(t, items.Set("pki:example-dot-com:cn=blah.example.com,file=/etc/certs/ssl/blah.example.com"))
+	assert.Nil(t, items.Set("pki:example-dot-com:cn=blah.example.com,renew=10s"))
 	assert.NotNil(t, items.Set("secret:"))
-	assert.NotNil(t, items.Set("secret:test:fn=filename.test,fmt="))
-	assert.NotNil(t, items.Set("secret::fn=filename.test,fmt=yaml"))
-	assert.NotNil(t, items.Set("secret:te1st:fn=filename.test,fmt="))
-	assert.NotNil(t, items.Set("fn=filename.test,fmt=yaml"))
+	assert.NotNil(t, items.Set("secret:test:file=filename.test,fmt="))
+	assert.NotNil(t, items.Set("secret::file=filename.test,fmt=yaml"))
+	assert.NotNil(t, items.Set("secret:te1st:file=filename.test,fmt="))
+	assert.NotNil(t, items.Set("file=filename.test,fmt=yaml"))
 }
 
 func TestResources(t *testing.T) {
 	var items VaultResources
-	items.Set("secret:test:fn=filename.test,fmt=yaml")
-	items.Set("secret:test:fn=fileame.test")
+	items.Set("secret:test:file=filename.test,fmt=yaml")
+	items.Set("secret:test:file=fileame.test")
 
 	if passed := assert.Equal(t, len(items.items), 2); !passed {
 		t.FailNow()

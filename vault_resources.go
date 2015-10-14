@@ -24,7 +24,7 @@ import (
 
 var (
 	resourceRegex        = regexp.MustCompile("^([\\w]+):([\\w\\\\/\\-_\\.]+):?(.*)")
-	resourceOptionsRegex = regexp.MustCompile("([\\w\\d]{2,3})=([\\w\\d\\/\\.\\-_]+)[,]?")
+	resourceOptionsRegex = regexp.MustCompile("([\\w\\d]{2,6})=([\\w\\d\\/\\.\\-_]+)[,]?")
 )
 
 // VaultResources is a collection of type resource

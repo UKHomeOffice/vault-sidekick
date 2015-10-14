@@ -62,7 +62,7 @@ func (r *watchedResource) notifyOnRenewal(ch chan *watchedResource) {
 
 // calculateRenewal calculate the renewal between
 func (r watchedResource) calculateRenewal() time.Duration {
-	return time.Duration(getRandomWithin(
+	return time.Duration(getDurationWithin(
 		int(float64(r.secret.LeaseDuration)*renewalMinimum),
 		int(float64(r.secret.LeaseDuration)*renewalMaximum))) * time.Second
 }

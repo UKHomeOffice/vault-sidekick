@@ -72,7 +72,7 @@ func NewVaultService(url string) (*VaultService, error) {
 	service.config = api.DefaultConfig()
 	service.config.Address = url
 	service.listeners = make([]chan VaultEvent, 0)
-	service.config.HttpClient.Transport, err = service.getHTTPTransport()
+	service.config.HttpClient.Transport, err = service.buildHTTPTransport()
 	if err != nil {
 		return nil, err
 	}
@@ -98,7 +98,7 @@ func NewVaultService(url string) (*VaultService, error) {
 	return service, nil
 }
 
-func (r *VaultService) getHTTPTransport() (*http.Transport, error) {
+func (r *VaultService) buildHTTPTransport() (*http.Transport, error) {
 	transport := &http.Transport{}
 
 	// step: are we skip the tls verify?
@@ -143,7 +143,7 @@ func (r *VaultService) vaultServiceProcessor() {
 		// the channel to receive renewal notifications on
 		renewChannel := make(chan *watchedResource, 10)
 		retrieveChannel := make(chan *watchedResource, 10)
-		revokeChannel := make(chan string, 10)
+		revokeChannel := make(chan *watchedResource, 10)
 		statsChannel := time.NewTicker(options.statsInterval)
 
 		for {
@@ -156,6 +156,7 @@ func (r *VaultService) vaultServiceProcessor() {
 				items = append(items, x)
 				// step: push into the retrieval channel
 				r.scheduleNow(x, retrieveChannel)
+
 			// Retrieve a resource from vault
 			//  - we retrieve the resource from vault
 			//  - if we error attempting to retrieve the secret, we background and reschedule an attempt to add it
@@ -173,7 +174,7 @@ func (r *VaultService) vaultServiceProcessor() {
 				if err != nil {
 					glog.Errorf("failed to retrieve the resource: %s from vault, error: %s", x.resource, err)
 					// reschedule the attempt for later
-					r.scheduleIn(x, retrieveChannel, 3, 10)
+					r.scheduleIn(x, retrieveChannel, getDurationWithin(3, 10))
 					break
 				}
 
@@ -181,7 +182,14 @@ func (r *VaultService) vaultServiceProcessor() {
 
 				// step: if we had a previous lease and the option is to revoke, lets throw into the revoke channel
 				if leaseID != "" && x.resource.revoked {
-					revokeChannel <- leaseID
+					// step: make a rough copy
+					copy := &watchedResource{
+						secret: &api.Secret{
+							LeaseID: x.secret.LeaseID,
+						},
+					}
+
+					r.scheduleIn(copy, revokeChannel, x.resource.revokeDelay)
 				}
 
 				// step: setup a timer for renewal
@@ -221,7 +229,7 @@ func (r *VaultService) vaultServiceProcessor() {
 					if err != nil {
 						glog.Errorf("failed to renew the resounce: %s for renewal, error: %s", x.resource, err)
 						// reschedule the attempt for later
-						r.scheduleIn(x, renewChannel, 3, 10)
+						r.scheduleIn(x, renewChannel, getDurationWithin(3, 10))
 						break
 					}
 				}
@@ -239,11 +247,11 @@ func (r *VaultService) vaultServiceProcessor() {
 				// step: update any listener upstream
 				r.upstream(x)
 
-			case lease := <-revokeChannel:
-
-				err := r.revoke(lease)
+			// We receive a lease ID along on the channel, just revoke the lease when you can
+			case x := <-revokeChannel:
+				err := r.revoke(x.secret.LeaseID)
 				if err != nil {
-					glog.Errorf("failed to revoke the lease: %s, error: %s", lease, err)
+					glog.Errorf("failed to revoke the lease: %s, error: %s", x.secret.LeaseID, err)
 				}
 
 			// The statistics timer has gone off; we iterate the watched items and
@@ -282,20 +290,20 @@ func (r VaultService) authenticate(auth map[string]string) (string, error) {
 //	rn			: a pointer to the watched resource you wish to reschedule
 //	ch			: the channel the resource should be placed into
 func (r VaultService) scheduleNow(rn *watchedResource, ch chan *watchedResource) {
-	r.scheduleIn(rn, ch, 0, 0)
+	r.scheduleIn(rn, ch, time.Duration(0))
 }
 
 // scheduleIn ... schedules an event back into a channel after n seconds
-//	rn			: a pointer to the watched resource you wish to reschedule
+//	rn			: a referrence some reason you wish to pass
 //	ch			: the channel the resource should be placed into
 //	min			: the minimum amount of time i'm willing to wait
 //	max			: the maximum amount of time i'm willing to wait
-func (r VaultService) scheduleIn(rn *watchedResource, ch chan *watchedResource, min, max int) {
+func (r VaultService) scheduleIn(rn *watchedResource, ch chan *watchedResource, duration time.Duration) {
 	go func(x *watchedResource) {
 		glog.V(3).Infof("rescheduling the resource: %s, channel: %v", rn.resource, ch)
 		// step: are we doing a random wait?
-		if min > 0 {
-			<-randomWait(min, max)
+		if duration > 0 {
+			<-time.After(duration)
 		}
 		ch <- x
 	}(rn)

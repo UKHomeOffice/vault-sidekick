@@ -25,19 +25,21 @@ import (
 
 const (
 	// optionFilename option to set the filename of the resource
-	optionFilename = "fn"
-	// optionFormat ... option to set the output format (yaml, xml, json)
+	optionFilename = "file"
+	// optionFormat set the output format (yaml, xml, json)
 	optionFormat = "fmt"
-	// optionCommonName ... use by the PKI resource
+	// optionCommonName set the PKI common name of the resource
 	optionCommonName = "cn"
-	// optionTemplatePath ... the full path to a template
+	// optionTemplatePath is the full path to a template
 	optionTemplatePath = "tpl"
-	// optionRenewal ... a duration to renew the resource
-	optionRenewal = "rn"
-	// optionRevoke ... revoke an old lease when retrieving a new one
-	optionRevoke = "rv"
-	// optionUpdate ... override the lease of the resource
-	optionUpdate = "up"
+	// optionRenewal sets the duration to renew the resource
+	optionRenewal = "renew"
+	// optionRevoke revokes an old lease when retrieving a new one
+	optionRevoke = "revoke"
+	// optionRevokeDelay
+	optionsRevokeDelay  = "delay"
+	// optionUpdate overrides the lease of the resource
+	optionUpdate = "update"
 )
 
 var (
@@ -76,6 +78,8 @@ type VaultResource struct {
 	renewable bool
 	// whether the resource should be revoked?
 	revoked bool
+	// the revoke delay
+	revokeDelay time.Duration
 	// the lease duration
 	update time.Duration
 	// additional options to the resource
@@ -150,6 +154,12 @@ func (r *VaultResource) isValidOptions() error {
 				return fmt.Errorf("the revoke option: %s is invalid, should be a boolean", val)
 			}
 			r.revoked = choice
+		case optionsRevokeDelay:
+			duration, err := time.ParseDuration(val)
+			if err != nil {
+				return fmt.Errorf("the revoke delay option: %s is not value, should be a duration format", val)
+			}
+			r.revokeDelay = duration
 		case optionRenewal:
 			choice, err := strconv.ParseBool(val)
 			if err != nil {

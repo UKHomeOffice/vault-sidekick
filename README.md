@@ -13,6 +13,7 @@ Usage of bin/vault-sidekick:
   -alsologtostderr=false: log to standard error as well as files
   -auth="": a configuration file in a json or yaml containing authentication arguments
   -cn=: a resource to retrieve and monitor from vault (e.g. pki:name:cert.name, secret:db_password, aws:s3_backup)
+  -ca-cert="": a CA certificate to use in order to validate the vault service certificate
   -delete-token=false: once the we have connected to vault, delete the token file from disk
   -dryrun=false: perform a dry run, printing the content to screen
   -log_backtrace_at=:0: when logging hits line file:N, emit a stack trace
@@ -44,10 +45,10 @@ spec:
         args:
           - -output=/etc/secrets
           - -cn=pki:example.com:cn=commons.example.com,rv=true,up=2h
-          - -cn=secret:db/prod/username:fn=.credentials
+          - -cn=secret:db/prod/username:file=.credentials
           - -cn=secret:db/prod/password
-          - -cn=aws:s3_backsup:fn=.s3_creds
-          - -cn=template:database_credentials:tpl=/etc/templates/db.tmpl,fn=/etc/credentials
+          - -cn=aws:s3_backsup:file=.s3_creds
+          - -cn=template:database_credentials:tpl=/etc/templates/db.tmpl,file=/etc/credentials
         volumeMounts:
           - name: secrets
             mountPath: /etc/secrets
@@ -73,16 +74,16 @@ expire, in order ensure the rotation of secrets. If you don't want this behaviou
 your using the mysql dynamic secrets, you want to renew the secret not replace it
 
 ```shell
-[jest@starfury vault-sidekick]$ build/vault-sidekick -cn=mysql:my_database:fmt=yaml,rn=true
+[jest@starfury vault-sidekick]$ build/vault-sidekick -cn=mysql:my_database:fmt=yaml,renew=true
 or an iam policy renewed every hour
-[jest@starfury vault-sidekick]$ build/vault-sidekick -cn=aws:aws_policy_path:fmt=yaml,rn=true,up=1h
+[jest@starfury vault-sidekick]$ build/vault-sidekick -cn=aws:aws_policy_path:fmt=yaml,renew=true,update=1h
 
 ```
 
 Or you want to rotate the secret every **1h** and **revoke** the previous one
 
 ```shell
-[jest@starfury vault-sidekick]$ build/vault-sidekick -cn=aws:my_s3_bucket:fmt=yaml,up=1h,rv=true
+[jest@starfury vault-sidekick]$ build/vault-sidekick -cn=aws:my_s3_bucket:fmt=yaml,update=1h,revoke=true
 ```
 
 **Output Formatting**
@@ -116,9 +117,10 @@ Format: 'cert' is less of a format of more file scheme i.e. is just extracts the
 
 **Resource Options**
 
-- **fn**: (filaname) by default all file are relative to the output directory specified and will have the name NAME.RESOURCE; the fn options allows you to switch names and paths to write the files
-- **up**: (update) override the lease time of this resource and get/renew a secret on the specified duration e.g 1m, 2d, 5m10s
-- **rn**: (renewal) override the default behavour on this resource, renew the resource when coming close to expiration e.g true, TRUE
-- **rv**: (revoke) revoke the old lease when you get retrieve a old one e.g. true, TRUE (default to allow the lease to expire and naturally revoke)
+- **file**: (filaname) by default all file are relative to the output directory specified and will have the name NAME.RESOURCE; the fn options allows you to switch names and paths to write the files
+- **update**: (update) override the lease time of this resource and get/renew a secret on the specified duration e.g 1m, 2d, 5m10s
+- **renew**: (renewal) override the default behavour on this resource, renew the resource when coming close to expiration e.g true, TRUE
+- **delay**: (renewal-delay) delay the revoking the lease of a resource for x period once time e.g 1m, 1h20s
+- **revoke**: (revoke) revoke the old lease when you get retrieve a old one e.g. true, TRUE (default to allow the lease to expire and naturally revoke)
 - **fmt**: (format) allows you to specify the output format of the resource / secret, e.g json, yaml, ini, txt
 - **cn**: (comman name) is used in conjunction with the PKI resource. The common argument is passed as an argument when make a request to issue the certs.

@@ -23,8 +23,8 @@ spec:
           - -tls-skip-verify=true
           - -auth=/etc/token/vault-token.yml
           - -output=/etc/secrets
-          - -cn=secret:db:up=3h,rv=true
-          - -cn=pki:example-dot-com:cn=demo.example.com,fmt=cert,fn=demo.example.com
+          - -cn=secret:db:update=3h,revoke=true
+          - -cn=pki:example-dot-com:cn=demo.example.com,fmt=cert,file=demo.example.com
           - -vault=https://vault.services.cluster.local:8200
         volumeMounts:
           - name: secrets

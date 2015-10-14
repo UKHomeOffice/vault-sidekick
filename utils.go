@@ -48,13 +48,6 @@ func showUsage(message string, args ...interface{}) {
 	os.Exit(0)
 }
 
-// randomWait waits for a random amount of time
-// 	min			: the minimum amount of time willing to wait
-//	max			: the maximum amount of time willing to wait
-func randomWait(min, max int) <-chan time.Time {
-	return time.After(time.Duration(getRandomWithin(min, max)) * time.Second)
-}
-
 // hasKey checks to see if a key is present
 //	key			: the key we are looking for
 //	data		: a map of strings to something we are looking at
@@ -85,12 +78,12 @@ func readConfigFile(filename string) (map[string]string, error) {
 	// step: we only read in json or yaml formats
 	suffix := path.Ext(filename)
 	switch suffix {
-	case ".json":
-		return readJSONFile(filename)
 	case ".yaml":
 		return readYAMLFile(filename)
 	case ".yml":
 		return readYAMLFile(filename)
+	default:
+		return readJSONFile(filename)
 	}
 	return nil, fmt.Errorf("unsupported config file format: %s", suffix)
 }
@@ -129,11 +122,11 @@ func readYAMLFile(filename string) (map[string]string, error) {
 	return data, nil
 }
 
-// randomInt generate a random integer between min and max
+// getDurationWithin generate a random integer between min and max
 //	min			: the smallest number we can accept
 //	max			: the largest number we can accept
-func getRandomWithin(min, max int) int {
-	return rand.Intn(max-min) + min
+func getDurationWithin(min, max int) time.Duration {
+	return time.Duration(rand.Intn(max-min) + min)
 }
 
 // getEnv checks to see if an environment variable exists otherwise uses the default
