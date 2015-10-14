@@ -89,6 +89,7 @@ func NewVaultService(url string) (*VaultService, error) {
 	if service.token, err = service.authenticate(options.vaultAuthOptions); err != nil {
 		return nil, err
 	}
+
 	// step: set the token for the client
 	service.client.SetToken(service.token)
 

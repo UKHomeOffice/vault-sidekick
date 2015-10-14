@@ -98,7 +98,7 @@ func readJSONFile(filename string) (map[string]string, error) {
 		return data, err
 	}
 	// unmarshall the data
-	err = json.Unmarshal(content, data)
+	err = json.Unmarshal(content, &data)
 	if err != nil {
 		return data, err
 	}
@@ -126,7 +126,7 @@ func readYAMLFile(filename string) (map[string]string, error) {
 //	min			: the smallest number we can accept
 //	max			: the largest number we can accept
 func getDurationWithin(min, max int) time.Duration {
-	return time.Duration(rand.Intn(max-min) + min)
+	return time.Duration(rand.Intn(max-min) + min) * time.Second
 }
 
 // getEnv checks to see if an environment variable exists otherwise uses the default
