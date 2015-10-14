@@ -26,7 +26,7 @@ import (
 
 const (
 	Prog    = "vault-sidekick"
-	Version = "0.0.2"
+	Version = "v0.0.2"
 )
 
 func main() {
