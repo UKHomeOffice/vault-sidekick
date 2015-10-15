@@ -37,7 +37,7 @@ const (
 	// optionRevoke revokes an old lease when retrieving a new one
 	optionRevoke = "revoke"
 	// optionRevokeDelay
-	optionsRevokeDelay  = "delay"
+	optionsRevokeDelay = "delay"
 	// optionUpdate overrides the lease of the resource
 	optionUpdate = "update"
 )

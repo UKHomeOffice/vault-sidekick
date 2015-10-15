@@ -126,7 +126,7 @@ func readYAMLFile(filename string) (map[string]string, error) {
 //	min			: the smallest number we can accept
 //	max			: the largest number we can accept
 func getDurationWithin(min, max int) time.Duration {
-	return time.Duration(rand.Intn(max-min) + min) * time.Second
+	return time.Duration(rand.Intn(max-min)+min) * time.Second
 }
 
 // getEnv checks to see if an environment variable exists otherwise uses the default
@@ -166,6 +166,8 @@ func writeResource(rn *VaultResource, data map[string]interface{}) error {
 		resourcePath = fmt.Sprintf("%s/%s", options.outputDir, resourcePath)
 	}
 
+	glog.V(10).Infof("writing the resource: %s, format: %s", resourcePath, rn.format)
+
 	if rn.format == "yaml" {
 		// marshall the content to yaml
 		if content, err = yaml.Marshal(data); err != nil {
@@ -195,6 +197,7 @@ func writeResource(rn *VaultResource, data map[string]interface{}) error {
 			filename := fmt.Sprintf("%s.%s", resourcePath, suffix)
 			content, found := data[key]
 			if !found {
+				glog.Errorf("didn't find the certification option: %s in the resource: %s", key, rn.name)
 				continue
 			}
 

@@ -30,28 +30,25 @@ const (
 )
 
 func main() {
-	var err error
-	var vault *VaultService
-
 	// step: parse and validate the command line / environment options
-	if err = parseOptions(); err != nil {
+	if err := parseOptions(); err != nil {
 		showUsage("invalid options, %s", err)
 	}
 
 	glog.Infof("starting the %s, version: %s", Prog, Version)
 
 	// step: create a client to vault
-	if vault, err = NewVaultService(options.vaultURL); err != nil {
+	vault, err := NewVaultService(options.vaultURL)
+	if err != nil {
 		showUsage("unable to create the vault client: %s", err)
 	}
+	// step: create a channel to receive events upon and add our resources for renewal
+	updates := make(chan VaultEvent, 10)
+	vault.AddListener(updates)
 
 	// step: setup the termination signals
 	signalChannel := make(chan os.Signal)
 	signal.Notify(signalChannel, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
-
-	// step: create a channel to receive events upon and add our resources for renewal
-	updates := make(chan VaultEvent, 10)
-	vault.AddListener(updates)
 
 	// step: add each of the resources to the service processor
 	for _, rn := range options.resources.items {
@@ -65,6 +62,7 @@ func main() {
 	for {
 		select {
 		case evt := <-updates:
+			glog.V(10).Infof("recieved an update from the resource: %s", evt.Resource)
 			go writeResource(evt.Resource, evt.Secret)
 
 		case <-signalChannel:

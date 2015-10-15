@@ -71,10 +71,9 @@ func parseOptions() error {
 }
 
 // validateOptions parses and validates the command line options
-func validateOptions(cfg *config) error {
+func validateOptions(cfg *config) (err error) {
 	// step: validate the vault url
-	_, err := url.Parse(cfg.vaultURL)
-	if err != nil {
+	if _, err = url.Parse(cfg.vaultURL); err != nil {
 		return fmt.Errorf("invalid vault url: '%s' specified", cfg.vaultURL)
 	}
 
@@ -83,8 +82,8 @@ func validateOptions(cfg *config) error {
 		if exists, _ := fileExists(cfg.vaultAuthFile); !exists {
 			return fmt.Errorf("the token file: %s does not exists, please check", cfg.vaultAuthFile)
 		}
-
-		if options.vaultAuthOptions, err = readConfigFile(options.vaultAuthFile); err != nil {
+		options.vaultAuthOptions, err = readConfigFile(options.vaultAuthFile)
+		if err != nil {
 			return fmt.Errorf("unable to read in authentication options from: %s, error: %s", cfg.vaultAuthFile, err)
 		}
 	}
