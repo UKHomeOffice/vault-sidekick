@@ -51,13 +51,13 @@ func TestResources(t *testing.T) {
 
 	rn := items.items[0]
 	assert.Equal(t, "secret", rn.resource)
-	assert.Equal(t, "test", rn.name)
+	assert.Equal(t, "test", rn.path)
 	assert.Equal(t, 2, len(rn.options))
 	assert.Equal(t, "filename.test", rn.options[optionFilename])
 	assert.Equal(t, "yaml", rn.options[optionFormat])
 	rn = items.items[1]
 	assert.Equal(t, "secret", rn.resource)
-	assert.Equal(t, "test", rn.name)
+	assert.Equal(t, "test", rn.path)
 	assert.Equal(t, 1, len(rn.options))
 	assert.Equal(t, "fileame.test", rn.options[optionFilename])
 }

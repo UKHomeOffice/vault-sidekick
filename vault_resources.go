@@ -45,7 +45,7 @@ func (r *VaultResources) Set(value string) error {
 	// step: extract the matches
 	matches := resourceRegex.FindAllStringSubmatch(value, -1)
 	rn.resource = matches[0][1]
-	rn.name = matches[0][2]
+	rn.path = matches[0][2]
 	rn.options = make(map[string]string, 0)
 
 	// step: do we have any options for the resource?

@@ -197,7 +197,7 @@ func writeResource(rn *VaultResource, data map[string]interface{}) error {
 			filename := fmt.Sprintf("%s.%s", resourcePath, suffix)
 			content, found := data[key]
 			if !found {
-				glog.Errorf("didn't find the certification option: %s in the resource: %s", key, rn.name)
+				glog.Errorf("didn't find the certification option: %s in the resource: %s", key, rn.path)
 				continue
 			}
 

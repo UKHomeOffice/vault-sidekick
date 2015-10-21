@@ -71,7 +71,7 @@ type VaultResource struct {
 	// the namespace of the resource
 	resource string
 	// the name of the resource
-	name string
+	path string
 	// the format of the resource
 	format string
 	// whether the resource should be renewed?
@@ -93,7 +93,7 @@ func (r VaultResource) GetFilename() string {
 		return path
 	}
 
-	return fmt.Sprintf("%s.%s", r.name, r.resource)
+	return fmt.Sprintf("%s.%s", r.path, r.resource)
 }
 
 // IsValid checks to see if the resource is valid
@@ -182,5 +182,5 @@ func (r *VaultResource) isValidOptions() error {
 
 // String returns a string representation of the struct
 func (r VaultResource) String() string {
-	return fmt.Sprintf("%s/%s", r.resource, r.name)
+	return fmt.Sprintf("type: %s, path:%s", r.resource, r.path)
 }

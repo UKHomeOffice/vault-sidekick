@@ -370,16 +370,16 @@ func (r VaultService) get(rn *watchedResource) (err error) {
 
 	switch rn.resource.resource {
 	case "pki":
-		secret, err = r.client.Logical().Write(fmt.Sprintf("%s/issue/%s", rn.resource.resource, rn.resource.name),
+		secret, err = r.client.Logical().Write(fmt.Sprintf(rn.resource.path),
 			map[string]interface{}{
 				"common_name": rn.resource.options[optionCommonName],
 			})
 	case "aws":
-		secret, err = r.client.Logical().Read(fmt.Sprintf("%s/creds/%s", rn.resource.resource, rn.resource.name))
+		secret, err = r.client.Logical().Read(rn.resource.path)
 	case "mysql":
-		secret, err = r.client.Logical().Read(fmt.Sprintf("%s/creds/%s", rn.resource.resource, rn.resource.name))
+		secret, err = r.client.Logical().Read(rn.resource.path)
 	case "secret":
-		secret, err = r.client.Logical().Read(fmt.Sprintf("%s/%s", rn.resource.resource, rn.resource.name))
+		secret, err = r.client.Logical().Read(rn.resource.path)
 	}
 	// step: return on error
 	if err != nil {

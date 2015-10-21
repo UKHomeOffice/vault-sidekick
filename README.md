@@ -44,11 +44,10 @@ spec:
         image: gambol99/vault-sidekick:latest
         args:
           - -output=/etc/secrets
-          - -cn=pki:example.com:cn=commons.example.com,rv=true,up=2h
-          - -cn=secret:db/prod/username:file=.credentials
-          - -cn=secret:db/prod/password
-          - -cn=aws:s3_backsup:file=.s3_creds
-          - -cn=template:database_credentials:tpl=/etc/templates/db.tmpl,file=/etc/credentials
+          - -cn=pki:project1/certs/example.com:cn=commons.example.com,rv=true,up=2h
+          - -cn=secret:secret/db/prod/username:file=.credentials
+          - -cn=secret:secret/db/prod/password
+          - -cn=aws:aws/creds/s3_backup_policy:file=.s3_creds
         volumeMounts:
           - name: secrets
             mountPath: /etc/secrets
@@ -74,16 +73,20 @@ expire, in order ensure the rotation of secrets. If you don't want this behaviou
 your using the mysql dynamic secrets, you want to renew the secret not replace it
 
 ```shell
-[jest@starfury vault-sidekick]$ build/vault-sidekick -cn=mysql:my_database:fmt=yaml,renew=true
+[jest@starfury vault-sidekick]$ build/vault-sidekick -cn=mysql:mysql/creds/my_database:fmt=yaml,renew=true
 or an iam policy renewed every hour
-[jest@starfury vault-sidekick]$ build/vault-sidekick -cn=aws:aws_policy_path:fmt=yaml,renew=true,update=1h
+[jest@starfury vault-sidekick]$ build/vault-sidekick -cn=aws:aws/creds/policy:fmt=yaml,renew=true,update=1h
 
 ```
 
 Or you want to rotate the secret every **1h** and **revoke** the previous one
 
 ```shell
-[jest@starfury vault-sidekick]$ build/vault-sidekick -cn=aws:my_s3_bucket:fmt=yaml,update=1h,revoke=true
+[jest@starfury vault-sidekick]$ build/vault-sidekick -cn=aws:project/creds/my_s3_bucket:fmt=yaml,update=1h,revoke=true
+
+The format is;
+
+-cn=RESOURCE_TYPE:PATH:OPTIONS
 ```
 
 **Output Formatting**
@@ -108,9 +111,9 @@ this           	is
 In order to change the output format:
 
 ```shell
-[jest@starfury vault-sidekick]$ build/vault-sidekick -cn=secret:password:fmt=ini -logtostderr=true -dry-run
-[jest@starfury vault-sidekick]$ build/vault-sidekick -cn=secret:password:fmt=json -logtostderr=true -dry-run
-[jest@starfury vault-sidekick]$ build/vault-sidekick -cn=secret:password:fmt=yaml -logtostderr=true -dry-run
+[jest@starfury vault-sidekick]$ build/vault-sidekick -cn=secret:secret/password:fmt=ini -logtostderr=true -dry-run
+[jest@starfury vault-sidekick]$ build/vault-sidekick -cn=secret:secret/password:fmt=json -logtostderr=true -dry-run
+[jest@starfury vault-sidekick]$ build/vault-sidekick -cn=secret:secret/password:fmt=yaml -logtostderr=true -dry-run
 ```
 
 Format: 'cert' is less of a format of more file scheme i.e. is just extracts the 'certificate', 'issuing_ca' and 'private_key' and creates the three files FILE.{ca,key,crt}

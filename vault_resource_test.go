@@ -24,7 +24,7 @@ import (
 
 func TestResourceFilename(t *testing.T) {
 	rn := VaultResource{
-		name:     "test_secret",
+		path:     "test_secret",
 		resource: "secret",
 		options:  map[string]string{},
 	}
@@ -35,7 +35,7 @@ func TestResourceFilename(t *testing.T) {
 
 func TestIsValid(t *testing.T) {
 	resource := defaultVaultResource()
-	resource.name = "/test/name"
+	resource.path = "/test/name"
 	resource.resource = "secret"
 
 	assert.Nil(t, resource.IsValid())
