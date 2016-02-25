@@ -30,6 +30,7 @@ import (
 
 	"github.com/golang/glog"
 	"gopkg.in/yaml.v2"
+	"path/filepath"
 )
 
 func init() {
@@ -79,7 +80,7 @@ func readConfigFile(filename string) (map[string]string, error) {
 	suffix := path.Ext(filename)
 	switch suffix {
 	case ".yaml":
-		return readYAMLFile(filename)
+		fallthrough
 	case ".yml":
 		return readYAMLFile(filename)
 	default:
@@ -163,7 +164,7 @@ func writeResource(rn *VaultResource, data map[string]interface{}) error {
 	// step: determine the resource path
 	resourcePath := rn.GetFilename()
 	if !strings.HasPrefix(resourcePath, "/") {
-		resourcePath = fmt.Sprintf("%s/%s", options.outputDir, resourcePath)
+		resourcePath = fmt.Sprintf("%s/%s", options.outputDir, filepath.Base(resourcePath))
 	}
 
 	glog.V(10).Infof("writing the resource: %s, format: %s", resourcePath, rn.format)
@@ -185,6 +186,23 @@ func writeResource(rn *VaultResource, data map[string]interface{}) error {
 		content = buf.Bytes()
 
 		return writeFile(resourcePath, content)
+	}
+
+	if rn.format == "bundle" {
+		certificateFile := fmt.Sprintf("%s.crt", resourcePath)
+		caFile := fmt.Sprintf("%s.ca", resourcePath)
+		certificate := fmt.Sprintf("%s\n\n%s", data["certificate"], data["private_key"])
+		ca := fmt.Sprintf("%s", data["issuing_ca"])
+
+		if err := writeFile(certificateFile, []byte(certificate)); err != nil {
+			glog.Errorf("failed to write the bundled certificate file, error: %s", err)
+			return err
+		}
+
+		if err := writeFile(caFile, []byte(ca)); err != nil {
+			glog.Errorf("failed to write the ca certificate file, errro: %s", err)
+			return err
+		}
 	}
 
 	if rn.format == "cert" {

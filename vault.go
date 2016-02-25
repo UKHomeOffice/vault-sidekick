@@ -21,6 +21,7 @@ import (
 	"crypto/x509"
 	"fmt"
 	"io/ioutil"
+	"net"
 	"net/http"
 	"time"
 
@@ -42,6 +43,7 @@ type AuthInterface interface {
 // VaultService is the main interface into the vault API - placing into a structure
 // allows one to easily mock it and two to simplify the interface for us
 type VaultService struct {
+	vaultURL string
 	// the vault client
 	client *api.Client
 	// the vault config
@@ -69,57 +71,22 @@ func NewVaultService(url string) (*VaultService, error) {
 
 	// step: create the config for client
 	service := new(VaultService)
-	service.config = api.DefaultConfig()
-	service.config.Address = url
+	service.vaultURL = url
 	service.listeners = make([]chan VaultEvent, 0)
-	service.config.HttpClient.Transport, err = service.buildHTTPTransport()
-	if err != nil {
-		return nil, err
-	}
 
 	// step: create the service processor channels
 	service.resourceChannel = make(chan *watchedResource, 20)
 
-	// step: create the actual client
-	if service.client, err = api.NewClient(service.config); err != nil {
+	// step: retrieve a vault client
+	service.client, err = newVaultClient(&options)
+	if err != nil {
 		return nil, err
 	}
-
-	// step: are we using a token? or do we need to authenticate and grab a token
-	if service.token, err = service.authenticate(options.vaultAuthOptions); err != nil {
-		return nil, err
-	}
-
-	// step: set the token for the client
-	service.client.SetToken(service.token)
 
 	// step: start the service processor off
 	service.vaultServiceProcessor()
 
 	return service, nil
-}
-
-func (r *VaultService) buildHTTPTransport() (*http.Transport, error) {
-	transport := &http.Transport{}
-
-	// step: are we skip the tls verify?
-	if options.tlsVerify {
-		transport.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
-	}
-	// step: are we loading a CA file
-	if options.vaultCaFile != "" {
-		// step: load the ca file
-		caCert, err := ioutil.ReadFile(options.vaultCaFile)
-		if err != nil {
-			return nil, fmt.Errorf("unable to read in the ca: %s, reason: %s", options.vaultCaFile, err)
-		}
-		caCertPool := x509.NewCertPool()
-		caCertPool.AppendCertsFromPEM(caCert)
-		// step: add the ca to the root
-		transport.TLSClientConfig.RootCAs = caCertPool
-	}
-
-	return transport, nil
 }
 
 // AddListener ... add a listener to the events listeners
@@ -267,26 +234,6 @@ func (r *VaultService) vaultServiceProcessor() {
 	}()
 }
 
-// authenticate ... we need to authenticate to teh vault to grab a toke
-//	auth		: a map containing the options required for authentication
-func (r VaultService) authenticate(auth map[string]string) (string, error) {
-	var secret string
-	var err error
-
-	plugin, _ := auth[VaultAuth]
-	switch plugin {
-	case "userpass":
-		secret, err = NewUserPassPlugin(r.client).Create(auth)
-	case "token":
-		auth["filename"] = options.vaultAuthFile
-		secret, err = NewUserTokenPlugin(r.client).Create(auth)
-	default:
-		return "", fmt.Errorf("unsupported authentication plugin: %s", plugin)
-	}
-
-	return secret, err
-}
-
 // scheduleNow ... a helper method to perform an immediate reschedule into a channel
 //	rn			: a pointer to the watched resource you wish to reschedule
 //	ch			: the channel the resource should be placed into
@@ -402,4 +349,75 @@ func (r VaultService) get(rn *watchedResource) (err error) {
 		rn.resource, rn.secret.LeaseID, time.Duration(rn.secret.LeaseDuration)*time.Second)
 
 	return err
+}
+
+// newVaultClient creates and authenticates a vault client
+func newVaultClient(opts *config) (*api.Client, error) {
+	var err error
+	var token string
+
+	config := api.DefaultConfig()
+	config.Address = opts.vaultURL
+
+	config.HttpClient.Transport, err = buildHTTPTransport(opts)
+	if err != nil {
+		return nil, err
+	}
+
+	// step: create the actual client
+	client, err := api.NewClient(config)
+	if err != nil {
+		return nil, err
+	}
+
+	plugin, _ := opts.vaultAuthOptions[VaultAuth]
+	switch plugin {
+	case "userpass":
+		token, err = NewUserPassPlugin(client).Create(opts.vaultAuthOptions)
+	case "token":
+		opts.vaultAuthOptions["filename"] = options.vaultAuthFile
+		token, err = NewUserTokenPlugin(client).Create(opts.vaultAuthOptions)
+	default:
+		return nil, fmt.Errorf("unsupported authentication plugin: %s", plugin)
+	}
+
+	// step: set the token for the client
+	client.SetToken(token)
+
+	return client, nil
+}
+
+// buildHTTPTransport constructs a http transport for the http client
+func buildHTTPTransport(opts *config) (*http.Transport, error) {
+	// step: create the vault sidekick
+	transport := &http.Transport{
+		Proxy: http.ProxyFromEnvironment,
+		Dial: (&net.Dialer{
+			Timeout:   30 * time.Second,
+			KeepAlive: 30 * time.Second,
+		}).Dial,
+		TLSHandshakeTimeout: 10 * time.Second,
+	}
+
+	// step: are we skip the tls verify?
+	if options.tlsVerify {
+		transport.TLSClientConfig = &tls.Config{
+			InsecureSkipVerify: true,
+		}
+	}
+
+	// step: are we loading a CA file
+	if opts.vaultCaFile != "" {
+		// step: load the ca file
+		caCert, err := ioutil.ReadFile(opts.vaultCaFile)
+		if err != nil {
+			return nil, fmt.Errorf("unable to read in the ca: %s, reason: %s", opts.vaultCaFile, err)
+		}
+		caCertPool := x509.NewCertPool()
+		caCertPool.AppendCertsFromPEM(caCert)
+		// step: add the ca to the root
+		transport.TLSClientConfig.RootCAs = caCertPool
+	}
+
+	return transport, nil
 }
