@@ -59,7 +59,7 @@ func init() {
 	flag.BoolVar(&options.dryRun, "dryrun", false, "perform a dry run, printing the content to screen")
 	flag.BoolVar(&options.tlsVerify, "tls-skip-verify", false, "whether to check and verify the vault service certificate")
 	flag.StringVar(&options.vaultCaFile, "ca-cert", "", "the path to the file container the CA used to verify the vault service")
-	flag.DurationVar(&options.statsInterval, "stats", time.Duration(5)*time.Minute, "the interval to produce statistics on the accessed resources")
+	flag.DurationVar(&options.statsInterval, "stats", time.Duration(1)*time.Hour, "the interval to produce statistics on the accessed resources")
 	flag.Var(options.resources, "cn", "a resource to retrieve and monitor from vault")
 }
 
