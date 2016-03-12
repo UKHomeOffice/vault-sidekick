@@ -127,7 +127,8 @@ func readYAMLFile(filename string) (map[string]string, error) {
 //	min			: the smallest number we can accept
 //	max			: the largest number we can accept
 func getDurationWithin(min, max int) time.Duration {
-	return time.Duration(rand.Intn(max-min)+min) * time.Second
+	duration := rand.Intn(max-min) + min
+	return time.Duration(duration) * time.Second
 }
 
 // getEnv checks to see if an environment variable exists otherwise uses the default
@@ -158,9 +159,6 @@ func fileExists(filename string) (bool, error) {
 // 	rn			: a point to the vault resource
 //	data		: a map of the related secret associated to the resource
 func writeResource(rn *VaultResource, data map[string]interface{}) error {
-	var content []byte
-	var err error
-
 	// step: determine the resource path
 	resourcePath := rn.GetFilename()
 	if !strings.HasPrefix(resourcePath, "/") {
@@ -171,7 +169,8 @@ func writeResource(rn *VaultResource, data map[string]interface{}) error {
 
 	if rn.format == "yaml" {
 		// marshall the content to yaml
-		if content, err = yaml.Marshal(data); err != nil {
+		content, err := yaml.Marshal(data)
+		if err != nil {
 			return err
 		}
 
@@ -181,11 +180,10 @@ func writeResource(rn *VaultResource, data map[string]interface{}) error {
 	if rn.format == "ini" {
 		var buf bytes.Buffer
 		for key, val := range data {
-			buf.WriteString(fmt.Sprintf("%s = %s\n", key, val))
+			buf.WriteString(fmt.Sprintf("%s = %v\n", key, val))
 		}
-		content = buf.Bytes()
 
-		return writeFile(resourcePath, content)
+		return writeFile(resourcePath, buf.Bytes())
 	}
 
 	if rn.format == "bundle" {
@@ -203,6 +201,15 @@ func writeResource(rn *VaultResource, data map[string]interface{}) error {
 			glog.Errorf("failed to write the ca certificate file, errro: %s", err)
 			return err
 		}
+	}
+
+	if rn.format == "env" {
+		var buf bytes.Buffer
+		for key, val := range data {
+			buf.WriteString(fmt.Sprintf("%s=%v\n", strings.ToUpper(key), val))
+		}
+
+		return writeFile(resourcePath, buf.Bytes())
 	}
 
 	if rn.format == "cert" {
@@ -232,11 +239,10 @@ func writeResource(rn *VaultResource, data map[string]interface{}) error {
 	if rn.format == "csv" {
 		var buf bytes.Buffer
 		for key, val := range data {
-			buf.WriteString(fmt.Sprintf("%s,%s\n", key, val))
+			buf.WriteString(fmt.Sprintf("%s,%v\n", key, val))
 		}
-		content = buf.Bytes()
 
-		return writeFile(resourcePath, content)
+		return writeFile(resourcePath, buf.Bytes())
 	}
 
 	if rn.format == "txt" {
@@ -256,14 +262,15 @@ func writeResource(rn *VaultResource, data map[string]interface{}) error {
 
 		// step: we only have the one key, so will write plain
 		value, _ := data[keys[0]]
-		content = []byte(fmt.Sprintf("%s", value))
+		content := []byte(fmt.Sprintf("%s", value))
 
 		return writeFile(resourcePath, content)
 
 	}
 
 	if rn.format == "json" {
-		if content, err = json.MarshalIndent(data, "", "    "); err != nil {
+		content, err := json.MarshalIndent(data, "", "    ")
+		if err != nil {
 			return err
 		}
 

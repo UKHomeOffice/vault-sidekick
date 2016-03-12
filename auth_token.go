@@ -40,7 +40,6 @@ func NewUserTokenPlugin(client *api.Client) AuthInterface {
 func (r authTokenPlugin) Create(cfg map[string]string) (string, error) {
 	filename, _ := cfg["filename"]
 	if filename != "" {
-
 		content, err := readConfigFile(filename)
 		if err != nil {
 			return "", err

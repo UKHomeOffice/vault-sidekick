@@ -27,6 +27,7 @@ import (
 
 	"github.com/golang/glog"
 	"github.com/hashicorp/vault/api"
+	"strings"
 )
 
 const (
@@ -314,22 +315,35 @@ func (r VaultService) revoke(lease string) error {
 func (r VaultService) get(rn *watchedResource) (err error) {
 	var secret *api.Secret
 	glog.V(5).Infof("attempting to retrieve the resource: %s from vault", rn.resource)
-
+	// step: perform a request to vault
 	switch rn.resource.resource {
 	case "pki":
 		secret, err = r.client.Logical().Write(fmt.Sprintf(rn.resource.path),
 			map[string]interface{}{
 				"common_name": rn.resource.options[optionCommonName],
 			})
+	case "transit":
+		secret, err = r.client.Logical().Write(fmt.Sprintf(rn.resource.path),
+			map[string]interface{}{
+				"cipertext": rn.resource.options[optionCiphertext],
+			})
 	case "aws":
-		secret, err = r.client.Logical().Read(rn.resource.path)
+		fallthrough
+	case "cubbyhole":
+		fallthrough
 	case "mysql":
-		secret, err = r.client.Logical().Read(rn.resource.path)
+		fallthrough
+	case "postgres":
+		fallthrough
 	case "secret":
 		secret, err = r.client.Logical().Read(rn.resource.path)
 	}
 	// step: return on error
 	if err != nil {
+		if strings.Contains(err.Error(), "missing client token") {
+			// decision: until the rewrite, lets just exit for now
+			glog.Fatalf("the vault token is no longer valid, exitting, error: %s", err)
+		}
 		return err
 	}
 	if secret == nil && err != nil {
@@ -380,6 +394,9 @@ func newVaultClient(opts *config) (*api.Client, error) {
 	default:
 		return nil, fmt.Errorf("unsupported authentication plugin: %s", plugin)
 	}
+	if err != nil {
+		return nil, err
+	}
 
 	// step: set the token for the client
 	client.SetToken(token)
@@ -393,19 +410,17 @@ func buildHTTPTransport(opts *config) (*http.Transport, error) {
 	transport := &http.Transport{
 		Proxy: http.ProxyFromEnvironment,
 		Dial: (&net.Dialer{
-			Timeout:   30 * time.Second,
-			KeepAlive: 30 * time.Second,
+			Timeout:   10 * time.Second,
+			KeepAlive: 10 * time.Second,
 		}).Dial,
 		TLSHandshakeTimeout: 10 * time.Second,
 	}
-
 	// step: are we skip the tls verify?
 	if options.tlsVerify {
 		transport.TLSClientConfig = &tls.Config{
 			InsecureSkipVerify: true,
 		}
 	}
-
 	// step: are we loading a CA file
 	if opts.vaultCaFile != "" {
 		// step: load the ca file

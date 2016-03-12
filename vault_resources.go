@@ -18,13 +18,7 @@ package main
 
 import (
 	"fmt"
-	"regexp"
 	"strings"
-)
-
-var (
-	resourceRegex        = regexp.MustCompile("^([\\w]+):([\\w\\\\/\\-_\\.]+):?(.*)")
-	resourceOptionsRegex = regexp.MustCompile("([\\w\\d]{2,6})=([\\w\\d\\/\\.\\-_]+)[,]?")
 )
 
 // VaultResources is a collection of type resource
@@ -34,31 +28,39 @@ type VaultResources struct {
 }
 
 // Set is the implementation for the parser
+// secret:test:file=filename.test,fmt=yaml
 func (r *VaultResources) Set(value string) error {
 	rn := defaultVaultResource()
 
-	// step: extract the resource type and name
-	if matched := resourceRegex.MatchString(value); !matched {
-		return fmt.Errorf("invalid resource specification, should be TYPE:NAME:?(OPTION_NAME=VALUE,)")
+	// step: split on the ':'
+	items := strings.Split(value, ":")
+	if len(items) < 2 {
+		return fmt.Errorf("invalid resource, must have at least two sections TYPE:PATH")
+	}
+	if len(items) > 3 {
+		return fmt.Errorf("invalid resource, can only has three sections, TYPE:PATH[:OPTIONS]")
+	}
+	if items[0] == "" || items[1] == "" {
+		return fmt.Errorf("invalid resource, neither type or path can be empty")
 	}
 
-	// step: extract the matches
-	matches := resourceRegex.FindAllStringSubmatch(value, -1)
-	rn.resource = matches[0][1]
-	rn.path = matches[0][2]
+	// step: extract the elements
+	rn.resource = items[0]
+	rn.path = items[1]
 	rn.options = make(map[string]string, 0)
 
-	// step: do we have any options for the resource?
-	if len(matches[0]) == 4 {
-		opts := matches[0][3]
-		for len(opts) > 0 {
-			if matched := resourceOptionsRegex.MatchString(opts); !matched {
-				return fmt.Errorf("invalid resource options specified: '%s', please check usage", opts)
+	// step: extract any options
+	if len(items) > 2 {
+		for _, x := range strings.Split(items[2], ",") {
+			kp := strings.Split(x, "=")
+			if len(kp) != 2 {
+				return fmt.Errorf("invalid resource option: %s, must be KEY=VALUE", x)
+			}
+			if kp[1] == "" {
+				return fmt.Errorf("invalid resource option: %s, must have a value", x)
 			}
 
-			matches := resourceOptionsRegex.FindAllStringSubmatch(opts, -1)
-			rn.options[matches[0][1]] = matches[0][2]
-			opts = strings.TrimPrefix(opts, matches[0][0])
+			rn.options[kp[0]] = kp[1]
 		}
 	}
 	// step: append to the list of resources

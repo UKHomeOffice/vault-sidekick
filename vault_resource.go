@@ -40,10 +40,12 @@ const (
 	optionsRevokeDelay = "delay"
 	// optionUpdate overrides the lease of the resource
 	optionUpdate = "update"
+	// optionCiphertext
+	optionCiphertext = "ciphertext"
 )
 
 var (
-	resourceFormatRegex = regexp.MustCompile("^(yaml|json|ini|txt|cert|bundle|csv)$")
+	resourceFormatRegex = regexp.MustCompile("^(yaml|json|env|ini|txt|cert|bundle|csv)$")
 
 	// a map of valid resource to retrieve from vault
 	validResources = map[string]bool{
@@ -53,6 +55,8 @@ var (
 		"mysql":     true,
 		"tpl":       true,
 		"postgres":  true,
+		"transit":   true,
+		"cubbyhole": true,
 		"cassandra": true,
 	}
 )
@@ -82,6 +86,8 @@ type VaultResource struct {
 	revokeDelay time.Duration
 	// the lease duration
 	update time.Duration
+	// the cipertext for transit
+	ciphertext string
 	// additional options to the resource
 	options map[string]string
 }
@@ -122,6 +128,10 @@ func (r *VaultResource) isValidResource() error {
 	case "pki":
 		if _, found := r.options[optionCommonName]; !found {
 			return fmt.Errorf("pki resource requires a common name specified")
+		}
+	case "transit":
+		if _, found := r.options[optionCiphertext]; !found {
+			return fmt.Errorf("transit requires a ciphertext option")
 		}
 	case "tpl":
 		if _, found := r.options[optionTemplatePath]; !found {
@@ -166,6 +176,8 @@ func (r *VaultResource) isValidOptions() error {
 				return fmt.Errorf("the renewal option: %s is invalid, should be a boolean", val)
 			}
 			r.renewable = choice
+		case optionCiphertext:
+			r.ciphertext = val
 		case optionFilename:
 			// @TODO need to check it's valid filename / path
 		case optionCommonName:

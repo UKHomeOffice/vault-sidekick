@@ -26,10 +26,10 @@ func TestSetResources(t *testing.T) {
 	var items VaultResources
 
 	assert.Nil(t, items.Set("secret:test:file=filename.test,fmt=yaml"))
-	assert.Nil(t, items.Set("secret:test:file=filename.test,"))
+	assert.Nil(t, items.Set("secret:test:file=filename.test"))
 	assert.Nil(t, items.Set("secret:/db/prod/username"))
 	assert.Nil(t, items.Set("secret:/db/prod:file=filename.test,fmt=yaml"))
-	assert.Nil(t, items.Set("secret:test:fn=filename.test,"))
+	assert.Nil(t, items.Set("secret:test:fn=filename.test"))
 	assert.Nil(t, items.Set("pki:example-dot-com:cn=blah.example.com"))
 	assert.Nil(t, items.Set("pki:example-dot-com:cn=blah.example.com,file=/etc/certs/ssl/blah.example.com"))
 	assert.Nil(t, items.Set("pki:example-dot-com:cn=blah.example.com,renew=10s"))
