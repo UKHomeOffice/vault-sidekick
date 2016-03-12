@@ -91,7 +91,7 @@ The format is;
 
 **Output Formatting**
 
-The following output formats are supported: json, yaml, ini, txt, cert
+The following output formats are supported: json, yaml, ini, txt, cert, csv, bundle, env
 
 Using the following at the demo secrets
 
