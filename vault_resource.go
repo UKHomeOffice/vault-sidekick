@@ -44,6 +44,7 @@ var (
 
 	// a map of valid resource to retrieve from vault
 	validResources = map[string]bool{
+		"raw":       true,
 		"pki":       true,
 		"aws":       true,
 		"secret":    true,
