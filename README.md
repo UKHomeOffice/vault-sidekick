@@ -89,6 +89,9 @@ The format is;
 -cn=RESOURCE_TYPE:PATH:OPTIONS
 ```
 
+The sidekick supports the following resource types: mysql, postgres, pki, aws, secret, cubbyhole, raw, cassandra and transit
+
+
 **Output Formatting**
 
 The following output formats are supported: json, yaml, ini, txt, cert, csv, bundle, env
