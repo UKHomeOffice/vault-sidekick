@@ -19,7 +19,6 @@ package main
 import (
 	"fmt"
 	"regexp"
-	"strconv"
 	"time"
 )
 
@@ -28,8 +27,6 @@ const (
 	optionFilename = "file"
 	// optionFormat set the output format (yaml, xml, json)
 	optionFormat = "fmt"
-	// optionCommonName set the PKI common name of the resource
-	optionCommonName = "cn"
 	// optionTemplatePath is the full path to a template
 	optionTemplatePath = "tpl"
 	// optionRenewal sets the duration to renew the resource
@@ -40,8 +37,6 @@ const (
 	optionsRevokeDelay = "delay"
 	// optionUpdate overrides the lease of the resource
 	optionUpdate = "update"
-	// optionCiphertext
-	optionCiphertext = "ciphertext"
 )
 
 var (
@@ -86,8 +81,10 @@ type VaultResource struct {
 	revokeDelay time.Duration
 	// the lease duration
 	update time.Duration
-	// the cipertext for transit
-	ciphertext string
+	// the filename to save the secret
+	filename string
+	// the template file
+	templateFile string
 	// additional options to the resource
 	options map[string]string
 }
@@ -95,8 +92,8 @@ type VaultResource struct {
 // GetFilename generates a resource filename by default the resource name and resource type, which
 // can override by the OPTION_FILENAME option
 func (r VaultResource) GetFilename() string {
-	if path, found := r.options[optionFilename]; found {
-		return path
+	if r.filename != "" {
+		return r.filename
 	}
 
 	return fmt.Sprintf("%s.%s", r.path, r.resource)
@@ -107,11 +104,6 @@ func (r *VaultResource) IsValid() error {
 	// step: check the resource type
 	if _, found := validResources[r.resource]; !found {
 		return fmt.Errorf("unsupported resource type: %s", r.resource)
-	}
-
-	// step: check the options
-	if err := r.isValidOptions(); err != nil {
-		return fmt.Errorf("invalid resource options, %s", err)
 	}
 
 	// step: check is have all the required options to this resource type
@@ -126,66 +118,16 @@ func (r *VaultResource) IsValid() error {
 func (r *VaultResource) isValidResource() error {
 	switch r.resource {
 	case "pki":
-		if _, found := r.options[optionCommonName]; !found {
+		if _, found := r.options["common_name"]; !found {
 			return fmt.Errorf("pki resource requires a common name specified")
 		}
 	case "transit":
-		if _, found := r.options[optionCiphertext]; !found {
+		if _, found := r.options["ciphertext"]; !found {
 			return fmt.Errorf("transit requires a ciphertext option")
 		}
 	case "tpl":
 		if _, found := r.options[optionTemplatePath]; !found {
 			return fmt.Errorf("template resource requires a template path option")
-		}
-	}
-
-	return nil
-}
-
-// isValidOptions iterates through the options, converts the options and so forth
-func (r *VaultResource) isValidOptions() error {
-	// check the filename directive
-	for opt, val := range r.options {
-		switch opt {
-		case optionFormat:
-			if matched := resourceFormatRegex.MatchString(r.options[optionFormat]); !matched {
-				return fmt.Errorf("unsupported output format: %s", r.options[optionFormat])
-			}
-			r.format = val
-		case optionUpdate:
-			duration, err := time.ParseDuration(val)
-			if err != nil {
-				return fmt.Errorf("the update option: %s is not value, should be a duration format", val)
-			}
-			r.update = duration
-		case optionRevoke:
-			choice, err := strconv.ParseBool(val)
-			if err != nil {
-				return fmt.Errorf("the revoke option: %s is invalid, should be a boolean", val)
-			}
-			r.revoked = choice
-		case optionsRevokeDelay:
-			duration, err := time.ParseDuration(val)
-			if err != nil {
-				return fmt.Errorf("the revoke delay option: %s is not value, should be a duration format", val)
-			}
-			r.revokeDelay = duration
-		case optionRenewal:
-			choice, err := strconv.ParseBool(val)
-			if err != nil {
-				return fmt.Errorf("the renewal option: %s is invalid, should be a boolean", val)
-			}
-			r.renewable = choice
-		case optionCiphertext:
-			r.ciphertext = val
-		case optionFilename:
-			// @TODO need to check it's valid filename / path
-		case optionCommonName:
-			// @TODO need to check it's a valid hostname
-		case optionTemplatePath:
-			if exists, _ := fileExists(val); !exists {
-				return fmt.Errorf("the template file: %s does not exist", val)
-			}
 		}
 	}
 

@@ -314,19 +314,20 @@ func (r VaultService) revoke(lease string) error {
 //	rn			: the watched resource
 func (r VaultService) get(rn *watchedResource) (err error) {
 	var secret *api.Secret
+	// step: not sure who to cast map[string]string to map[string]interface{} doesn't like it anyway i try and do it
+	params := make(map[string]interface{}, 0)
+	for k, v := range rn.resource.options {
+		params[k] = interface{}(v)
+	}
+	glog.V(10).Infof("get path: %s, params: %v", rn.resource.path, params)
+
 	glog.V(5).Infof("attempting to retrieve the resource: %s from vault", rn.resource)
 	// step: perform a request to vault
 	switch rn.resource.resource {
 	case "pki":
-		secret, err = r.client.Logical().Write(fmt.Sprintf(rn.resource.path),
-			map[string]interface{}{
-				"common_name": rn.resource.options[optionCommonName],
-			})
+		secret, err = r.client.Logical().Write(fmt.Sprintf(rn.resource.path), params)
 	case "transit":
-		secret, err = r.client.Logical().Write(fmt.Sprintf(rn.resource.path),
-			map[string]interface{}{
-				"cipertext": rn.resource.options[optionCiphertext],
-			})
+		secret, err = r.client.Logical().Write(fmt.Sprintf(rn.resource.path), params)
 	case "aws":
 		fallthrough
 	case "cubbyhole":
@@ -338,7 +339,7 @@ func (r VaultService) get(rn *watchedResource) (err error) {
 	case "secret":
 		secret, err = r.client.Logical().Read(rn.resource.path)
 	}
-	// step: return on error
+	// step: check the error if any
 	if err != nil {
 		if strings.Contains(err.Error(), "missing client token") {
 			// decision: until the rewrite, lets just exit for now

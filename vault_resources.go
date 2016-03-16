@@ -18,7 +18,9 @@ package main
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
+	"time"
 )
 
 // VaultResources is a collection of type resource
@@ -59,8 +61,48 @@ func (r *VaultResources) Set(value string) error {
 			if kp[1] == "" {
 				return fmt.Errorf("invalid resource option: %s, must have a value", x)
 			}
+			// step: set the name and value
+			name := kp[0]
+			value := strings.Replace(kp[1], "|", ",", -1)
 
-			rn.options[kp[0]] = kp[1]
+			// step: extract the control options from the path resource parameteres
+			switch name {
+			case optionFormat:
+				if matched := resourceFormatRegex.MatchString(value); !matched {
+					return fmt.Errorf("unsupported output format: %s", value)
+				}
+				rn.format = value
+			case optionUpdate:
+				duration, err := time.ParseDuration(value)
+				if err != nil {
+					return fmt.Errorf("update option: %s is not value, should be a duration format", value)
+				}
+				rn.update = duration
+			case optionRevoke:
+				choice, err := strconv.ParseBool(value)
+				if err != nil {
+					return fmt.Errorf("the revoke option: %s is invalid, should be a boolean", value)
+				}
+				rn.revoked = choice
+			case optionsRevokeDelay:
+				duration, err := time.ParseDuration(value)
+				if err != nil {
+					return fmt.Errorf("the revoke delay option: %s is not value, should be a duration format", value)
+				}
+				rn.revokeDelay = duration
+			case optionRenewal:
+				choice, err := strconv.ParseBool(value)
+				if err != nil {
+					return fmt.Errorf("the renewal option: %s is invalid, should be a boolean", value)
+				}
+				rn.renewable = choice
+			case optionFilename:
+				rn.filename = value
+			case optionTemplatePath:
+				rn.templateFile = value
+			default:
+				rn.options[name] = value
+			}
 		}
 	}
 	// step: append to the list of resources

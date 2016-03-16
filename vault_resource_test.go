@@ -29,8 +29,6 @@ func TestResourceFilename(t *testing.T) {
 		options:  map[string]string{},
 	}
 	assert.Equal(t, "test_secret.secret", rn.GetFilename())
-	rn.options[optionFilename] = "credentials"
-	assert.Equal(t, "credentials", rn.GetFilename())
 }
 
 func TestIsValid(t *testing.T) {
@@ -43,7 +41,4 @@ func TestIsValid(t *testing.T) {
 	assert.NotNil(t, resource.IsValid())
 	resource.resource = "pki"
 	assert.NotNil(t, resource.IsValid())
-	resource.options[optionCommonName] = "common.example.com"
-	assert.Nil(t, resource.IsValid())
-
 }
