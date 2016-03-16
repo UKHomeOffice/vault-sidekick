@@ -1,3 +1,10 @@
+
+#### **Version v0.0.7**
+
+##### FEATURES
+ * Adding the ability to the perform raw queries to vault, the formatting stays the same - a single
+   data key 'content' is returned, example: -cn=raw:platform/pki/ca/pem:fmt=txt,file=ca
+
 #### **Version v0.0.6**
 
 ##### FEATURES:
