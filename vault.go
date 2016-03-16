@@ -319,11 +319,39 @@ func (r VaultService) get(rn *watchedResource) (err error) {
 	for k, v := range rn.resource.options {
 		params[k] = interface{}(v)
 	}
-	glog.V(10).Infof("get path: %s, params: %v", rn.resource.path, params)
+	glog.V(10).Infof("get, resource: %s, path: %s, params: %v", rn.resource.resource, rn.resource.path, params)
 
 	glog.V(5).Infof("attempting to retrieve the resource: %s from vault", rn.resource)
 	// step: perform a request to vault
 	switch rn.resource.resource {
+	case "raw":
+		request := r.client.NewRequest("GET", "/v1/" + rn.resource.path)
+		for k, v := range rn.resource.options {
+			request.Params.Add(k, v)
+		}
+		resp, err := r.client.RawRequest(request)
+		if err != nil {
+			fmt.Printf("FAILED HERE")
+			return err
+		}
+		// step: read the response
+		content, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return err
+		}
+		// step: construct a secret from the response
+		secret = &api.Secret{
+			LeaseID:       "raw",
+			Renewable:     false,
+			Data: map[string]interface{}{
+				"content" : fmt.Sprintf("%s", content),
+			},
+		}
+		if rn.resource.update > 0 {
+			secret.LeaseDuration = int(rn.resource.update.Seconds())
+		} else {
+			secret.LeaseDuration = int((time.Duration(24) * time.Hour).Seconds())
+		}
 	case "pki":
 		secret, err = r.client.Logical().Write(fmt.Sprintf(rn.resource.path), params)
 	case "transit":
