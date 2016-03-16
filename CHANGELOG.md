@@ -8,6 +8,10 @@
  * Adding comma separated list as resource arguments comes in the form <ARG>|<ARG> i.e. 
    -cn=pki:platform/pki/issue/example-dot-com:common_name=blah.example.com,alt_names='me.example.com|ted.example.com'
 
+##### BREAKING CHANGES:
+ * Note, because all params excluding the control options are passed as arguments to vault the arguments must be the 
+   same as those for vault, i.e. for pki cn -> common_name
+
 ##### BUGS:
 
  * Fixed the formatting of values in various formats, i.e. %!s(bool=true)
