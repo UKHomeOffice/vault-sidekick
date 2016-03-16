@@ -21,12 +21,12 @@ static:
 
 docker: static
 	@echo "--> Building the docker image"
-	sudo docker build -t ${AUTHOR}/${NAME}:${VERSION} .
+	docker build -t ${AUTHOR}/${NAME}:${VERSION} .
 
 push: docker
 	@echo "--> Pushing the image to docker.io"
-	sudo docker tag -f ${AUTHOR}/${NAME}:${VERSION} docker.io/${AUTHOR}/${NAME}:${VERSION}
-	sudo docker push docker.io/${AUTHOR}/${NAME}:${VERSION}
+	docker tag -f ${AUTHOR}/${NAME}:${VERSION} docker.io/${AUTHOR}/${NAME}:${VERSION}
+	docker push docker.io/${AUTHOR}/${NAME}:${VERSION}
 
 release: static
 	mkdir -p release
