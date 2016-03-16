@@ -26,7 +26,7 @@ import (
 
 const (
 	Prog    = "vault-sidekick"
-	Version = "v0.0.5"
+	Version = "v0.0.6"
 )
 
 func main() {
@@ -63,8 +63,11 @@ func main() {
 		select {
 		case evt := <-updates:
 			glog.V(10).Infof("recieved an update from the resource: %s", evt.Resource)
-			go writeResource(evt.Resource, evt.Secret)
-
+			go func(r VaultEvent) {
+				if err := writeResource(evt.Resource, evt.Secret); err != nil {
+					glog.Errorf("failed to write out the update, error: %s", err)
+				}
+			}(evt)
 		case <-signalChannel:
 			glog.Infof("recieved a termination signal, shutting down the service")
 			os.Exit(0)

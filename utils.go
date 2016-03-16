@@ -201,6 +201,8 @@ func writeResource(rn *VaultResource, data map[string]interface{}) error {
 			glog.Errorf("failed to write the ca certificate file, errro: %s", err)
 			return err
 		}
+
+		return nil
 	}
 
 	if rn.format == "env" {
@@ -251,7 +253,7 @@ func writeResource(rn *VaultResource, data map[string]interface{}) error {
 			// step: for plain formats we need to iterate the keys and produce a file per key
 			for suffix, content := range data {
 				filename := fmt.Sprintf("%s.%s", resourcePath, suffix)
-				if err := writeFile(filename, []byte(fmt.Sprintf("%s", content))); err != nil {
+				if err := writeFile(filename, []byte(fmt.Sprintf("%v", content))); err != nil {
 					glog.Errorf("failed to write resource: %s, elemment: %s, filename: %s, error: %s",
 						rn, suffix, filename, err)
 					continue
