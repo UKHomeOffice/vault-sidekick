@@ -14,14 +14,14 @@ build:
 	mkdir -p bin
 	go build -o bin/${NAME}
 
-docker: build
-	@echo "--> Building the docker image"
-	sudo docker build -t ${AUTHOR}/${NAME}:${VERSION} .
-
 static:
 	@echo "--> Compiling the static binary"
 	mkdir -p bin
 	CGO_ENABLED=0 GOOS=linux go build -a -tags netgo -ldflags '-w' -o bin/${NAME}
+
+docker: static
+	@echo "--> Building the docker image"
+	sudo docker build -t ${AUTHOR}/${NAME}:${VERSION} .
 
 push: docker
 	@echo "--> Pushing the image to docker.io"
