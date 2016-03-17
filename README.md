@@ -44,7 +44,7 @@ spec:
         image: gambol99/vault-sidekick:latest
         args:
           - -output=/etc/secrets
-          - -cn=pki:project1/certs/example.com:cn=commons.example.com,rv=true,up=2h
+          - -cn=pki:project1/certs/example.com:common_name=commons.example.com,revoke=true,update=2h
           - -cn=secret:secret/db/prod/username:file=.credentials
           - -cn=secret:secret/db/prod/password
           - -cn=aws:aws/creds/s3_backup_policy:file=.s3_creds
@@ -119,7 +119,8 @@ In order to change the output format:
 [jest@starfury vault-sidekick]$ build/vault-sidekick -cn=secret:secret/password:fmt=yaml -logtostderr=true -dry-run
 ```
 
-Format: 'cert' is less of a format of more file scheme i.e. is just extracts the 'certificate', 'issuing_ca' and 'private_key' and creates the three files FILE.{ca,key,crt}
+Format: 'cert' is less of a format of more file scheme i.e. is just extracts the 'certificate', 'issuing_ca' and 'private_key' and creates the three files FILE.{ca,key,crt}. The
+bundle format is very similar in the sense it similar takes the private key and certificate and places into a single file. 
 
 **Resource Options**
 
@@ -129,4 +130,4 @@ Format: 'cert' is less of a format of more file scheme i.e. is just extracts the
 - **delay**: (renewal-delay) delay the revoking the lease of a resource for x period once time e.g 1m, 1h20s
 - **revoke**: (revoke) revoke the old lease when you get retrieve a old one e.g. true, TRUE (default to allow the lease to expire and naturally revoke)
 - **fmt**: (format) allows you to specify the output format of the resource / secret, e.g json, yaml, ini, txt
-- **cn**: (comman name) is used in conjunction with the PKI resource. The common argument is passed as an argument when make a request to issue the certs.
+- **exec** (execute) execute's a command when resource is updated or changed 
