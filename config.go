@@ -42,6 +42,8 @@ type config struct {
 	resources *VaultResources
 	// the interval for producing statistics
 	statsInterval time.Duration
+	// the timeout for a exec command
+	execTimeout time.Duration
 }
 
 var (
@@ -60,6 +62,7 @@ func init() {
 	flag.BoolVar(&options.tlsVerify, "tls-skip-verify", false, "whether to check and verify the vault service certificate")
 	flag.StringVar(&options.vaultCaFile, "ca-cert", "", "the path to the file container the CA used to verify the vault service")
 	flag.DurationVar(&options.statsInterval, "stats", time.Duration(1)*time.Hour, "the interval to produce statistics on the accessed resources")
+	flag.DurationVar(&options.execTimeout, "exec-timeout", time.Duration(60) * time.Second, "the timeout applied to commands on the exec option")
 	flag.Var(options.resources, "cn", "a resource to retrieve and monitor from vault")
 }
 

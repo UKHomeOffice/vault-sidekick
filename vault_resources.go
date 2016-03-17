@@ -96,6 +96,8 @@ func (r *VaultResources) Set(value string) error {
 					return fmt.Errorf("the renewal option: %s is invalid, should be a boolean", value)
 				}
 				rn.renewable = choice
+			case optionExec:
+				rn.execPath = value
 			case optionFilename:
 				rn.filename = value
 			case optionTemplatePath:

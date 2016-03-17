@@ -325,7 +325,7 @@ func (r VaultService) get(rn *watchedResource) (err error) {
 	// step: perform a request to vault
 	switch rn.resource.resource {
 	case "raw":
-		request := r.client.NewRequest("GET", "/v1/" + rn.resource.path)
+		request := r.client.NewRequest("GET", "/v1/"+rn.resource.path)
 		for k, v := range rn.resource.options {
 			request.Params.Add(k, v)
 		}
@@ -341,10 +341,10 @@ func (r VaultService) get(rn *watchedResource) (err error) {
 		}
 		// step: construct a secret from the response
 		secret = &api.Secret{
-			LeaseID:       "raw",
-			Renewable:     false,
+			LeaseID:   "raw",
+			Renewable: false,
 			Data: map[string]interface{}{
-				"content" : fmt.Sprintf("%s", content),
+				"content": fmt.Sprintf("%s", content),
 			},
 		}
 		if rn.resource.update > 0 {

@@ -1,3 +1,10 @@
+#### **Version v0.0.8**
+
+##### FEATURES
+
+ * Adding an exec option to the control set, the command is called whenever a change is made on the resource with a 
+   condfigurable timeout (default to 60s)
+   -cn=secret:platform/secrets/se2:fmt=yaml,exec=tests/runme.sh,update=1s
 
 #### **Version v0.0.7**
 

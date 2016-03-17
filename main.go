@@ -26,7 +26,7 @@ import (
 
 const (
 	Prog    = "vault-sidekick"
-	Version = "v0.0.7"
+	Version = "v0.0.8"
 )
 
 func main() {
@@ -64,7 +64,7 @@ func main() {
 		case evt := <-updates:
 			glog.V(10).Infof("recieved an update from the resource: %s", evt.Resource)
 			go func(r VaultEvent) {
-				if err := writeResource(evt.Resource, evt.Secret); err != nil {
+				if err := processResource(evt.Resource, evt.Secret); err != nil {
 					glog.Errorf("failed to write out the update, error: %s", err)
 				}
 			}(evt)
