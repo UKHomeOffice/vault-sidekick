@@ -37,10 +37,12 @@ const (
 	optionsRevokeDelay = "delay"
 	// optionUpdate overrides the lease of the resource
 	optionUpdate = "update"
+	// optionsExec executes something on a change
+	optionExec = "exec"
 )
 
 var (
-	resourceFormatRegex = regexp.MustCompile("^(yaml|json|env|ini|txt|cert|bundle|csv)$")
+	resourceFormatRegex = regexp.MustCompile("^(yaml|yml|json|env|ini|txt|cert|bundle|csv)$")
 
 	// a map of valid resource to retrieve from vault
 	validResources = map[string]bool{
@@ -86,6 +88,8 @@ type VaultResource struct {
 	filename string
 	// the template file
 	templateFile string
+	// the path to an exec to run on a change
+	execPath string
 	// additional options to the resource
 	options map[string]string
 }

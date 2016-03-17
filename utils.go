@@ -17,7 +17,6 @@ limitations under the License.
 package main
 
 import (
-	"bytes"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -30,6 +29,7 @@ import (
 
 	"github.com/golang/glog"
 	"gopkg.in/yaml.v2"
+	"os/exec"
 	"path/filepath"
 )
 
@@ -155,144 +155,57 @@ func fileExists(filename string) (bool, error) {
 	return true, nil
 }
 
-// writeResourceContent is responsible for generating the specific content from the resource
-// 	rn			: a point to the vault resource
+// processResource is responsible for generating the specific content from the resource
+// 	rn		: a point to the vault resource
 //	data		: a map of the related secret associated to the resource
-func writeResource(rn *VaultResource, data map[string]interface{}) error {
+func processResource(rn *VaultResource, data map[string]interface{}) (err error) {
 	// step: determine the resource path
-	resourcePath := rn.GetFilename()
-	if !strings.HasPrefix(resourcePath, "/") {
-		resourcePath = fmt.Sprintf("%s/%s", options.outputDir, filepath.Base(resourcePath))
+	filename := rn.GetFilename()
+	if !strings.HasPrefix(filename, "/") {
+		filename = fmt.Sprintf("%s/%s", options.outputDir, filepath.Base(filename))
+	}
+	// step: format and write the file
+	switch rn.format {
+	case "yaml":
+		fallthrough
+	case "yml":
+		err = writeYAMLFile(filename, data)
+	case "json":
+		err = writeJSONFile(filename, data)
+	case "ini":
+		err = writeIniFile(filename, data)
+	case "csv":
+		err = writeCSVFile(filename, data)
+	case "env":
+		err = writeEnvFile(filename, data)
+	case "cert":
+		err = writeCertificateFile(filename, data)
+	case "txt":
+		err = writeTxtFile(filename, data)
+	case "bundle":
+		err = writeCertificateBundleFile(filename, data)
+	default:
+		return fmt.Errorf("unknown output format: %s", rn.format)
+	}
+	// step: check for an error
+	if err != nil {
+		return err
 	}
 
-	glog.V(10).Infof("writing the resource: %s, format: %s", resourcePath, rn.format)
-
-	if rn.format == "yaml" {
-		// marshall the content to yaml
-		content, err := yaml.Marshal(data)
-		if err != nil {
-			return err
-		}
-
-		return writeFile(resourcePath, content)
-	}
-
-	if rn.format == "ini" {
-		var buf bytes.Buffer
-		for key, val := range data {
-			buf.WriteString(fmt.Sprintf("%s = %v\n", key, val))
-		}
-
-		return writeFile(resourcePath, buf.Bytes())
-	}
-
-	if rn.format == "bundle" {
-		certificateFile := fmt.Sprintf("%s.crt", resourcePath)
-		caFile := fmt.Sprintf("%s.ca", resourcePath)
-		certificate := fmt.Sprintf("%s\n\n%s", data["certificate"], data["private_key"])
-		ca := fmt.Sprintf("%s", data["issuing_ca"])
-
-		if err := writeFile(certificateFile, []byte(certificate)); err != nil {
-			glog.Errorf("failed to write the bundled certificate file, error: %s", err)
-			return err
-		}
-
-		if err := writeFile(caFile, []byte(ca)); err != nil {
-			glog.Errorf("failed to write the ca certificate file, errro: %s", err)
-			return err
-		}
-
-		return nil
-	}
-
-	if rn.format == "env" {
-		var buf bytes.Buffer
-		for key, val := range data {
-			buf.WriteString(fmt.Sprintf("%s=%v\n", strings.ToUpper(key), val))
-		}
-
-		return writeFile(resourcePath, buf.Bytes())
-	}
-
-	if rn.format == "cert" {
-		files := map[string]string{
-			"certificate": "crt",
-			"issuing_ca":  "ca",
-			"private_key": "key",
-		}
-		for key, suffix := range files {
-			filename := fmt.Sprintf("%s.%s", resourcePath, suffix)
-			content, found := data[key]
-			if !found {
-				glog.Errorf("didn't find the certification option: %s in the resource: %s", key, rn.path)
-				continue
+	// step: check if we need to execute a command
+	if rn.execPath != "" {
+		glog.V(10).Infof("executing the command: %s for resouce: %s", rn.execPath, rn.path)
+		cmd := exec.Command(rn.execPath, filename)
+		cmd.Start()
+		timer := time.AfterFunc(options.execTimeout, func() {
+			if err := cmd.Process.Kill(); err != nil {
+				glog.Errorf("failed to kill the command, pid: %d, error: %s", cmd.Process.Pid, err)
 			}
-
-			// step: write the file
-			if err := writeFile(filename, []byte(fmt.Sprintf("%s", content))); err != nil {
-				glog.Errorf("failed to write resource: %s, elemment: %s, filename: %s, error: %s", rn, suffix, filename, err)
-				continue
-			}
-		}
-
-		return nil
+		})
+		// step: wait for the command to finish
+		err = cmd.Wait()
+		timer.Stop()
 	}
 
-	if rn.format == "csv" {
-		var buf bytes.Buffer
-		for key, val := range data {
-			buf.WriteString(fmt.Sprintf("%s,%v\n", key, val))
-		}
-
-		return writeFile(resourcePath, buf.Bytes())
-	}
-
-	if rn.format == "txt" {
-		keys := getKeys(data)
-		if len(keys) > 1 {
-			// step: for plain formats we need to iterate the keys and produce a file per key
-			for suffix, content := range data {
-				filename := fmt.Sprintf("%s.%s", resourcePath, suffix)
-				if err := writeFile(filename, []byte(fmt.Sprintf("%v", content))); err != nil {
-					glog.Errorf("failed to write resource: %s, elemment: %s, filename: %s, error: %s",
-						rn, suffix, filename, err)
-					continue
-				}
-			}
-			return nil
-		}
-
-		// step: we only have the one key, so will write plain
-		value, _ := data[keys[0]]
-		content := []byte(fmt.Sprintf("%s", value))
-
-		return writeFile(resourcePath, content)
-
-	}
-
-	if rn.format == "json" {
-		content, err := json.MarshalIndent(data, "", "    ")
-		if err != nil {
-			return err
-		}
-
-		return writeFile(resourcePath, content)
-	}
-
-	return fmt.Errorf("unknown output format: %s", rn.format)
-}
-
-// writeFile ... writes the content to a file .. dah
-//	filename		: the path to the file
-//	content			: the content to be written
-func writeFile(filename string, content []byte) error {
-	if options.dryRun {
-		glog.Infof("dry-run: filename: %s, content:", filename)
-		fmt.Printf("%s\n", string(content))
-		return nil
-	}
-
-	glog.V(3).Infof("saving the file: %s", filename)
-
-	return ioutil.WriteFile(filename, content, 0660)
+	return err
 }
