@@ -26,11 +26,12 @@ import (
 
 const (
 	Prog    = "vault-sidekick"
-	Version = "v0.0.8"
+	Version = "v0.0.9"
 )
 
 func main() {
 	// step: parse and validate the command line / environment options
+
 	if err := parseOptions(); err != nil {
 		showUsage("invalid options, %s", err)
 	}

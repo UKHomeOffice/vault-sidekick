@@ -138,7 +138,6 @@ func (r *VaultService) vaultServiceProcessor() {
 					glog.V(10).Infof("resource: %s has a previous lease: %s", x.resource, leaseID)
 				}
 
-				// step: retrieve the resource from vault
 				err := r.get(x)
 				if err != nil {
 					glog.Errorf("failed to retrieve the resource: %s from vault, error: %s", x.resource, err)
@@ -147,7 +146,7 @@ func (r *VaultService) vaultServiceProcessor() {
 					break
 				}
 
-				glog.V(4).Infof("successfully retrieved resournce: %s, leaseID: %s", x.resource, x.secret.LeaseID)
+				glog.V(4).Infof("successfully retrieved resource: %s, leaseID: %s", x.resource, x.secret.LeaseID)
 
 				// step: if we had a previous lease and the option is to revoke, lets throw into the revoke channel
 				if leaseID != "" && x.resource.revoked {
@@ -315,6 +314,7 @@ func (r VaultService) revoke(lease string) error {
 func (r VaultService) get(rn *watchedResource) (err error) {
 	var secret *api.Secret
 	// step: not sure who to cast map[string]string to map[string]interface{} doesn't like it anyway i try and do it
+
 	params := make(map[string]interface{}, 0)
 	for k, v := range rn.resource.options {
 		params[k] = interface{}(v)
@@ -366,6 +366,17 @@ func (r VaultService) get(rn *watchedResource) (err error) {
 		fallthrough
 	case "secret":
 		secret, err = r.client.Logical().Read(rn.resource.path)
+		// We must generate the secret if we have the create flag
+		if rn.resource.create && secret == nil && err == nil {
+			glog.V(3).Infof("Create param specified, creating resource: %s", rn.resource.path)
+			params["value"] = NewPassword(int(rn.resource.size))
+			secret, err = r.client.Logical().Write(fmt.Sprintf(rn.resource.path), params)
+			glog.V(3).Infof("Secret created: %s", rn.resource.path)
+			if err == nil {
+				// Populate the secret data as stored in Vault...
+				secret, err = r.client.Logical().Read(rn.resource.path)
+			}
+		}
 	}
 	// step: check the error if any
 	if err != nil {
@@ -375,7 +386,7 @@ func (r VaultService) get(rn *watchedResource) (err error) {
 		}
 		return err
 	}
-	if secret == nil && err != nil {
+	if secret == nil && err == nil {
 		return fmt.Errorf("the resource does not exist")
 	}
 

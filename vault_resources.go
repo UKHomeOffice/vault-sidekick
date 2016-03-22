@@ -65,7 +65,7 @@ func (r *VaultResources) Set(value string) error {
 			name := kp[0]
 			value := strings.Replace(kp[1], "|", ",", -1)
 
-			// step: extract the control options from the path resource parameteres
+			// step: extract the control options from the path resource parameters
 			switch name {
 			case optionFormat:
 				if matched := resourceFormatRegex.MatchString(value); !matched {
@@ -96,6 +96,21 @@ func (r *VaultResources) Set(value string) error {
 					return fmt.Errorf("the renewal option: %s is invalid, should be a boolean", value)
 				}
 				rn.renewable = choice
+			case optionCreate:
+				choice, err := strconv.ParseBool(value)
+				if err != nil {
+					return fmt.Errorf("the create option: %s is invalid, should be a boolean", value)
+				}
+				if rn.resource != "secret" {
+					return fmt.Errorf("the create option is only supported for 'cn=secret' at this time")
+				}
+				rn.create = choice
+			case optionSize:
+				size, err := strconv.ParseInt(value, 10, 16)
+				if err != nil {
+					return fmt.Errorf("the size option: %s is invalid, should be an integer", value)
+				}
+				rn.size = size
 			case optionExec:
 				rn.execPath = value
 			case optionFilename:
