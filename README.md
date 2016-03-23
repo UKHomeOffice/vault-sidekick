@@ -125,6 +125,7 @@ bundle format is very similar in the sense it similar takes the private key and 
 **Resource Options**
 
 - **file**: (filaname) by default all file are relative to the output directory specified and will have the name NAME.RESOURCE; the fn options allows you to switch names and paths to write the files
+- **create**: (create) create the resource
 - **update**: (update) override the lease time of this resource and get/renew a secret on the specified duration e.g 1m, 2d, 5m10s
 - **renew**: (renewal) override the default behavour on this resource, renew the resource when coming close to expiration e.g true, TRUE
 - **delay**: (renewal-delay) delay the revoking the lease of a resource for x period once time e.g 1m, 1h20s

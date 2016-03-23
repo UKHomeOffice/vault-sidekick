@@ -39,6 +39,12 @@ const (
 	optionUpdate = "update"
 	// optionsExec executes something on a change
 	optionExec = "exec"
+	// optionCreate creates a secret if it doesn't exist
+	optionCreate = "create"
+	// optionSize sets the initial size of a password secret
+	optionSize = "size"
+	// defaultSize sets the default size of a generic secret
+	defaultSize = 20
 )
 
 var (
@@ -65,6 +71,7 @@ func defaultVaultResource() *VaultResource {
 		renewable: false,
 		revoked:   false,
 		options:   make(map[string]string, 0),
+		size:      defaultSize,
 	}
 }
 
@@ -84,6 +91,10 @@ type VaultResource struct {
 	revokeDelay time.Duration
 	// the lease duration
 	update time.Duration
+	// whether the resource should be created?
+	create bool
+	// the size of a secret to create
+	size int64
 	// the filename to save the secret
 	filename string
 	// the template file
