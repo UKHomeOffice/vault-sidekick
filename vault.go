@@ -28,6 +28,7 @@ import (
 	"github.com/golang/glog"
 	"github.com/hashicorp/vault/api"
 	"strings"
+	"path/filepath"
 )
 
 const (
@@ -369,7 +370,7 @@ func (r VaultService) get(rn *watchedResource) (err error) {
 		// We must generate the secret if we have the create flag
 		if rn.resource.create && secret == nil && err == nil {
 			glog.V(3).Infof("Create param specified, creating resource: %s", rn.resource.path)
-			params["value"] = NewPassword(int(rn.resource.size))
+			params[filepath.Base(rn.resource.path)] = NewPassword(int(rn.resource.size))
 			secret, err = r.client.Logical().Write(fmt.Sprintf(rn.resource.path), params)
 			glog.V(3).Infof("Secret created: %s", rn.resource.path)
 			if err == nil {

@@ -46,7 +46,7 @@ spec:
           - -output=/etc/secrets
           - -cn=pki:project1/certs/example.com:common_name=commons.example.com,revoke=true,update=2h
           - -cn=secret:secret/db/prod/username:file=.credentials
-          - -cn=secret:secret/db/prod/password
+          - -cn=secret:secret/db/prod/password:create=true,file=.credentials
           - -cn=aws:aws/creds/s3_backup_policy:file=.s3_creds
         volumeMounts:
           - name: secrets

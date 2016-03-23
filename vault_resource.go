@@ -41,8 +41,6 @@ const (
 	optionExec = "exec"
 	// optionCreate creates a secret if it doesn't exist
 	optionCreate = "create"
-	// optionSize sets the initial size of a password secret
-	optionSize = "size"
 	// defaultSize sets the default size of a generic secret
 	defaultSize = 20
 )

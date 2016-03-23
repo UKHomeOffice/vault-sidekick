@@ -21,6 +21,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"path/filepath"
 )
 
 // VaultResources is a collection of type resource
@@ -105,12 +106,10 @@ func (r *VaultResources) Set(value string) error {
 					return fmt.Errorf("the create option is only supported for 'cn=secret' at this time")
 				}
 				rn.create = choice
-			case optionSize:
-				size, err := strconv.ParseInt(value, 10, 16)
-				if err != nil {
-					return fmt.Errorf("the size option: %s is invalid, should be an integer", value)
+				if rn.filename == nil && choice {
+					// Use the path basename
+					rn.filename = filepath.Base(rn.path)
 				}
-				rn.size = size
 			case optionExec:
 				rn.execPath = value
 			case optionFilename:
