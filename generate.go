@@ -17,9 +17,8 @@ limitations under the License.
 package main
 
 import (
-	"io"
 	"crypto/rand"
-
+	"io"
 )
 
 var StdChars = []byte("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()-_=+,.?/:;{}[]`~")

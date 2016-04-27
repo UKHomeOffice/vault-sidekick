@@ -17,6 +17,7 @@ limitations under the License.
 package main
 
 import (
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -33,11 +34,61 @@ func TestSetResources(t *testing.T) {
 	assert.Nil(t, items.Set("pki:example-dot-com:common_name=blah.example.com"))
 	assert.Nil(t, items.Set("pki:example-dot-com:common_name=blah.example.com,file=/etc/certs/ssl/blah.example.com"))
 	assert.Nil(t, items.Set("pki:example-dot-com:common_name=blah.example.com,renew=true"))
+	assert.Nil(t, items.Set("secret:secrets/%ENV%/me:file=filename.test,fmt=yaml"))
+
 	assert.NotNil(t, items.Set("secret:"))
 	assert.NotNil(t, items.Set("secret:test:file=filename.test,fmt="))
 	assert.NotNil(t, items.Set("secret::file=filename.test,fmt=yaml"))
 	assert.NotNil(t, items.Set("secret:te1st:file=filename.test,fmt="))
 	assert.NotNil(t, items.Set("file=filename.test,fmt=yaml"))
+}
+
+func TestSetEnvironmentResource(t *testing.T) {
+	tests := []struct {
+		ResourceText string
+		ExpectedPath string
+		Vars         map[string]string
+	}{
+		{
+			ResourceText: "secret:secrets/%ENV/me:file=filename.test,fmt=yaml",
+			ExpectedPath: "secrets/%ENV/me",
+		},
+		{
+			ResourceText: "secret:secrets/%ENV%/me:file=filename.test,fmt=yaml",
+			ExpectedPath: "secrets/dev/me",
+			Vars: map[string]string{
+				"ENV": "dev",
+			},
+		},
+		{
+			ResourceText: "secret:secrets/%ENV%/me/%ENV%:file=filename.test,fmt=yaml",
+			ExpectedPath: "secrets/dev/me/dev",
+			Vars: map[string]string{
+				"ENV": "dev",
+			},
+		},
+		{
+			ResourceText: "secret:secrets/%ENV%/me/%THING%:file=filename.test,fmt=yaml",
+			ExpectedPath: "secrets/dev/me/yes",
+			Vars: map[string]string{
+				"ENV":   "dev",
+				"THING": "yes",
+			},
+		},
+	}
+
+	for i, c := range tests {
+		var resource VaultResources
+		if len(c.Vars) > 0 {
+			for k, v := range c.Vars {
+				os.Setenv(k, v)
+			}
+		}
+		if !assert.NoError(t, resource.Set(c.ResourceText), "case %d, should not have failed", i) {
+			continue
+		}
+		assert.Equal(t, c.ExpectedPath, resource.items[0].path, "case %d, the paths do not match", i)
+	}
 }
 
 /*
