@@ -1,6 +1,7 @@
 
 NAME=vault-sidekick
-AUTHOR=gambol99
+AUTHOR ?= ukhomeofficedigital
+REGISTRY ?= quay.io
 HARDWARE=$(shell uname -m)
 VERSION=$(shell awk '/Version =/ { print $$3 }' main.go | sed 's/"//g')
 VETARGS?=-asmdecl -atomic -bool -buildtags -copylocks -methods -nilfunc -printf -rangeloops -shift -structtags -unsafeptr
@@ -21,12 +22,11 @@ static:
 
 docker: static
 	@echo "--> Building the docker image"
-	docker build -t ${AUTHOR}/${NAME}:${VERSION} .
+	docker build -t ${REGISTRY}/${AUTHOR}/${NAME}:${VERSION} .
 
 push: docker
 	@echo "--> Pushing the image to docker.io"
-	docker tag -f ${AUTHOR}/${NAME}:${VERSION} docker.io/${AUTHOR}/${NAME}:${VERSION}
-	docker push docker.io/${AUTHOR}/${NAME}:${VERSION}
+	docker push ${REGISTRY}/${AUTHOR}/${NAME}:${VERSION} 
 
 release: static
 	mkdir -p release
