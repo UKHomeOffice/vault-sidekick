@@ -1,3 +1,17 @@
+
+#### **Version v0.0.9-1**
+
+##### FEATURES
+
+ * Adding the ability to perform environment variable substituted of the resource path i.e. 
+   -resource=secret:/secrets/%ENV%/myset : %ENV% will substituted 
+ 
+#### **Version v0.0.9**
+
+##### FEATURES
+
+ * Adding the ability to create random secrets via the create option
+
 #### **Version v0.0.8**
 
 ##### FEATURES

@@ -91,6 +91,8 @@ The format is;
 
 The sidekick supports the following resource types: mysql, postgres, pki, aws, secret, cubbyhole, raw, cassandra and transit
 
+**Environment Variable Expansion**
+
 
 **Output Formatting**
 
