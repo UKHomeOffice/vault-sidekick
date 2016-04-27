@@ -18,9 +18,15 @@ package main
 
 import (
 	"fmt"
+	"os"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
+)
+
+var (
+	envRegex = regexp.MustCompile("%[[:alnum:]]+%")
 )
 
 // VaultResources is a collection of type resource
@@ -44,6 +50,15 @@ func (r *VaultResources) Set(value string) error {
 	}
 	if items[0] == "" || items[1] == "" {
 		return fmt.Errorf("invalid resource, neither type or path can be empty")
+	}
+
+	// step: look for any token in the resource
+	tokens := envRegex.FindAllStringSubmatch(items[1], -1)
+	if len(tokens) > 0 {
+		for _, x := range tokens {
+			// step: replace the token with the environment variable
+			items[1] = strings.Replace(items[1], x[0], os.Getenv(strings.Replace(x[0], "%", "", -1)), -1)
+		}
 	}
 
 	// step: extract the elements
