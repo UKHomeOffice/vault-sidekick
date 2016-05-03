@@ -194,7 +194,7 @@ func processResource(rn *VaultResource, data map[string]interface{}) (err error)
 
 	// step: check if we need to execute a command
 	if rn.execPath != "" {
-		glog.V(10).Infof("executing the command: %s for resouce: %s", rn.execPath, rn.path)
+		glog.V(10).Infof("executing the command: %s for resource: %s", rn.execPath, filename)
 		cmd := exec.Command(rn.execPath, filename)
 		cmd.Start()
 		timer := time.AfterFunc(options.execTimeout, func() {
