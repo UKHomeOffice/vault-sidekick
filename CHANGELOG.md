@@ -1,4 +1,12 @@
 
+#### **Version v0.1.0**
+
+##### FEATURES
+
+BUGS
+ * Fixed the bundle format to produce four file, a bundle with cert+ca, and the FILENAME-ca.pem, FILENAME-key.pem, 
+   and the FILENAME.pem certificate
+
 #### **Version v0.0.9-1**
 
 ##### FEATURES
