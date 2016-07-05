@@ -165,5 +165,5 @@ func writeFile(filename string, content []byte) error {
 	}
 	glog.V(3).Infof("saving the file: %s", filename)
 
-	return ioutil.WriteFile(filename, content, 0660)
+	return ioutil.WriteFile(filename, content, 0664)
 }
