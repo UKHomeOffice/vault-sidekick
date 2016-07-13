@@ -21,6 +21,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"fmt"
 )
 
 func TestSetResources(t *testing.T) {
@@ -34,7 +35,7 @@ func TestSetResources(t *testing.T) {
 	assert.Nil(t, items.Set("pki:example-dot-com:common_name=blah.example.com"))
 	assert.Nil(t, items.Set("pki:example-dot-com:common_name=blah.example.com,file=/etc/certs/ssl/blah.example.com"))
 	assert.Nil(t, items.Set("pki:example-dot-com:common_name=blah.example.com,renew=true"))
-	assert.Nil(t, items.Set("secret:secrets/%ENV%/me:file=filename.test,fmt=yaml"))
+	assert.Nil(t, items.Set("secret:secrets/${ENV}/me:file=filename.test,fmt=yaml"))
 
 
 	assert.NotNil(t, items.Set("secret:"))
@@ -51,25 +52,25 @@ func TestSetEnvironmentResource(t *testing.T) {
 		Vars         map[string]string
 	}{
 		{
-			ResourceText: "secret:secrets/%ENV/me:file=filename.test,fmt=yaml",
-			ExpectedPath: "secrets/%ENV/me",
+			ResourceText: "secret:secrets/${ENV}/me:file=filename.test,fmt=yaml",
+			ExpectedPath: "secrets//me",
 		},
 		{
-			ResourceText: "secret:secrets/%ENV%/me:file=filename.test,fmt=yaml",
+			ResourceText: "secret:secrets/${ENV}/me:file=filename.test,fmt=yaml",
 			ExpectedPath: "secrets/dev/me",
 			Vars: map[string]string{
 				"ENV": "dev",
 			},
 		},
 		{
-			ResourceText: "secret:secrets/%ENV%/me/%ENV%:file=filename.test,fmt=yaml",
+			ResourceText: "secret:secrets/${ENV}/me/${ENV}:file=filename.test,fmt=yaml",
 			ExpectedPath: "secrets/dev/me/dev",
 			Vars: map[string]string{
 				"ENV": "dev",
 			},
 		},
 		{
-			ResourceText: "secret:secrets/%ENV%/me/%THING%:file=filename.test,fmt=yaml",
+			ResourceText: "secret:secrets/${ENV}/me/${THING}:file=filename.test,fmt=yaml",
 			ExpectedPath: "secrets/dev/me/yes",
 			Vars: map[string]string{
 				"ENV":   "dev",
@@ -77,7 +78,7 @@ func TestSetEnvironmentResource(t *testing.T) {
 			},
 		},
 		{
-			ResourceText: "secret:secrets/%KUBERNETES_NAMESPACE%/me:file=filename.test,fmt=yaml",
+			ResourceText: "secret:secrets/${KUBERNETES_NAMESPACE}/me:file=filename.test,fmt=yaml,common_name=${KUBERNETES_NAMESPACE}.test",
 			ExpectedPath: "secrets/dev/me",
 			Vars: map[string]string{
 				"KUBERNETES_NAMESPACE":   "dev",

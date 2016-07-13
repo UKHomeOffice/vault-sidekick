@@ -94,7 +94,7 @@ The sidekick supports the following resource types: mysql, postgres, pki, aws, s
 **Environment Variable Expansion**
 
 The resource paths can contain environment variables which the sidekick will resolve beforehand. A use case being, using a environment
-or domain within the resource e.g -cn=secret:secrets/myservice/%ENV%/config:fmt=yaml
+or domain within the resource e.g -cn=secret:secrets/myservice/${ENV}/config:fmt=yaml
 
 **Output Formatting**
 
