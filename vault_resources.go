@@ -25,10 +25,6 @@ import (
 	"time"
 )
 
-var (
-	envRegex = regexp.MustCompile("%[[:alnum:]_]+%")
-)
-
 // VaultResources is a collection of type resource
 type VaultResources struct {
 	// an array of resource to retrieve
@@ -41,7 +37,7 @@ func (r *VaultResources) Set(value string) error {
 	rn := defaultVaultResource()
 
 	// step: split on the ':'
-	items := strings.Split(value, ":")
+	items := strings.Split(os.ExpandEnv(value), ":")
 	if len(items) < 2 {
 		return fmt.Errorf("invalid resource, must have at least two sections TYPE:PATH")
 	}
@@ -50,15 +46,6 @@ func (r *VaultResources) Set(value string) error {
 	}
 	if items[0] == "" || items[1] == "" {
 		return fmt.Errorf("invalid resource, neither type or path can be empty")
-	}
-
-	// step: look for any token in the resource
-	tokens := envRegex.FindAllStringSubmatch(items[1], -1)
-	if len(tokens) > 0 {
-		for _, x := range tokens {
-			// step: replace the token with the environment variable
-			items[1] = strings.Replace(items[1], x[0], os.Getenv(strings.Replace(x[0], "%", "", -1)), -1)
-		}
 	}
 
 	// step: extract the elements
