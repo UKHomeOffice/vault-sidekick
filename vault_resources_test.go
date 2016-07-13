@@ -21,7 +21,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"fmt"
 )
 
 func TestSetResources(t *testing.T) {
