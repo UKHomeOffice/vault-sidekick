@@ -26,7 +26,7 @@ import (
 )
 
 var (
-	envRegex = regexp.MustCompile("%[[:alnum:]]+%")
+	envRegex = regexp.MustCompile("%[[:alnum:]_]+%")
 )
 
 // VaultResources is a collection of type resource
