@@ -25,9 +25,10 @@ import (
 	"net/http"
 	"time"
 
+	"strings"
+
 	"github.com/golang/glog"
 	"github.com/hashicorp/vault/api"
-	"strings"
 )
 
 const (
@@ -428,6 +429,8 @@ func newVaultClient(opts *config) (*api.Client, error) {
 	switch plugin {
 	case "userpass":
 		token, err = NewUserPassPlugin(client).Create(opts.vaultAuthOptions)
+	case "approle":
+		token, err = NewAppRolePlugin(client).Create(opts.vaultAuthOptions)
 	case "token":
 		opts.vaultAuthOptions["filename"] = options.vaultAuthFile
 		token, err = NewUserTokenPlugin(client).Create(opts.vaultAuthOptions)
