@@ -18,6 +18,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/hashicorp/vault/api"
 )
@@ -44,6 +45,13 @@ func (r authUserPassPlugin) Create(cfg map[string]string) (string, error) {
 	// step: extract the options
 	username, _ := cfg["username"]
 	password, _ := cfg["password"]
+
+	if username == "" {
+		username = os.Getenv("VAULT_SIDEKICK_USERNAME")
+	}
+	if password == "" {
+		password = os.Getenv("VAULT_SIDEKICK_PASSWORD")
+	}
 
 	// step: create the token request
 	request := r.client.NewRequest("POST", fmt.Sprintf("/v1/auth/userpass/login/%s", username))

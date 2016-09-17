@@ -66,6 +66,9 @@ The above say's
 A authentication file can be specified in either yaml of json format which contains a method field, indicating one of the authentication
 methods provided by vault i.e. userpass, token, github etc and then followed by the required arguments for that plugin.
 
+If the required arguments for that plugin are not contained in the authentication file, fallbacks from environment variables are used.
+Environment variables are prefixed with `VAULT_SIDEKICK`, i.e. `VAULT_SIDEKICK_USERNAME`, `VAULT_SIDEKICK_PASSWORD`.
+
 **Secret Renewals**
 
 The default behaviour of vault-sidekick is **not** to renew a lease, but to retrieve a new secret and allow the previous to
