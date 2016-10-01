@@ -1,6 +1,34 @@
-
+env:
+  global:
+  - secure: Vq4593WUn2Hng93OynvydesiWu7dAnhIFhX6KtmVwqyuWuk60D8bJAd9qiJYax6+jqsAVnouaD+0TtfLb+SFJ9+vFMqykP+iSVJyC6p3DCRqMmKN+KN20hmq5WSvoE9Rs1elNV770plZdDbAIJ36iFsSpJnrp6dA9vFs0G4E2ceLw0KTJDW7C/eFO1LFiWdgsIrq4DpSCGqjcAzrRKsAkajBmsLNO//MFlsUnnJX4YBQKzibSAyoHeTHPitkvZ6Qf11N7pFMqeX78Stqeat7Xks/C0RzCOZipIGX/yU5qTGg8yGS9FG1qDkNf2Vh4osZySRHy4QJfukTlrLBB1skPHfQpU6n3bNVkF2dhQv0M4TzkrFXB+DF5WyrvKhM7i/w6WvTmg6Zc66ut0qXbTUOSJeZpuHo7c195ly51GxmbNIDw9F2RrJbjRqJrrJ9EXGCBC1wbz4wIYXt5sGh2bl1HdZqGEYkzFfXsIrFc6e8mal/AEMwos3hfezoU9kyriM5sA4M4+yK4ERQYL3Kc4UsFg4oyZrbna6k4Pas/mdFYeM3jhQxOKWxCaSSoeKE/FrbKcMb2/4btQe12Ik9zUIca58VJ04KawEBoyF/+YTSCpQOapnoFmWJoCrXJZlIU56zdn4LXNjDL+pENnjDXhutQck3ZqErcewQQzSepIUtFQo=
+  - secure: h4gzrfBQEzvvXvDlmVZBKYIj2YpnzJ/X7a9fq9EfM4wQaSGeYJ5MDIlVz6Qd2yX1ztmGQWvCyD4S4qBGklmoHYv50V04pI71FE+7v3W04DMOeLdhqyOPAmTcJdRVRIvS+7B9m8xmFleFloUKnrPCsqAhV02rCeIWo3EGKzxEpmE2jC+ln3eBRtQYv2hA4UI1lB/D4RuzNIA7n+yn3drvcLNWYHmVj6DlyEL5mWbVkhxHLUdW5i+1uKAIGwD4MhUVx78PQeHEbOzk6Bzv/Vf8LF+rozw+dXQ9pLijQ4tcrXitqFSss+buMJbhO+q955NonMV/qMnscuYhYauA2LVQ1nR1WD+regX5HXX/7iS3otYrKj1VR03hML569PbBCszubEzFfLhNCfEzY52o1qKStBkU6pezBVhdum43AzwwqASDTgxZfrWGOWscEbVPZVAakNWeXZn+GPRwCOPfrFzt3lr0N4PSrQKUKnrLZ3dlhbcBTTVI2WJNbv9ahMh9sjheiWhATzTl4gCL9kAhiNulHIc0/S1bNIjsTHMHZel0Tp83bGi+Mg4Gsr+Xnp9KiEzgvAMC8MZ3s2Ut9MuIfBZWBCYY6Mh1FaKCIWWWJiZ2/TaluqckftPfaYwDcsF7mJ7FizDiQ2JT2c0iTi94hLGhGEGNR66/R0M8RzLm4+x1Lyg=
+  - AUTHOR_EMAIL=gambol99@gmail.com
+  - REGISTRY_USERNAME=ukhomeofficedigital+vault_sidekick
+  - REGISTRY=quay.io
+services:
+- docker
 language: go
 go:
-  - 1.7.1
+- 1.7.1
 install:
-  - make test
+- make test
+- if ([[ ${TRAVIS_BRANCH} == "master" ]] && [[ ${TRAVIS_PULL_REQUEST} != "true" ]]) || [[ -n ${TRAVIS_TAG} ]]; then
+    docker login -u ${REGISTRY_USERNAME} -p ${REGISTRY_TOKEN} -e ${AUTHOR_EMAIL} ${REGISTRY};
+    VERSION="latest" make docker-release;
+  fi
+before_deploy:
+- NAME=GOOS=linux GOARCH=amd64 godep go build -o bin/vault-sidekick-linux-amd64
+after_deploy:
+- docker login -u ${REGISTRY_USERNAME} -p ${REGISTRY_TOKEN} -e ${AUTHOR_EMAIL} ${REGISTRY}
+- VERSION=$TRAVIS_TAG make docker-release
+deploy:
+  provider: releases
+  skip_cleanup: true
+  on:
+    go: 1.7.1
+    repo: UKHomeOffice/vault-sidekick
+    tags: true
+  api_key:
+    secure: "${GITHUB_TOKEN}"
+  file:
+  - bin/vault-sidekick-linux-amd64

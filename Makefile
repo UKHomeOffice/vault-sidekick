@@ -34,6 +34,12 @@ docker: static
 	@echo "--> Building the docker image"
 	docker build -t ${REGISTRY}/${AUTHOR}/${NAME}:${VERSION} .
 
+docker-release:
+	@echo "--> Building a release image"
+	@make static
+	@make docker
+	@docker push ${REGISTRY}/${AUTHOR}/${NAME}:${VERSION}
+
 push: docker
 	@echo "--> Pushing the image to docker.io"
 	docker push ${REGISTRY}/${AUTHOR}/${NAME}:${VERSION}
