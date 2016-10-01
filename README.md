@@ -1,3 +1,11 @@
+[![Build Status](https://travis-ci.org/UKHomeOffice/vault-sidekick.svg?branch=master)](https:/
+/travis-ci.org/UKHomeOffice/vault-sidekick)
+[![GoDoc](http://godoc.org/github.com/UKHomeOffice/vault-sidekick?status.png)](http://godoc.or
+g/github.com/UKHomeOffice/vault-sidekick)
+[![Docker Repository on Quay](https://quay.io/repository/UKHomeOffice/vault-sidekick/status "D
+ocker Repository on Quay")](https://quay.io/repository/UKHomeOffice/vault-sidekick)
+[![GitHub version](https://badge.fury.io/gh/UKHomeOffice%2Fvault-sidekick.svg)](https://badge.
+fury.io/gh/UKHomeOffice%2Fvault-sidekick)
 
 ### **Vault Side Kick**
 
