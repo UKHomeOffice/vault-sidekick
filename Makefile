@@ -66,15 +66,23 @@ format:
 	@echo "--> Running go fmt"
 	@go fmt $(PACKAGES)
 
+gofmt:
+	@echo "--> Running gofmt check"
+	@gofmt -s -l *.go \
+      | grep -q \.go ; if [ $$? -eq 0 ]; then \
+            echo "You need to runn the make format, we have file unformatted"; \
+            gofmt -s -l *.go; \
+            exit 1; \
+      fi
 cover:
 	@echo "--> Running go cover"
-	godep go list ./... | xargs -n1 go test --cover
+	@godep go test --cover
 
 test: deps
 	@echo "--> Running the tests"
 	go test -v
+	@$(MAKE) gofmt
 	@$(MAKE) vet
-	@$(MAKE) cover
 
 changelog: release
 	git log $(shell git tag | tail -n1)..HEAD --no-merges --format=%B > changelog
