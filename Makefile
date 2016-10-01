@@ -2,6 +2,7 @@
 NAME=vault-sidekick
 AUTHOR ?= ukhomeofficedigital
 REGISTRY ?= quay.io
+GOVERSION ?= 1.7.1
 HARDWARE=$(shell uname -m)
 VERSION=$(shell awk '/Version =/ { print $$3 }' main.go | sed 's/"//g')
 VETARGS?=-asmdecl -atomic -bool -buildtags -copylocks -methods -nilfunc -printf -rangeloops -shift -structtags -unsafeptr
@@ -10,15 +11,24 @@ VETARGS?=-asmdecl -atomic -bool -buildtags -copylocks -methods -nilfunc -printf 
 
 default: build
 
-build:
+build: deps
 	@echo "--> Compiling the project"
 	mkdir -p bin
-	go build -o bin/${NAME}
+	godep go build -o bin/${NAME}
 
-static:
+static: deps
 	@echo "--> Compiling the static binary"
 	mkdir -p bin
-	CGO_ENABLED=0 GOOS=linux go build -a -tags netgo -ldflags '-w' -o bin/${NAME}
+	CGO_ENABLED=0 GOOS=linux godep go build -a -tags netgo -ldflags '-w' -o bin/${NAME}
+
+docker-build:
+	@echo "--> Compiling the project"
+	${SUDO} docker run --rm \
+		-v ${PWD}:/go/src/github.com/UKHomeOffice/${NAME} \
+		-w /go/src/github.com/UKHomeOffice/${NAME} \
+		-e GOOS=linux \
+		golang:${GOVERSION} \
+		make static
 
 docker: static
 	@echo "--> Building the docker image"
@@ -26,7 +36,7 @@ docker: static
 
 push: docker
 	@echo "--> Pushing the image to docker.io"
-	docker push ${REGISTRY}/${AUTHOR}/${NAME}:${VERSION} 
+	docker push ${REGISTRY}/${AUTHOR}/${NAME}:${VERSION}
 
 release: static
 	mkdir -p release
@@ -43,8 +53,7 @@ authors:
 
 deps:
 	@echo "--> Installing build dependencies"
-	go get -d -v ./...
-	go get github.com/stretchr/testify/assert
+	@go get github.com/tools/godep
 
 vet:
 	@echo "--> Running go tool vet $(VETARGS) ."
@@ -57,15 +66,23 @@ format:
 	@echo "--> Running go fmt"
 	@go fmt $(PACKAGES)
 
+gofmt:
+	@echo "--> Running gofmt check"
+	@gofmt -s -l *.go \
+      | grep -q \.go ; if [ $$? -eq 0 ]; then \
+            echo "You need to runn the make format, we have file unformatted"; \
+            gofmt -s -l *.go; \
+            exit 1; \
+      fi
 cover:
 	@echo "--> Running go cover"
-	go list ./... | xargs -n1 go test --cover
+	@godep go test --cover
 
 test: deps
 	@echo "--> Running the tests"
 	go test -v
+	@$(MAKE) gofmt
 	@$(MAKE) vet
-	@$(MAKE) cover
 
 changelog: release
 	git log $(shell git tag | tail -n1)..HEAD --no-merges --format=%B > changelog
