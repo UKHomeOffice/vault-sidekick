@@ -14,7 +14,7 @@ install:
 - make test
 - if ([[ ${TRAVIS_BRANCH} == "master" ]] && [[ ${TRAVIS_PULL_REQUEST} != "true" ]]) || [[ -n ${TRAVIS_TAG} ]]; then
     docker login -u ${REGISTRY_USERNAME} -p ${REGISTRY_TOKEN} -e ${AUTHOR_EMAIL} ${REGISTRY};
-    VERSION="latest" make docker-release;
+    VERSION=latest make docker-release;
   fi
 before_deploy:
 - NAME=GOOS=linux GOARCH=amd64 godep go build -o bin/vault-sidekick-linux-amd64
