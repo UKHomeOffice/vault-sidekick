@@ -1,0 +1,81 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: vault-demo
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        name: vault-demo
+      annotations:
+        repository: https://github.com/UKHomeOffice/vault-sidekick
+    spec:
+      containers:
+      - name: sidekick
+        image: quay.io/ukhomeofficedigital/vault-sidekick:v0.3.0
+        resources:
+          limits:
+            cpu: 100m
+            memory: 50Mi
+        args:
+          - -tls-skip-verify=true
+          - -cn=pki:services/${NAMESPACE}/pki/issue/default:fmt=bundle,common_name=demo.${NAMESPACE}.svc.cluster.local,file=platform
+          - -logtostderr=true
+          - -v=3
+        env:
+        - name: VAULT_ADDR
+          value: https://vault.vault.svc.cluster.local:8200
+        - name: VAULT_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: store-token
+              key: token
+        - name: NAMESPACE
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.namespace
+        volumeMounts:
+        - name: secrets
+          mountPath: /etc/secrets
+      - name: nginx
+        image: quay.io/ukhomeofficedigital/nginx-proxy:v1.5.1
+        resources:
+          limits:
+            cpu: 400m
+            memory: 256Mi
+        ports:
+        - name: http
+          containerPort: 80
+        - name: https
+          containerPort: 443
+        env:
+        - name: LOAD_BALANCER_CIDR
+          value: 10.0.0.0/8
+        - name: PROXY_SERVICE_HOST
+          value: 127.0.0.1
+        - name: PROXY_SERVICE_PORT
+          value: "8080"
+        - name: SERVER_CERT
+          value: /etc/secrets/platform.pem
+        - name: SERVER_KEY
+          value: /etc/secrets/platform-key.pem
+        - name: SSL_CIPHERS
+          value: ECDHE-RSA-AES128-GCM-SHA256:AES256+EECDH:AES256+EDH:!aNULL
+        - name: ENABLE_UUID_PARAM
+          value: "FALSE"
+        - name: NAXSI_USE_DEFAULT_RULES
+          value: "FALSE"
+        - name: PORT_IN_HOST_HEADER
+          value: "FALSE"
+        - name: ERROR_REDIRECT_CODES
+          value: "599"
+        - name: ADD_NGINX_LOCATION_CFG
+          value: "add_header Strict-Transport-Security \"max-age=31536000; includeSubdomains\";"
+        volumeMounts:
+        - name: secrets
+          mountPath: /etc/secrets
+      volumes:
+      - name: secrets
+        emptyDir: {}
