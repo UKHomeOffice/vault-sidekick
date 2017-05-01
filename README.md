@@ -35,7 +35,9 @@ Usage of bin/vault-sidekick:
 
 **Building**
 
-There is a Makefile in the base repository, so assuming you have make and go: # make
+There is a Makefile in the base repository, so assuming you have make and go:
+
+`$ make`
 
 **Example Usage**
 
@@ -57,7 +59,7 @@ spec:
             mountPath: /etc/secrets
 ```
 
-The above say's
+The above equates to:
 
  - Write all the secrets to the /etc/secrets directory
  - Retrieve a dynamic certificate pair for me, with the common name: 'commons.example.com' and renew the cert when it expires automatically
@@ -67,7 +69,7 @@ The above say's
 
 **Authentication**
 
-A authentication file can be specified in either yaml of json format which contains a method field, indicating one of the authentication
+An authentication file can be specified in either yaml of json format which contains a method field, indicating one of the authentication
 methods provided by vault i.e. userpass, token, github etc and then followed by the required arguments for that plugin.
 
 If the required arguments for that plugin are not contained in the authentication file, fallbacks from environment variables are used.
