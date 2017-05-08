@@ -28,6 +28,8 @@ type config struct {
 	vaultURL string
 	// a file containing the authenticate options
 	vaultAuthFile string
+	// whether or not the auth file format is default
+	vaultAuthFileFormat string
 	// the authentication options
 	vaultAuthOptions map[string]string
 	// the vault ca file
@@ -56,7 +58,8 @@ func init() {
 	options.vaultAuthOptions = map[string]string{VaultAuth: "token"}
 
 	flag.StringVar(&options.vaultURL, "vault", getEnv("VAULT_ADDR", "https://127.0.0.1:8200"), "url the vault service or VAULT_ADDR")
-	flag.StringVar(&options.vaultAuthFile, "auth", "", "a configuration file in json or yaml containing authentication arguments")
+	flag.StringVar(&options.vaultAuthFile, "auth", getEnv("AUTH_FILE", ""), "a configuration file in json or yaml containing authentication arguments")
+	flag.StringVar(&options.vaultAuthFileFormat, "format", getEnv("AUTH_FORMAT", "default"), "the auth file format")
 	flag.StringVar(&options.outputDir, "output", getEnv("VAULT_OUTPUT", "/etc/secrets"), "the full path to write resources or VAULT_OUTPUT")
 	flag.BoolVar(&options.dryRun, "dryrun", false, "perform a dry run, printing the content to screen")
 	flag.BoolVar(&options.tlsVerify, "tls-skip-verify", false, "whether to check and verify the vault service certificate")
@@ -85,7 +88,7 @@ func validateOptions(cfg *config) (err error) {
 		if exists, _ := fileExists(cfg.vaultAuthFile); !exists {
 			return fmt.Errorf("the token file: %s does not exists, please check", cfg.vaultAuthFile)
 		}
-		options.vaultAuthOptions, err = readConfigFile(options.vaultAuthFile)
+		options.vaultAuthOptions, err = readConfigFile(options.vaultAuthFile, options.vaultAuthFileFormat)
 		if err != nil {
 			return fmt.Errorf("unable to read in authentication options from: %s, error: %s", cfg.vaultAuthFile, err)
 		}

@@ -27,10 +27,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/golang/glog"
-	"gopkg.in/yaml.v2"
 	"os/exec"
 	"path/filepath"
+
+	"github.com/golang/glog"
+	"gopkg.in/yaml.v2"
 )
 
 func init() {
@@ -69,7 +70,7 @@ func getKeys(data map[string]interface{}) []string {
 
 // readConfigFile read in a configuration file
 //	filename		: the path to the file
-func readConfigFile(filename string) (map[string]string, error) {
+func readConfigFile(filename, fileFormat string) (map[string]string, error) {
 	// step: check the file exists
 	if exists, err := fileExists(filename); !exists {
 		return nil, fmt.Errorf("the file: %s does not exist", filename)
@@ -84,14 +85,14 @@ func readConfigFile(filename string) (map[string]string, error) {
 	case ".yml":
 		return readYAMLFile(filename)
 	default:
-		return readJSONFile(filename)
+		return readJSONFile(filename, fileFormat)
 	}
 	return nil, fmt.Errorf("unsupported config file format: %s", suffix)
 }
 
 // readJsonFile read in and unmarshall the data into a map
 //	filename	: the path to the file container the json data
-func readJSONFile(filename string) (map[string]string, error) {
+func readJSONFile(filename, format string) (map[string]string, error) {
 	data := make(map[string]string, 0)
 
 	content, err := ioutil.ReadFile(filename)
@@ -100,7 +101,15 @@ func readJSONFile(filename string) (map[string]string, error) {
 	}
 	// unmarshall the data
 	err = json.Unmarshal(content, &data)
-	if err != nil {
+	if err != nil && format == "default" {
+		return data, err
+	}
+	if err != nil && format == "kubernetes-vault" {
+		if data["clientToken"] != "" {
+			data[VaultAuth] = "token"
+			data["token"] = data["clientToken"]
+			return data, nil
+		}
 		return data, err
 	}
 
