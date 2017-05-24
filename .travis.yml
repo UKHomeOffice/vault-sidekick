@@ -14,7 +14,6 @@ go: 1.8.1
 install: true
 script:
 - make test
-- echo "TRAVIS_PULL_REQUEST: ${TRAVIS_PULL_REQUEST}"
 - if ([[ ${TRAVIS_BRANCH} == "master" ]] && [[ ${TRAVIS_PULL_REQUEST} == "false" ]]) || [[ -n ${TRAVIS_TAG} ]]; then
     GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags "-X main.gitsha=${TRAVIS_TAG:-git+${TRAVIS_COMMIT}}" -o bin/vault-sidekick_linux_amd64;
     GOOS=darwin GOARCH=amd64 CGO_ENABLED=0 go build -ldflags "-X main.gitsha=${TRAVIS_TAG:-git+${TRAVIS_COMMIT}}" -o bin/vault-sidekick_darwin_amd64;

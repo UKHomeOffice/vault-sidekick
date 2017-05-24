@@ -37,7 +37,7 @@ type config struct {
 	// switch on dry run
 	dryRun bool
 	// skip tls verify
-	tlsVerify bool
+	skipTLSVerify bool
 	// the resource items to retrieve
 	resources *VaultResources
 	// the interval for producing statistics
@@ -61,7 +61,7 @@ func init() {
 	flag.StringVar(&options.vaultAuthFile, "auth", "", "a configuration file in json or yaml containing authentication arguments")
 	flag.StringVar(&options.outputDir, "output", getEnv("VAULT_OUTPUT", "/etc/secrets"), "the full path to write resources or VAULT_OUTPUT")
 	flag.BoolVar(&options.dryRun, "dryrun", false, "perform a dry run, printing the content to screen")
-	flag.BoolVar(&options.tlsVerify, "tls-skip-verify", false, "whether to check and verify the vault service certificate")
+	flag.BoolVar(&options.skipTLSVerify, "tls-skip-verify", false, "whether to check and verify the vault service certificate")
 	flag.StringVar(&options.vaultCaFile, "ca-cert", "", "the path to the file container the CA used to verify the vault service")
 	flag.DurationVar(&options.statsInterval, "stats", time.Duration(1)*time.Hour, "the interval to produce statistics on the accessed resources")
 	flag.DurationVar(&options.execTimeout, "exec-timeout", time.Duration(60)*time.Second, "the timeout applied to commands on the exec option")
@@ -99,7 +99,7 @@ func validateOptions(cfg *config) (err error) {
 		}
 	}
 
-	if cfg.tlsVerify == true && cfg.vaultCaFile != "" {
+	if cfg.skipTLSVerify == true && cfg.vaultCaFile != "" {
 		return fmt.Errorf("you are skipping the tls but supplying a CA, doesn't make sense")
 	}
 

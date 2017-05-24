@@ -457,23 +457,22 @@ func buildHTTPTransport(opts *config) (*http.Transport, error) {
 			KeepAlive: 10 * time.Second,
 		}).Dial,
 		TLSHandshakeTimeout: 10 * time.Second,
+		TLSClientConfig: &tls.Config{
+			InsecureSkipVerify: opts.skipTLSVerify,
+		},
 	}
-	// step: are we skip the tls verify?
-	if options.tlsVerify {
-		transport.TLSClientConfig = &tls.Config{
-			InsecureSkipVerify: true,
-		}
+	if opts.skipTLSVerify {
+		glog.Warning("skipping TLS verification is not recommended")
 	}
 	// step: are we loading a CA file
 	if opts.vaultCaFile != "" {
-		// step: load the ca file
+		glog.V(3).Infof("loading the ca certificate: %s", opts.vaultCaFile)
 		caCert, err := ioutil.ReadFile(opts.vaultCaFile)
 		if err != nil {
 			return nil, fmt.Errorf("unable to read in the ca: %s, reason: %s", opts.vaultCaFile, err)
 		}
 		caCertPool := x509.NewCertPool()
 		caCertPool.AppendCertsFromPEM(caCert)
-		// step: add the ca to the root
 		transport.TLSClientConfig.RootCAs = caCertPool
 	}
 
