@@ -1,25 +1,25 @@
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: vault-demo
+  name: vault-sidekick
 spec:
   replicas: 1
   template:
     metadata:
       labels:
-        name: vault-demo
+        name: vault-sidekick
       annotations:
         build: https://github.com/UKHomeOffice/vault-sidekick
     spec:
       containers:
       - name: sidekick
         image: quay.io/ukhomeofficedigital/vault-sidekick:v0.3.1
+        imagePullPolicy: Always
         resources:
           limits:
             cpu: 100m
             memory: 50Mi
         args:
-          - -tls-skip-verify=false
           - -cn=pki:services/${NAMESPACE}/pki/issue/default:fmt=bundle,common_name=demo.${NAMESPACE}.svc.cluster.local,file=platform,mode=0640
           - -ca-cert=/ca/caroot.bundle
           - -logtostderr=true
