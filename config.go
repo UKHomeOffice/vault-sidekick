@@ -44,6 +44,8 @@ type config struct {
 	statsInterval time.Duration
 	// the timeout for a exec command
 	execTimeout time.Duration
+	// version flag
+	showVersion bool
 }
 
 var (
@@ -63,13 +65,13 @@ func init() {
 	flag.StringVar(&options.vaultCaFile, "ca-cert", "", "the path to the file container the CA used to verify the vault service")
 	flag.DurationVar(&options.statsInterval, "stats", time.Duration(1)*time.Hour, "the interval to produce statistics on the accessed resources")
 	flag.DurationVar(&options.execTimeout, "exec-timeout", time.Duration(60)*time.Second, "the timeout applied to commands on the exec option")
+	flag.BoolVar(&options.showVersion, "version", false, "show the vault-sidekick version")
 	flag.Var(options.resources, "cn", "a resource to retrieve and monitor from vault")
 }
 
 // parseOptions validate the command line options and validates them
 func parseOptions() error {
 	flag.Parse()
-
 	return validateOptions(&options)
 }
 

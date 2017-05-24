@@ -1,3 +1,5 @@
+services:
+- docker
 env:
   global:
   - secure: Vq4593WUn2Hng93OynvydesiWu7dAnhIFhX6KtmVwqyuWuk60D8bJAd9qiJYax6+jqsAVnouaD+0TtfLb+SFJ9+vFMqykP+iSVJyC6p3DCRqMmKN+KN20hmq5WSvoE9Rs1elNV770plZdDbAIJ36iFsSpJnrp6dA9vFs0G4E2ceLw0KTJDW7C/eFO1LFiWdgsIrq4DpSCGqjcAzrRKsAkajBmsLNO//MFlsUnnJX4YBQKzibSAyoHeTHPitkvZ6Qf11N7pFMqeX78Stqeat7Xks/C0RzCOZipIGX/yU5qTGg8yGS9FG1qDkNf2Vh4osZySRHy4QJfukTlrLBB1skPHfQpU6n3bNVkF2dhQv0M4TzkrFXB+DF5WyrvKhM7i/w6WvTmg6Zc66ut0qXbTUOSJeZpuHo7c195ly51GxmbNIDw9F2RrJbjRqJrrJ9EXGCBC1wbz4wIYXt5sGh2bl1HdZqGEYkzFfXsIrFc6e8mal/AEMwos3hfezoU9kyriM5sA4M4+yK4ERQYL3Kc4UsFg4oyZrbna6k4Pas/mdFYeM3jhQxOKWxCaSSoeKE/FrbKcMb2/4btQe12Ik9zUIca58VJ04KawEBoyF/+YTSCpQOapnoFmWJoCrXJZlIU56zdn4LXNjDL+pENnjDXhutQck3ZqErcewQQzSepIUtFQo=
@@ -5,30 +7,29 @@ env:
   - AUTHOR_EMAIL=gambol99@gmail.com
   - REGISTRY_USERNAME=ukhomeofficedigital+vault_sidekick
   - REGISTRY=quay.io
-services:
-- docker
+
 language: go
-go:
-- 1.7.5
-install:
+go: 1.8.1
+
+install: true
+script:
 - make test
 - if ([[ ${TRAVIS_BRANCH} == "master" ]] && [[ ${TRAVIS_PULL_REQUEST} != "true" ]]) || [[ -n ${TRAVIS_TAG} ]]; then
+    GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags "-X main.gitsha=${TRAVIS_TAG:-git+${TRAVIS_COMMIT}}" -o bin/vault-sidekick_linux_amd64;
+    GOOS=darwin GOARCH=amd64 CGO_ENABLED=0 go build -ldflags "-X main.gitsha=${TRAVIS_TAG:-git+${TRAVIS_COMMIT}}" -o bin/vault-sidekick_darwin_amd64;
+    GOOS=windows GOARCH=amd64 CGO_ENABLED=0 go build -ldflags "-X main.gitsha=${TRAVIS_TAG:-git+${TRAVIS_COMMIT}}" -o bin/vault-sidekick_windows_amd64.exe;
     docker login -u ${REGISTRY_USERNAME} -p ${REGISTRY_TOKEN} -e ${AUTHOR_EMAIL} ${REGISTRY};
-    VERSION=latest make docker-release;
+    VERSION=${TRAVIS_TAG:-latest} make docker-release;
   fi
-before_deploy:
-- NAME=GOOS=linux GOARCH=amd64 godep go build -o bin/vault-sidekick-linux-amd64
-after_deploy:
-- docker login -u ${REGISTRY_USERNAME} -p ${REGISTRY_TOKEN} -e ${AUTHOR_EMAIL} ${REGISTRY}
-- VERSION=$TRAVIS_TAG make docker-release
 deploy:
   provider: releases
   skip_cleanup: true
   on:
-    go: 1.7.5
     repo: UKHomeOffice/vault-sidekick
     tags: true
   api_key:
     secure: "${GITHUB_TOKEN}"
   file:
-  - bin/vault-sidekick-linux-amd64
+    - bin/vault-sidekick_linux_amd64
+    - bin/vault-sidekick_darwin_amd64
+    - bin/vault-sidekick_windows_amd64.exe

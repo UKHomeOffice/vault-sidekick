@@ -86,7 +86,6 @@ func readConfigFile(filename string) (map[string]string, error) {
 	default:
 		return readJSONFile(filename)
 	}
-	return nil, fmt.Errorf("unsupported config file format: %s", suffix)
 }
 
 // readJsonFile read in and unmarshall the data into a map
@@ -169,21 +168,21 @@ func processResource(rn *VaultResource, data map[string]interface{}) (err error)
 	case "yaml":
 		fallthrough
 	case "yml":
-		err = writeYAMLFile(filename, data)
+		err = writeYAMLFile(filename, data, rn.fileMode)
 	case "json":
-		err = writeJSONFile(filename, data)
+		err = writeJSONFile(filename, data, rn.fileMode)
 	case "ini":
-		err = writeIniFile(filename, data)
+		err = writeIniFile(filename, data, rn.fileMode)
 	case "csv":
-		err = writeCSVFile(filename, data)
+		err = writeCSVFile(filename, data, rn.fileMode)
 	case "env":
-		err = writeEnvFile(filename, data)
+		err = writeEnvFile(filename, data, rn.fileMode)
 	case "cert":
-		err = writeCertificateFile(filename, data)
+		err = writeCertificateFile(filename, data, rn.fileMode)
 	case "txt":
-		err = writeTxtFile(filename, data)
+		err = writeTxtFile(filename, data, rn.fileMode)
 	case "bundle":
-		err = writeCertificateBundleFile(filename, data)
+		err = writeCertificateBundleFile(filename, data, rn.fileMode)
 	default:
 		return fmt.Errorf("unknown output format: %s", rn.format)
 	}
@@ -198,7 +197,7 @@ func processResource(rn *VaultResource, data map[string]interface{}) (err error)
 		cmd := exec.Command(rn.execPath, filename)
 		cmd.Start()
 		timer := time.AfterFunc(options.execTimeout, func() {
-			if err := cmd.Process.Kill(); err != nil {
+			if err = cmd.Process.Kill(); err != nil {
 				glog.Errorf("failed to kill the command, pid: %d, error: %s", cmd.Process.Pid, err)
 			}
 		})

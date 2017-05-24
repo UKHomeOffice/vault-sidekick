@@ -2,9 +2,11 @@
 NAME=vault-sidekick
 AUTHOR ?= ukhomeofficedigital
 REGISTRY ?= quay.io
-GOVERSION ?= 1.7.1
+GOVERSION ?= 1.8.1
 HARDWARE=$(shell uname -m)
-VERSION ?= $(shell awk '/Version =/ { print $$3 }' main.go | sed 's/"//g')
+VERSION ?= $(shell awk '/release =/ { print $$3 }' main.go | sed 's/"//g')
+GIT_SHA=$(shell git --no-pager describe --always --dirty)
+LFLAGS ?= -X main.gitsha=${GIT_SHA}
 VETARGS?=-asmdecl -atomic -bool -buildtags -copylocks -methods -nilfunc -printf -rangeloops -shift -structtags -unsafeptr
 
 .PHONY: test authors changelog build docker static release
@@ -14,12 +16,12 @@ default: build
 build: deps
 	@echo "--> Compiling the project"
 	mkdir -p bin
-	godep go build -o bin/${NAME}
+	godep go build -ldflags '-w ${LFLAGS}' -o bin/${NAME}
 
 static: deps
 	@echo "--> Compiling the static binary"
 	mkdir -p bin
-	CGO_ENABLED=0 GOOS=linux godep go build -a -tags netgo -ldflags '-w' -o bin/${NAME}
+	CGO_ENABLED=0 GOOS=linux godep go build -a -tags netgo -ldflags '-w ${LFLAGS}' -o bin/${NAME}
 
 docker-build:
 	@echo "--> Compiling the project"

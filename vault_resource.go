@@ -18,6 +18,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"regexp"
 	"time"
 )
@@ -43,6 +44,8 @@ const (
 	optionCreate = "create"
 	// optionSize sets the initial size of a password secret
 	optionSize = "size"
+	// optionsMode is the file permissions on the secret
+	optionMode = "mode"
 	// defaultSize sets the default size of a generic secret
 	defaultSize = 20
 )
@@ -67,10 +70,11 @@ var (
 
 func defaultVaultResource() *VaultResource {
 	return &VaultResource{
+		fileMode:  os.FileMode(0664),
 		format:    "yaml",
+		options:   make(map[string]string, 0),
 		renewable: false,
 		revoked:   false,
-		options:   make(map[string]string, 0),
 		size:      defaultSize,
 	}
 }
@@ -103,6 +107,8 @@ type VaultResource struct {
 	execPath string
 	// additional options to the resource
 	options map[string]string
+	// the file permissions on the resource
+	fileMode os.FileMode
 }
 
 // GetFilename generates a resource filename by default the resource name and resource type, which
