@@ -17,6 +17,7 @@ limitations under the License.
 package main
 
 import (
+	"fmt"
 	"os"
 	"os/signal"
 	"syscall"
@@ -24,19 +25,23 @@ import (
 	"github.com/golang/glog"
 )
 
-const (
-	Prog    = "vault-sidekick"
-	Version = "v0.3.0"
+var (
+	prog    = "vault-sidekick"
+	release = "v0.3.1"
+	gitsha  = ""
 )
 
 func main() {
+	version := fmt.Sprintf("%s (git+sha %s)", release, gitsha)
 	// step: parse and validate the command line / environment options
-
 	if err := parseOptions(); err != nil {
 		showUsage("invalid options, %s", err)
 	}
-
-	glog.Infof("starting the %s, version: %s", Prog, Version)
+	if options.showVersion {
+		fmt.Printf("%s %s\n", prog, version)
+		return
+	}
+	glog.Infof("starting the %s, %s", prog, version)
 
 	// step: create a client to vault
 	vault, err := NewVaultService(options.vaultURL)

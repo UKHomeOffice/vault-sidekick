@@ -9,18 +9,19 @@ spec:
       labels:
         name: vault-demo
       annotations:
-        repository: https://github.com/UKHomeOffice/vault-sidekick
+        build: https://github.com/UKHomeOffice/vault-sidekick
     spec:
       containers:
       - name: sidekick
-        image: quay.io/ukhomeofficedigital/vault-sidekick:v0.3.0
+        image: quay.io/ukhomeofficedigital/vault-sidekick:v0.3.1
         resources:
           limits:
             cpu: 100m
             memory: 50Mi
         args:
-          - -tls-skip-verify=true
-          - -cn=pki:services/${NAMESPACE}/pki/issue/default:fmt=bundle,common_name=demo.${NAMESPACE}.svc.cluster.local,file=platform
+          - -tls-skip-verify=false
+          - -cn=pki:services/${NAMESPACE}/pki/issue/default:fmt=bundle,common_name=demo.${NAMESPACE}.svc.cluster.local,file=platform,mode=0640
+          - -ca-cert=/ca/caroot.bundle
           - -logtostderr=true
           - -v=3
         env:
@@ -39,6 +40,8 @@ spec:
         volumeMounts:
         - name: secrets
           mountPath: /etc/secrets
+        - name: ca-bundle
+          mountPath: /ca
       - name: nginx
         image: quay.io/ukhomeofficedigital/nginx-proxy:v1.5.1
         resources:
@@ -79,3 +82,6 @@ spec:
       volumes:
       - name: secrets
         emptyDir: {}
+      - name: ca-bundle
+        secret:
+          secretName: ca-bundle

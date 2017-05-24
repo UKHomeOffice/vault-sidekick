@@ -17,6 +17,7 @@ limitations under the License.
 package main
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"strconv"
@@ -63,11 +64,23 @@ func (r *VaultResources) Set(value string) error {
 				return fmt.Errorf("invalid resource option: %s, must have a value", x)
 			}
 			// step: set the name and value
-			name := kp[0]
+			name := strings.TrimSpace(kp[0])
 			value := strings.Replace(kp[1], "|", ",", -1)
 
 			// step: extract the control options from the path resource parameters
 			switch name {
+			case optionMode:
+				if !strings.HasPrefix(value, "0") {
+					value = "0" + value
+				}
+				if len(value) != 4 {
+					return errors.New("the file permission invalid, should be octal 0444 or alike")
+				}
+				v, err := strconv.ParseUint(value, 0, 32)
+				if err != nil {
+					return errors.New("invalid file permissions on resource")
+				}
+				rn.fileMode = os.FileMode(v)
 			case optionFormat:
 				if matched := resourceFormatRegex.MatchString(value); !matched {
 					return fmt.Errorf("unsupported output format: %s", value)

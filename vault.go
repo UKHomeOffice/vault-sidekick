@@ -312,7 +312,8 @@ func (r VaultService) revoke(lease string) error {
 
 // get retrieves a secret from the vault
 //	rn			: the watched resource
-func (r VaultService) get(rn *watchedResource) (err error) {
+func (r VaultService) get(rn *watchedResource) error {
+	var err error
 	var secret *api.Secret
 	// step: not sure who to cast map[string]string to map[string]interface{} doesn't like it anyway i try and do it
 
@@ -320,7 +321,7 @@ func (r VaultService) get(rn *watchedResource) (err error) {
 	for k, v := range rn.resource.options {
 		params[k] = interface{}(v)
 	}
-	glog.V(10).Infof("get, resource: %s, path: %s, params: %v", rn.resource.resource, rn.resource.path, params)
+	glog.V(10).Infof("resource: %s, path: %s, params: %v", rn.resource.resource, rn.resource.path, params)
 
 	glog.V(5).Infof("attempting to retrieve the resource: %s from vault", rn.resource)
 	// step: perform a request to vault
@@ -332,7 +333,6 @@ func (r VaultService) get(rn *watchedResource) (err error) {
 		}
 		resp, err := r.client.RawRequest(request)
 		if err != nil {
-			fmt.Printf("FAILED HERE")
 			return err
 		}
 		// step: read the response
@@ -370,7 +370,7 @@ func (r VaultService) get(rn *watchedResource) (err error) {
 		// We must generate the secret if we have the create flag
 		if rn.resource.create && secret == nil && err == nil {
 			glog.V(3).Infof("Create param specified, creating resource: %s", rn.resource.path)
-			params["value"] = NewPassword(int(rn.resource.size))
+			params["value"] = newPassword(int(rn.resource.size))
 			secret, err = r.client.Logical().Write(fmt.Sprintf(rn.resource.path), params)
 			glog.V(3).Infof("Secret created: %s", rn.resource.path)
 			if err == nil {

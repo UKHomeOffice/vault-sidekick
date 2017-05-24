@@ -19,7 +19,6 @@ package main
 import (
 	"time"
 
-	"fmt"
 	"github.com/golang/glog"
 	"github.com/hashicorp/vault/api"
 )
@@ -51,8 +50,12 @@ func (r *watchedResource) notifyOnRenewal(ch chan *watchedResource) {
 		r.renewalTime = r.resource.update
 		// step: if the answer is no, we set the notification between 80-95% of the lease time of the secret
 		if r.renewalTime <= 0 {
+			// if there is no lease time, we canout set a renewal, just fade into the background
+			if r.secret.LeaseDuration <= 0 {
+				glog.Warningf("resource: %s has no lease duration, no custom update set, so item will not be updated", r.resource.path)
+				return
+			}
 			r.renewalTime = r.calculateRenewal()
-			fmt.Printf("seconds: %s", r.renewalTime)
 		}
 		glog.V(3).Infof("setting a renewal notification on resource: %s, time: %s", r.resource, r.renewalTime)
 		// step: wait for the duration

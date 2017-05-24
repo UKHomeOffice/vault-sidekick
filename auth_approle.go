@@ -28,8 +28,8 @@ type authAppRolePlugin struct {
 }
 
 type appRoleLogin struct {
-	RoleId   string `json:"role_id,omitempty"`
-	SecretId string `json:"secret_id,omitempty"`
+	RoleID   string `json:"role_id,omitempty"`
+	SecretID string `json:"secret_id,omitempty"`
 }
 
 // NewAppRolePlugin creates a new App Role plugin
@@ -42,19 +42,19 @@ func NewAppRolePlugin(client *api.Client) AuthInterface {
 // Create a approle plugin with the secret id and role id provided in the file
 func (r authAppRolePlugin) Create(cfg map[string]string) (string, error) {
 	// step: extract the options
-	roleId, _ := cfg["role_id"]
-	secretId, _ := cfg["secret_id"]
+	roleID, _ := cfg["role_id"]
+	secretID, _ := cfg["secret_id"]
 
-	if roleId == "" {
-		roleId = os.Getenv("VAULT_SIDEKICK_ROLE_ID")
+	if roleID == "" {
+		roleID = os.Getenv("VAULT_SIDEKICK_ROLE_ID")
 	}
-	if secretId == "" {
-		secretId = os.Getenv("VAULT_SIDEKICK_SECRET_ID")
+	if secretID == "" {
+		secretID = os.Getenv("VAULT_SIDEKICK_SECRET_ID")
 	}
 
 	// step: create the token request
 	request := r.client.NewRequest("POST", "/v1/auth/approle/login")
-	login := appRoleLogin{SecretId: secretId, RoleId: roleId}
+	login := appRoleLogin{SecretID: secretID, RoleID: roleID}
 	if err := request.SetJSONBody(login); err != nil {
 		return "", err
 	}
