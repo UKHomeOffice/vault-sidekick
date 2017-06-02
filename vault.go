@@ -433,6 +433,7 @@ func newVaultClient(opts *config) (*api.Client, error) {
 		token, err = NewAppRolePlugin(client).Create(opts.vaultAuthOptions)
 	case "token":
 		opts.vaultAuthOptions["filename"] = options.vaultAuthFile
+		opts.vaultAuthOptions["fileFormat"] = options.vaultAuthFileFormat
 		token, err = NewUserTokenPlugin(client).Create(opts.vaultAuthOptions)
 	default:
 		return nil, fmt.Errorf("unsupported authentication plugin: %s", plugin)

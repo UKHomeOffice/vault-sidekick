@@ -39,8 +39,9 @@ func NewUserTokenPlugin(client *api.Client) AuthInterface {
 // Create retrieves the token from an environment variable or file
 func (r authTokenPlugin) Create(cfg map[string]string) (string, error) {
 	filename, _ := cfg["filename"]
+	fileFormat, _ := cfg["fileFormat"]
 	if filename != "" {
-		content, err := readConfigFile(filename)
+		content, err := readConfigFile(filename, fileFormat)
 		if err != nil {
 			return "", err
 		}
