@@ -71,6 +71,10 @@ func main() {
 
 	toProcess := options.resources.items
 	toProcessLock := &sync.Mutex{}
+	if options.oneShot && len(toProcess) == 0 {
+		glog.Infof("nothing to retrieve from vault. exiting...")
+		os.Exit(0)
+	}
 	// step: we simply wait for events i.e. secrets from vault and write them to the output directory
 	for {
 		select {
