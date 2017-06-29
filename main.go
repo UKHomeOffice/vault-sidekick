@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"sync"
 	"syscall"
 
 	"github.com/golang/glog"
@@ -43,6 +44,10 @@ func main() {
 	}
 	glog.Infof("starting the %s, %s", prog, version)
 
+	if options.oneShot {
+		glog.Infof("running in one-shot mode")
+	}
+
 	// step: create a client to vault
 	vault, err := NewVaultService(options.vaultURL)
 	if err != nil {
@@ -64,6 +69,12 @@ func main() {
 		vault.Watch(rn)
 	}
 
+	toProcess := options.resources.items
+	toProcessLock := &sync.Mutex{}
+	if options.oneShot && len(toProcess) == 0 {
+		glog.Infof("nothing to retrieve from vault. exiting...")
+		os.Exit(0)
+	}
 	// step: we simply wait for events i.e. secrets from vault and write them to the output directory
 	for {
 		select {
@@ -72,6 +83,19 @@ func main() {
 			go func(r VaultEvent) {
 				if err := processResource(evt.Resource, evt.Secret); err != nil {
 					glog.Errorf("failed to write out the update, error: %s", err)
+				}
+				if options.oneShot {
+					toProcessLock.Lock()
+					defer toProcessLock.Unlock()
+					for i, r := range toProcess {
+						if evt.Resource == r {
+							toProcess = append(toProcess[:i], toProcess[i+1:]...)
+						}
+					}
+					if len(toProcess) == 0 {
+						glog.Infof("retrieved all requested resources from vault. exiting...")
+						os.Exit(0)
+					}
 				}
 			}(evt)
 		case <-signalChannel:

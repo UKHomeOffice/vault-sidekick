@@ -48,6 +48,8 @@ type config struct {
 	execTimeout time.Duration
 	// version flag
 	showVersion bool
+	// one-shot mode
+	oneShot bool
 }
 
 var (
@@ -70,6 +72,7 @@ func init() {
 	flag.DurationVar(&options.execTimeout, "exec-timeout", time.Duration(60)*time.Second, "the timeout applied to commands on the exec option")
 	flag.BoolVar(&options.showVersion, "version", false, "show the vault-sidekick version")
 	flag.Var(options.resources, "cn", "a resource to retrieve and monitor from vault")
+	flag.BoolVar(&options.oneShot, "one-shot", false, "retrieve resources from vault once and then exit")
 }
 
 // parseOptions validate the command line options and validates them
