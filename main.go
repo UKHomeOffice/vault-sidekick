@@ -82,21 +82,26 @@ func main() {
 		case evt := <-updates:
 			glog.V(10).Infof("recieved an update from the resource: %s", evt.Resource)
 			go func(r VaultEvent) {
-				if err := processResource(evt.Resource, evt.Secret); err != nil {
-					glog.Errorf("failed to write out the update, error: %s", err)
-				}
 				toProcessLock.Lock()
 				defer toProcessLock.Unlock()
-				for i, r := range toProcess {
-					if evt.Resource == r {
-						switch {
-						case evt.Resource.maxRetries > 0 && evt.Resource.maxRetries < evt.Resource.retries:
-							toProcess = append(toProcess[:i], toProcess[i+1:]...)
-							failedResource = true
-							break
-						case options.oneShot:
-							if evt.Type == EventTypeSuccess {
+				switch r.Type {
+				case EventTypeSuccess:
+					if err := processResource(evt.Resource, evt.Secret); err != nil {
+						glog.Errorf("failed to write out the update, error: %s", err)
+					}
+					if options.oneShot {
+						for i, r := range toProcess {
+							if evt.Resource == r {
 								toProcess = append(toProcess[:i], toProcess[i+1:]...)
+							}
+						}
+					}
+				case EventTypeFailure:
+					if evt.Resource.maxRetries > 0 && evt.Resource.maxRetries < evt.Resource.retries {
+						for i, r := range toProcess {
+							if evt.Resource == r {
+								toProcess = append(toProcess[:i], toProcess[i+1:]...)
+								failedResource = true
 							}
 						}
 					}
