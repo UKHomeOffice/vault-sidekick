@@ -71,6 +71,7 @@ func main() {
 
 	toProcess := options.resources.items
 	toProcessLock := &sync.Mutex{}
+	failedResource := false
 	if options.oneShot && len(toProcess) == 0 {
 		glog.Infof("nothing to retrieve from vault. exiting...")
 		os.Exit(0)
@@ -84,16 +85,27 @@ func main() {
 				if err := processResource(evt.Resource, evt.Secret); err != nil {
 					glog.Errorf("failed to write out the update, error: %s", err)
 				}
-				if options.oneShot {
-					toProcessLock.Lock()
-					defer toProcessLock.Unlock()
-					for i, r := range toProcess {
-						if evt.Resource == r {
+				toProcessLock.Lock()
+				defer toProcessLock.Unlock()
+				for i, r := range toProcess {
+					if evt.Resource == r {
+						switch {
+						case evt.Resource.maxRetries > 0 && evt.Resource.maxRetries < evt.Resource.retries:
 							toProcess = append(toProcess[:i], toProcess[i+1:]...)
+							failedResource = true
+							break
+						case options.oneShot:
+							if evt.Type == EventTypeSuccess {
+								toProcess = append(toProcess[:i], toProcess[i+1:]...)
+							}
 						}
 					}
-					if len(toProcess) == 0 {
-						glog.Infof("retrieved all requested resources from vault. exiting...")
+				}
+				if len(toProcess) == 0 {
+					glog.Infof("no resources left to process. exiting...")
+					if failedResource {
+						os.Exit(1)
+					} else {
 						os.Exit(0)
 					}
 				}

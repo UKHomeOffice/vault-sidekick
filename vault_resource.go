@@ -46,6 +46,8 @@ const (
 	optionSize = "size"
 	// optionsMode is the file permissions on the secret
 	optionMode = "mode"
+	// optionMaxRetries is the maximum number of retries that should be attempted
+	optionMaxRetries = "retries"
 	// defaultSize sets the default size of a generic secret
 	defaultSize = 20
 )
@@ -109,6 +111,12 @@ type VaultResource struct {
 	options map[string]string
 	// the file permissions on the resource
 	fileMode os.FileMode
+	// maxRetries is the maximum number of times this resource should be
+	// attempted to be retrieved from Vault before failing
+	maxRetries int
+	// retries is the number of times this resource has been retried since it
+	// last succeeded
+	retries int
 }
 
 // GetFilename generates a resource filename by default the resource name and resource type, which
@@ -158,5 +166,9 @@ func (r *VaultResource) isValidResource() error {
 
 // String returns a string representation of the struct
 func (r VaultResource) String() string {
-	return fmt.Sprintf("type: %s, path:%s", r.resource, r.path)
+	str := fmt.Sprintf("type: %s, path: %s", r.resource, r.path)
+	if r.maxRetries > 0 {
+		str = fmt.Sprintf("%s, attempts: %d/%d", str, r.retries, r.maxRetries+1)
+	}
+	return str
 }

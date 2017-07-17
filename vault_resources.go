@@ -131,6 +131,12 @@ func (r *VaultResources) Set(value string) error {
 				rn.filename = value
 			case optionTemplatePath:
 				rn.templateFile = value
+			case optionMaxRetries:
+				maxRetries, err := strconv.ParseInt(value, 10, 32)
+				if err != nil {
+					return fmt.Errorf("the retries option: %s is invalid, should be an integer", value)
+				}
+				rn.maxRetries = int(maxRetries)
 			default:
 				rn.options[name] = value
 			}
