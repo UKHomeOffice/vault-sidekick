@@ -1,0 +1,1 @@
+{"renewable": true, "leaseDuration": 60, "vaultAddr": "http://testurl:8080", "token": "foobar"}

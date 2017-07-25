@@ -20,8 +20,24 @@ import (
 	"flag"
 	"fmt"
 	"net/url"
+	"os"
 	"time"
 )
+
+type vaultAuthOptions struct {
+	ClientToken   string
+	Token         string
+	LeaseDuration int
+	Renewable     bool
+	Method        string
+	VaultURL      string `json:"vaultAddr"`
+	RoleID        string `json:"role_id" yaml:"role_id"`
+	SecretID      string `json:"secret_id" yaml:"secret_id"`
+	FileName      string
+	FileFormat    string
+	Username      string
+	Password      string
+}
 
 type config struct {
 	// the url for th vault server
@@ -31,7 +47,7 @@ type config struct {
 	// whether or not the auth file format is default
 	vaultAuthFileFormat string
 	// the authentication options
-	vaultAuthOptions map[string]string
+	vaultAuthOptions *vaultAuthOptions
 	// the vault ca file
 	vaultCaFile string
 	// the place to write the resources
@@ -59,7 +75,9 @@ var (
 func init() {
 	// step: setup some defaults
 	options.resources = new(VaultResources)
-	options.vaultAuthOptions = map[string]string{VaultAuth: "token"}
+	options.vaultAuthOptions = &vaultAuthOptions{
+		Method: "token",
+	}
 
 	flag.StringVar(&options.vaultURL, "vault", getEnv("VAULT_ADDR", "https://127.0.0.1:8200"), "url the vault service or VAULT_ADDR")
 	flag.StringVar(&options.vaultAuthFile, "auth", getEnv("AUTH_FILE", ""), "a configuration file in json or yaml containing authentication arguments")
@@ -83,20 +101,33 @@ func parseOptions() error {
 
 // validateOptions parses and validates the command line options
 func validateOptions(cfg *config) (err error) {
-	// step: validate the vault url
-	if _, err = url.Parse(cfg.vaultURL); err != nil {
-		return fmt.Errorf("invalid vault url: '%s' specified", cfg.vaultURL)
-	}
-
 	// step: read in the token if required
+
 	if cfg.vaultAuthFile != "" {
 		if exists, _ := fileExists(cfg.vaultAuthFile); !exists {
 			return fmt.Errorf("the token file: %s does not exists, please check", cfg.vaultAuthFile)
 		}
-		options.vaultAuthOptions, err = readConfigFile(options.vaultAuthFile, options.vaultAuthFileFormat)
+
+		cfg.vaultAuthOptions, err = readConfigFile(cfg.vaultAuthFile, cfg.vaultAuthFileFormat)
 		if err != nil {
 			return fmt.Errorf("unable to read in authentication options from: %s, error: %s", cfg.vaultAuthFile, err)
 		}
+		if cfg.vaultAuthOptions.VaultURL != "" {
+			cfg.vaultURL = cfg.vaultAuthOptions.VaultURL
+		}
+	}
+
+	if cfg.vaultURL == "" {
+		cfg.vaultURL = os.Getenv("VAULT_ADDR")
+	}
+
+	if cfg.vaultURL == "" {
+		return fmt.Errorf("VAULT_ADDR is unset")
+	}
+
+	// step: validate the vault url
+	if _, err = url.Parse(cfg.vaultURL); err != nil {
+		return fmt.Errorf("invalid vault url: '%s' specified", cfg.vaultURL)
 	}
 
 	if cfg.vaultCaFile != "" {

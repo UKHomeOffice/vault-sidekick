@@ -40,21 +40,17 @@ func NewAppRolePlugin(client *api.Client) AuthInterface {
 }
 
 // Create a approle plugin with the secret id and role id provided in the file
-func (r authAppRolePlugin) Create(cfg map[string]string) (string, error) {
-	// step: extract the options
-	roleID, _ := cfg["role_id"]
-	secretID, _ := cfg["secret_id"]
-
-	if roleID == "" {
-		roleID = os.Getenv("VAULT_SIDEKICK_ROLE_ID")
+func (r authAppRolePlugin) Create(cfg *vaultAuthOptions) (string, error) {
+	if cfg.RoleID == "" {
+		cfg.RoleID = os.Getenv("VAULT_SIDEKICK_ROLE_ID")
 	}
-	if secretID == "" {
-		secretID = os.Getenv("VAULT_SIDEKICK_SECRET_ID")
+	if cfg.SecretID == "" {
+		cfg.SecretID = os.Getenv("VAULT_SIDEKICK_SECRET_ID")
 	}
 
 	// step: create the token request
 	request := r.client.NewRequest("POST", "/v1/auth/approle/login")
-	login := appRoleLogin{SecretID: secretID, RoleID: roleID}
+	login := appRoleLogin{SecretID: cfg.SecretID, RoleID: cfg.RoleID}
 	if err := request.SetJSONBody(login); err != nil {
 		return "", err
 	}
