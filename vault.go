@@ -64,7 +64,16 @@ type VaultEvent struct {
 	Resource *VaultResource
 	// the secret associated
 	Secret map[string]interface{}
+	// type of this event (success or failure)
+	Type EventType
 }
+
+type EventType int
+
+const (
+	EventTypeSuccess EventType = iota
+	EventTypeFailure EventType = iota
+)
 
 // NewVaultService creates a new implementation to speak to vault and retrieve the resources
 //	url			: the url of the vault service
@@ -132,6 +141,12 @@ func (r *VaultService) vaultServiceProcessor() {
 			//  - if we error attempting to retrieve the secret, we background and reschedule an attempt to add it
 			//  - if ok, we grab the lease it and lease time, we setup a notification on renewal
 			case x := <-retrieveChannel:
+				// step: skip this resource if it's reached maxRetries
+				if x.resource.maxRetries > 0 && x.resource.retries > x.resource.maxRetries {
+					glog.V(4).Infof("skipping resource %s as it's failed %d/%d times", x.resource.retries, x.resource.maxRetries+1)
+					break
+				}
+
 				// step: save the current lease if we have one
 				leaseID := ""
 				if x.secret != nil && x.secret.LeaseID != "" {
@@ -144,10 +159,16 @@ func (r *VaultService) vaultServiceProcessor() {
 					glog.Errorf("failed to retrieve the resource: %s from vault, error: %s", x.resource, err)
 					// reschedule the attempt for later
 					r.scheduleIn(x, retrieveChannel, getDurationWithin(3, 10))
+					x.resource.retries++
+					r.upstream(VaultEvent{
+						Resource: x.resource,
+						Type:     EventTypeFailure,
+					})
 					break
 				}
 
 				glog.V(4).Infof("successfully retrieved resource: %s, leaseID: %s", x.resource, x.secret.LeaseID)
+				x.resource.retries = 0
 
 				// step: if we had a previous lease and the option is to revoke, lets throw into the revoke channel
 				if leaseID != "" && x.resource.revoked {
@@ -165,13 +186,22 @@ func (r *VaultService) vaultServiceProcessor() {
 				x.notifyOnRenewal(renewChannel)
 
 				// step: update the upstream consumers
-				r.upstream(x)
+				r.upstream(VaultEvent{
+					Resource: x.resource,
+					Secret:   x.secret.Data,
+					Type:     EventTypeSuccess,
+				})
 
 			// A watched resource is coming up for renewal
 			// 	- we attempt to renew the resource from vault
 			//	- if we encounter an error, we reschedule the attempt for the future
 			//	- if we're ok, we update the watchedResource and we send a notification of the change upstream
 			case x := <-renewChannel:
+				// step: skip this resource if it's reached maxRetries
+				if x.resource.maxRetries > 0 && x.resource.retries > x.resource.maxRetries {
+					glog.V(4).Infof("skipping resource %s as it's failed %d/%d times", x.resource.retries, x.resource.maxRetries+1)
+					break
+				}
 
 				glog.V(4).Infof("resource: %s, lease: %s up for renewal, renewable: %t, revoked: %t", x.resource,
 					x.secret.LeaseID, x.resource.renewable, x.resource.revoked)
@@ -196,11 +226,19 @@ func (r *VaultService) vaultServiceProcessor() {
 					// step: lets renew the resource
 					err := r.renew(x)
 					if err != nil {
-						glog.Errorf("failed to renew the resounce: %s for renewal, error: %s", x.resource, err)
+						glog.Errorf("failed to renew the resource: %s for renewal, error: %s", x.resource, err)
 						// reschedule the attempt for later
 						r.scheduleIn(x, renewChannel, getDurationWithin(3, 10))
+						x.resource.retries++
+						r.upstream(VaultEvent{
+							Resource: x.resource,
+							Type:     EventTypeFailure,
+						})
 						break
 					}
+
+					glog.V(4).Infof("successfully renewed resource: %s, leaseID: %s", x.resource, x.secret.LeaseID)
+					x.resource.retries = 0
 				}
 
 				// step: the option for this resource is not to renew the secret but regenerate a new secret
@@ -214,7 +252,11 @@ func (r *VaultService) vaultServiceProcessor() {
 				x.notifyOnRenewal(renewChannel)
 
 				// step: update any listener upstream
-				r.upstream(x)
+				r.upstream(VaultEvent{
+					Resource: x.resource,
+					Secret:   x.secret.Data,
+					Type:     EventTypeSuccess,
+				})
 
 			// We receive a lease ID along on the channel, just revoke the lease when you can
 			case x := <-revokeChannel:
@@ -260,14 +302,11 @@ func (r VaultService) scheduleIn(rn *watchedResource, ch chan *watchedResource, 
 
 // upstream ... the resource has changed thus we notify the upstream listener
 //	item		: the item which has changed
-func (r VaultService) upstream(item *watchedResource) {
+func (r VaultService) upstream(item VaultEvent) {
 	// step: chunk this into a go-routine not to block us
 	for _, listener := range r.listeners {
 		go func(ch chan VaultEvent) {
-			ch <- VaultEvent{
-				Resource: item.resource,
-				Secret:   item.secret.Data,
-			}
+			ch <- item
 		}(listener)
 	}
 }
