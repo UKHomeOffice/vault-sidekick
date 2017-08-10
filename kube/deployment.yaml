@@ -20,7 +20,7 @@ spec:
             cpu: 100m
             memory: 50Mi
         args:
-          - -cn=pki:services/${NAMESPACE}/pki/issue/default:fmt=bundle,common_name=demo.${NAMESPACE}.svc.cluster.local,file=platform,mode=0640
+          - -cn=pki:services/${NAMESPACE}/pki/issue/default:fmt=bundle,common_name=demo.${NAMESPACE}.svc.cluster.local,file=platform,mode=0600
           - -ca-cert=/ca/caroot.bundle
           - -logtostderr=true
           - -v=3
@@ -43,7 +43,7 @@ spec:
         - name: ca-bundle
           mountPath: /ca
       - name: nginx
-        image: quay.io/ukhomeofficedigital/nginx-proxy:v1.5.1
+        image: quay.io/ukhomeofficedigital/nginx-proxy:v3.0.0
         resources:
           limits:
             cpu: 400m
