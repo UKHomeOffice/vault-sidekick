@@ -1,4 +1,12 @@
 
+#### **Version v0.3.2**
+
+##### FEATURES
+
+ * Added kubernetes-vault support
+ * Added onetime only mode via the one-shot option
+ * Added the 'retries' parameter to resources to allow optional maxRetries
+
 #### **Version v0.3.1**
 
 ##### FEATURES
