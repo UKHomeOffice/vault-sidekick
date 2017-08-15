@@ -41,21 +41,18 @@ func NewUserPassPlugin(client *api.Client) AuthInterface {
 }
 
 // Create a userpass plugin with the username and password provide in the file
-func (r authUserPassPlugin) Create(cfg map[string]string) (string, error) {
+func (r authUserPassPlugin) Create(cfg *vaultAuthOptions) (string, error) {
 	// step: extract the options
-	username, _ := cfg["username"]
-	password, _ := cfg["password"]
-
-	if username == "" {
-		username = os.Getenv("VAULT_SIDEKICK_USERNAME")
+	if cfg.Username == "" {
+		cfg.Username = os.Getenv("VAULT_SIDEKICK_USERNAME")
 	}
-	if password == "" {
-		password = os.Getenv("VAULT_SIDEKICK_PASSWORD")
+	if cfg.Password == "" {
+		cfg.Password = os.Getenv("VAULT_SIDEKICK_PASSWORD")
 	}
 
 	// step: create the token request
-	request := r.client.NewRequest("POST", fmt.Sprintf("/v1/auth/userpass/login/%s", username))
-	if err := request.SetJSONBody(userPassLogin{Password: password}); err != nil {
+	request := r.client.NewRequest("POST", fmt.Sprintf("/v1/auth/userpass/login/%s", cfg.Username))
+	if err := request.SetJSONBody(userPassLogin{Password: cfg.Password}); err != nil {
 		return "", err
 	}
 	// step: make the request

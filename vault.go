@@ -31,15 +31,10 @@ import (
 	"github.com/hashicorp/vault/api"
 )
 
-const (
-	// VaultAuth the method to use when authenticating to vault
-	VaultAuth = "method"
-)
-
 // AuthInterface is the authentication interface
 type AuthInterface interface {
 	// Create and handle renewals of the token
-	Create(map[string]string) (string, error)
+	Create(*vaultAuthOptions) (string, error)
 }
 
 // VaultService is the main interface into the vault API - placing into a structure
@@ -464,15 +459,15 @@ func newVaultClient(opts *config) (*api.Client, error) {
 		return nil, err
 	}
 
-	plugin, _ := opts.vaultAuthOptions[VaultAuth]
+	plugin := opts.vaultAuthOptions.Method
 	switch plugin {
 	case "userpass":
 		token, err = NewUserPassPlugin(client).Create(opts.vaultAuthOptions)
 	case "approle":
 		token, err = NewAppRolePlugin(client).Create(opts.vaultAuthOptions)
 	case "token":
-		opts.vaultAuthOptions["filename"] = options.vaultAuthFile
-		opts.vaultAuthOptions["fileFormat"] = options.vaultAuthFileFormat
+		opts.vaultAuthOptions.FileName = options.vaultAuthFile
+		opts.vaultAuthOptions.FileFormat = options.vaultAuthFileFormat
 		token, err = NewUserTokenPlugin(client).Create(opts.vaultAuthOptions)
 	default:
 		return nil, fmt.Errorf("unsupported authentication plugin: %s", plugin)

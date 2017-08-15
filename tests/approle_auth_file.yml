@@ -1,0 +1,3 @@
+method: approle
+role_id: admin
+secret_id: foobar

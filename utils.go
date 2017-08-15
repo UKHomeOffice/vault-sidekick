@@ -70,7 +70,7 @@ func getKeys(data map[string]interface{}) []string {
 
 // readConfigFile read in a configuration file
 //	filename		: the path to the file
-func readConfigFile(filename, fileFormat string) (map[string]string, error) {
+func readConfigFile(filename, fileFormat string) (*vaultAuthOptions, error) {
 	// step: check the file exists
 	if exists, err := fileExists(filename); !exists {
 		return nil, fmt.Errorf("the file: %s does not exist", filename)
@@ -91,44 +91,44 @@ func readConfigFile(filename, fileFormat string) (map[string]string, error) {
 
 // readJsonFile read in and unmarshall the data into a map
 //	filename	: the path to the file container the json data
-func readJSONFile(filename, format string) (map[string]string, error) {
-	data := make(map[string]string, 0)
+func readJSONFile(filename, format string) (*vaultAuthOptions, error) {
+	opts := &vaultAuthOptions{}
 
 	content, err := ioutil.ReadFile(filename)
 	if err != nil {
-		return data, err
+		return nil, err
 	}
 	// unmarshall the data
-	err = json.Unmarshal(content, &data)
+	err = json.Unmarshal(content, &opts)
 	if err != nil && format == "default" {
-		return data, err
+		return nil, err
 	}
 	if err != nil && format == "kubernetes-vault" {
-		if data["clientToken"] != "" {
-			data[VaultAuth] = "token"
-			data["token"] = data["clientToken"]
-			return data, nil
+		if opts.ClientToken != "" {
+			opts.Method = "token"
+			opts.Token = opts.ClientToken
+			return opts, nil
 		}
-		return data, err
+		return nil, err
 	}
 
-	return data, nil
+	return opts, nil
 }
 
 // readYAMLFile read in and unmarshall the data into a map
 //	filename	: the path to the file container the yaml data
-func readYAMLFile(filename string) (map[string]string, error) {
-	data := make(map[string]string, 0)
+func readYAMLFile(filename string) (*vaultAuthOptions, error) {
+	o := &vaultAuthOptions{}
 	content, err := ioutil.ReadFile(filename)
 	if err != nil {
-		return data, err
+		return nil, err
 	}
-	err = yaml.Unmarshal(content, data)
+	err = yaml.Unmarshal(content, o)
 	if err != nil {
-		return data, err
+		return nil, err
 	}
 
-	return data, nil
+	return o, nil
 }
 
 // getDurationWithin generate a random integer between min and max

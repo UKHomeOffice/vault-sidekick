@@ -37,18 +37,16 @@ func NewUserTokenPlugin(client *api.Client) AuthInterface {
 }
 
 // Create retrieves the token from an environment variable or file
-func (r authTokenPlugin) Create(cfg map[string]string) (string, error) {
-	filename, _ := cfg["filename"]
-	fileFormat, _ := cfg["fileFormat"]
-	if filename != "" {
-		content, err := readConfigFile(filename, fileFormat)
+func (r authTokenPlugin) Create(cfg *vaultAuthOptions) (string, error) {
+	if cfg.FileName != "" {
+		content, err := readConfigFile(cfg.FileName, cfg.FileFormat)
 		if err != nil {
 			return "", err
 		}
 		// check: ensure we have a token in the file
-		token, found := content["token"]
-		if !found {
-			return "", fmt.Errorf("the auth file: %s does not contain a token", filename)
+		token := content.Token
+		if token == "" {
+			return "", fmt.Errorf("the auth file: %s does not contain a token", cfg.FileName)
 		}
 
 		return token, nil
