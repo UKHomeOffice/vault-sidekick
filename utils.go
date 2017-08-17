@@ -103,7 +103,7 @@ func readJSONFile(filename, format string) (*vaultAuthOptions, error) {
 	if err != nil && format == "default" {
 		return nil, err
 	}
-	if (err != nil) {
+	if err != nil {
 		return nil, err
 	}
 	if format == "kubernetes-vault" && opts.ClientToken != "" {
