@@ -48,6 +48,10 @@ const (
 	optionMode = "mode"
 	// optionMaxRetries is the maximum number of retries that should be attempted
 	optionMaxRetries = "retries"
+	// optionMaxJitter is the maximum amount of jitter that should be applied
+	// to updates for this resource. If non-zero, a random value between 0 and
+	// maxJitter will be subtracted from the update period.
+	optionMaxJitter = "jitter"
 	// defaultSize sets the default size of a generic secret
 	defaultSize = 20
 )
@@ -117,6 +121,9 @@ type VaultResource struct {
 	// retries is the number of times this resource has been retried since it
 	// last succeeded
 	retries int
+	// maxJitter is the maximum jitter duration to use for this resource when
+	// performing renewals
+	maxJitter time.Duration
 }
 
 // GetFilename generates a resource filename by default the resource name and resource type, which

@@ -137,6 +137,12 @@ func (r *VaultResources) Set(value string) error {
 					return fmt.Errorf("the retries option: %s is invalid, should be an integer", value)
 				}
 				rn.maxRetries = int(maxRetries)
+			case optionMaxJitter:
+				maxJitter, err := time.ParseDuration(value)
+				if err != nil {
+					return fmt.Errorf("the jitter option: %s is invalid, should be in duration format", value)
+				}
+				rn.maxJitter = maxJitter
 			default:
 				rn.options[name] = value
 			}
