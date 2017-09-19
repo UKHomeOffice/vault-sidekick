@@ -1,4 +1,16 @@
 
+#### **Version v0.3.4**
+
+##### FEATURES
+
+ * Adding a jitter option to the resources
+
+#### **Version v0.3.3**
+
+##### FEATURES
+
+ * Loading vault url from kubernetes vault auth file, exit if vault url is not set
+
 #### **Version v0.3.2**
 
 ##### FEATURES
