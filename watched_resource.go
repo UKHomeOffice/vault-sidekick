@@ -57,6 +57,13 @@ func (r *watchedResource) notifyOnRenewal(ch chan *watchedResource) {
 			}
 			r.renewalTime = r.calculateRenewal()
 		}
+		if r.resource.maxJitter != 0 {
+			glog.V(4).Infof("using maxJitter (%s) to calculate renewal time", r.resource.maxJitter)
+			r.renewalTime = time.Duration(getDurationWithin(
+				int((r.renewalTime-r.resource.maxJitter)/time.Second),
+				int(r.renewalTime/time.Second),
+			))
+		}
 		glog.V(3).Infof("setting a renewal notification on resource: %s, time: %s", r.resource, r.renewalTime)
 		// step: wait for the duration
 		<-time.After(r.renewalTime)

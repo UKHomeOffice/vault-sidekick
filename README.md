@@ -147,3 +147,4 @@ bundle format is very similar in the sense it similar takes the private key and 
 - **fmt**: (format) allows you to specify the output format of the resource / secret, e.g json, yaml, ini, txt
 - **exec** (execute) execute's a command when resource is updated or changed
 - **retries**: (retries) the maximum number of times to retry retrieving a resource. If not set, resources will be retried indefinitely
+* **jitter**: (jitter) an optional maximum jitter duration. If specified, a random duration between 0 and `jitter` will be subtracted from the renewal time for the resource
