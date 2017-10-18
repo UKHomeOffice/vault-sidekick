@@ -12,25 +12,46 @@ Vault Sidekick is a add-on container which can be used as a generic entry-point 
 **Usage:**
 
 ```shell
-[jest@starfury vault-sidekick]$ bin/vault-sidekick --help
-Usage of bin/vault-sidekick:
-  -alsologtostderr=false: log to standard error as well as files
-  -auth="": a configuration file in a json or yaml containing authentication arguments
-  -cn=: a resource to retrieve and monitor from vault (e.g. pki:name:cert.name, secret:db_password, aws:s3_backup)
-  -ca-cert="": a CA certificate to use in order to validate the vault service certificate
-  -delete-token=false: once the we have connected to vault, delete the token file from disk
-  -dryrun=false: perform a dry run, printing the content to screen
-  -log_backtrace_at=:0: when logging hits line file:N, emit a stack trace
-  -log_dir="": If non-empty, write log files in this directory
-  -logtostderr=false: log to standard error instead of files
-  -output="/etc/secrets": the full path to write the protected resources (VAULT_OUTPUT if available)
-  -stats=5m0s: the interval to produce statistics on the accessed resources
-  -stderrthreshold=0: logs at or above this threshold go to stderr
-  -tls-skip-verify=false: skip verifying the vault certificate
-  -token="": the token used to authenticate to teh vault service (VAULT_TOKEN if available)
-  -v=0: log level for V logs
-  -vault="https://127.0.0.1:8200": the url the vault service is running behind (VAULT_ADDR if available)
-  -vmodule=: comma-separated list of pattern=N settings for file-filtered logging
+$ sudo docker run --rm quay.io/ukhomeofficedigital/vault-sidekick:v0.3.3 -help
+Usage of /vault-sidekick:
+  -alsologtostderr
+    	log to standard error as well as files
+  -auth string
+    	a configuration file in json or yaml containing authentication arguments
+  -ca-cert string
+    	the path to the file container the CA used to verify the vault service
+  -cn value
+    	a resource to retrieve and monitor from vault
+  -dryrun
+    	perform a dry run, printing the content to screen
+  -exec-timeout duration
+    	the timeout applied to commands on the exec option (default 1m0s)
+  -format string
+    	the auth file format (default "default")
+  -log_backtrace_at value
+    	when logging hits line file:N, emit a stack trace
+  -log_dir string
+    	If non-empty, write log files in this directory
+  -logtostderr
+    	log to standard error instead of files
+  -one-shot
+    	retrieve resources from vault once and then exit
+  -output string
+    	the full path to write resources or VAULT_OUTPUT (default "/etc/secrets")
+  -stats duration
+    	the interval to produce statistics on the accessed resources (default 1h0m0s)
+  -stderrthreshold value
+    	logs at or above this threshold go to stderr
+  -tls-skip-verify
+    	whether to check and verify the vault service certificate
+  -v value
+    	log level for V logs
+  -vault string
+    	url the vault service or VAULT_ADDR (default "https://127.0.0.1:8200")
+  -version
+    	show the vault-sidekick version
+  -vmodule value
+    	comma-separated list of pattern=N settings for file-filtered logging
 ```
 
 **Building**
@@ -47,7 +68,7 @@ The below is taken from a [Kubernetes](https://github.com/kubernetes/kubernetes)
 spec:
       containers:
       - name: vault-side-kick
-        image: gambol99/vault-sidekick:latest
+        image: quay.io/ukhomeofficedigital/vault-sidekick:v0.3.3
         args:
           - -output=/etc/secrets
           - -cn=pki:project1/certs/example.com:common_name=commons.example.com,revoke=true,update=2h
