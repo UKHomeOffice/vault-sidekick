@@ -75,8 +75,9 @@ var (
 func init() {
 	// step: setup some defaults
 	options.resources = new(VaultResources)
+	authMethod := getEnv("VAULT_AUTH_METHOD", "token")
 	options.vaultAuthOptions = &vaultAuthOptions{
-		Method: "token",
+		Method: authMethod,
 	}
 
 	flag.StringVar(&options.vaultURL, "vault", getEnv("VAULT_ADDR", "https://127.0.0.1:8200"), "url the vault service or VAULT_ADDR")
