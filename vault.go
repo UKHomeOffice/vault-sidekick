@@ -465,6 +465,8 @@ func newVaultClient(opts *config) (*api.Client, error) {
 		token, err = NewUserPassPlugin(client).Create(opts.vaultAuthOptions)
 	case "approle":
 		token, err = NewAppRolePlugin(client).Create(opts.vaultAuthOptions)
+	case "aws-ec2":
+		token, err = NewAWSEC2Plugin(client).Create(opts.vaultAuthOptions)
 	case "token":
 		opts.vaultAuthOptions.FileName = options.vaultAuthFile
 		opts.vaultAuthOptions.FileFormat = options.vaultAuthFileFormat
