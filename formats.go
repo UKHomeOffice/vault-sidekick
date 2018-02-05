@@ -86,6 +86,12 @@ func writeCertificateFile(filename string, data map[string]interface{}, mode os.
 		}
 	}
 
+	suffix := "chain"
+	name := fmt.Sprintf("%s.%s", filename, suffix)
+	if err := writeFile(name, []byte(fmt.Sprintf("%s\n%s", data["certificate"], data["issuing_ca"])), mode); err != nil {
+		glog.Errorf("failed to write resource: %s, element: %s, filename: %s, error: %s", filename, suffix, name, err)
+	}
+
 	return nil
 
 }
