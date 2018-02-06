@@ -2,25 +2,24 @@ services:
 - docker
 env:
   global:
-  - secure: Vq4593WUn2Hng93OynvydesiWu7dAnhIFhX6KtmVwqyuWuk60D8bJAd9qiJYax6+jqsAVnouaD+0TtfLb+SFJ9+vFMqykP+iSVJyC6p3DCRqMmKN+KN20hmq5WSvoE9Rs1elNV770plZdDbAIJ36iFsSpJnrp6dA9vFs0G4E2ceLw0KTJDW7C/eFO1LFiWdgsIrq4DpSCGqjcAzrRKsAkajBmsLNO//MFlsUnnJX4YBQKzibSAyoHeTHPitkvZ6Qf11N7pFMqeX78Stqeat7Xks/C0RzCOZipIGX/yU5qTGg8yGS9FG1qDkNf2Vh4osZySRHy4QJfukTlrLBB1skPHfQpU6n3bNVkF2dhQv0M4TzkrFXB+DF5WyrvKhM7i/w6WvTmg6Zc66ut0qXbTUOSJeZpuHo7c195ly51GxmbNIDw9F2RrJbjRqJrrJ9EXGCBC1wbz4wIYXt5sGh2bl1HdZqGEYkzFfXsIrFc6e8mal/AEMwos3hfezoU9kyriM5sA4M4+yK4ERQYL3Kc4UsFg4oyZrbna6k4Pas/mdFYeM3jhQxOKWxCaSSoeKE/FrbKcMb2/4btQe12Ik9zUIca58VJ04KawEBoyF/+YTSCpQOapnoFmWJoCrXJZlIU56zdn4LXNjDL+pENnjDXhutQck3ZqErcewQQzSepIUtFQo=
-  - secure: h4gzrfBQEzvvXvDlmVZBKYIj2YpnzJ/X7a9fq9EfM4wQaSGeYJ5MDIlVz6Qd2yX1ztmGQWvCyD4S4qBGklmoHYv50V04pI71FE+7v3W04DMOeLdhqyOPAmTcJdRVRIvS+7B9m8xmFleFloUKnrPCsqAhV02rCeIWo3EGKzxEpmE2jC+ln3eBRtQYv2hA4UI1lB/D4RuzNIA7n+yn3drvcLNWYHmVj6DlyEL5mWbVkhxHLUdW5i+1uKAIGwD4MhUVx78PQeHEbOzk6Bzv/Vf8LF+rozw+dXQ9pLijQ4tcrXitqFSss+buMJbhO+q955NonMV/qMnscuYhYauA2LVQ1nR1WD+regX5HXX/7iS3otYrKj1VR03hML569PbBCszubEzFfLhNCfEzY52o1qKStBkU6pezBVhdum43AzwwqASDTgxZfrWGOWscEbVPZVAakNWeXZn+GPRwCOPfrFzt3lr0N4PSrQKUKnrLZ3dlhbcBTTVI2WJNbv9ahMh9sjheiWhATzTl4gCL9kAhiNulHIc0/S1bNIjsTHMHZel0Tp83bGi+Mg4Gsr+Xnp9KiEzgvAMC8MZ3s2Ut9MuIfBZWBCYY6Mh1FaKCIWWWJiZ2/TaluqckftPfaYwDcsF7mJ7FizDiQ2JT2c0iTi94hLGhGEGNR66/R0M8RzLm4+x1Lyg=
   - AUTHOR_EMAIL=gambol99@gmail.com
   - REGISTRY_USERNAME=ukhomeofficedigital+vault_sidekick
   - REGISTRY=quay.io
-
+  - secure: bX5gbuMoAC5RIY+68+s2zQ2nN9ItKN2cctVXABa6foCommV/ED8CcscPgWyyojq5KLlzcV+3wi8d2ZKDwnzePgv2HkJJSup15WHxiZhxNQwnHnObHSnNRPTQcUj0sjyHZX22JhS2M6vifia/5uK2yhVNKDdBJBfPey600xfC50ElQG8elOe/YeJCiqg/bVv/BT1Ejq2mo6ARtrXiQ5YgXnei7wXanv72nS2aYq9QZRIw4/8lydEQsPeTSIf+VncaaTfh6Kw0JHERHM672uexg8HXRwDI/o/Q6DI54Lf0uWmFF2rS+DAJLcXNDKKzf+axxN2IoAu2EmEgq7VqHX1CPEKEWtoJf+cYDV4zpWElHIsE6aK4Ycvn3uy3Vf8SfJ45kR2/bmlqh0HN24Ivdqd0joO8WoZ8KlmJ9zFF3DvnOVOhctLXH1ypeQl3s3G3AH3WfDpJyTR8qTNlfScaE6PEwo4I41GfwE0zMnugur+DTBHoLWOLIqlm48Jxh6k8TUWY5JvvPvIMNJYRo48zSCPu7x3hNYaoAsBAWEdlITCM7q+R48uRLdWCklN9LcTfzJWOATo+R9BQib52ZCREr2Bl9qYJ2nokhtAGccO3re9BboMM68PRJMCNWEW9bj+iQBl4W7/Mzp7j7cAHkq+iNheH/BYA2qVJIriPwfncExR7hok=
+  - secure: WM45k/RsJi7SqMuF8OSRk6Zhk/QnhiVwOtoBKsmRqsPYkzo87k0ZB/abV87+qfdwtj1dPtG9ByzHJCxWJgXvNBLq03v5rxhhU1xB0fhBTps+6uUCjB3k/DR7qEXHNU1kj5273UxpJJozyx6pCuEfAr5H6sBB9pU7DOV57Gr2XbaLBvwX1rHsgeeQqJkP70v5VjPmxDYPjSRo20qSZ9iPNt+m+jb6raowk4elXl45BQ6j2IiDeFjJ+/THyf9YfLnId0ibi+s56rBr/IxF3fir6t5N2pRn3oM/TUwDnpkv4pdpjOtepxN4RZPk3SfTK25T1idTZMGs+2cCRzHlGQRZfKgF1ml4otVs3t7eM64OdIc06S8rJU3WpZxG52kMMN6OXrVHPproB4nuRxcdW7iNnHgn6ymmTyjfyj9XYOFBL/1lj/1YIkiGt5u0tm62rWXT9Yh3i3iq8zObDnEZtS9W4nlyD0e82+TeiH0tnEaIKbkS1XRKfdg7dMSozqlVvFxSFlVp07w+mNKpUoqEGXwtelrTdNPN2fp2LLypVSnhhUVmF4E+l6YGaRYPovnX/L9EN8CtgJ/G8/I4TQ1qkky+6ON3ENbb0wMkVktlw/CARZneT46jzgeFzlmOIaDE+jTQT8aTBgA54FEXH0B4Xs+llgBQAR5/azoRYyV+VOHomvE=
 language: go
-go: 1.8.1
-
+go: 1.9.3
 install: true
 script:
 - make test
-- if ([[ ${TRAVIS_BRANCH} == "master" ]] && [[ ${TRAVIS_PULL_REQUEST} == "false" ]]) || [[ -n ${TRAVIS_TAG} ]]; then
-    GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags "-X main.gitsha=${TRAVIS_TAG:-git+${TRAVIS_COMMIT}}" -o bin/vault-sidekick_linux_amd64;
-    GOOS=darwin GOARCH=amd64 CGO_ENABLED=0 go build -ldflags "-X main.gitsha=${TRAVIS_TAG:-git+${TRAVIS_COMMIT}}" -o bin/vault-sidekick_darwin_amd64;
-    GOOS=windows GOARCH=amd64 CGO_ENABLED=0 go build -ldflags "-X main.gitsha=${TRAVIS_TAG:-git+${TRAVIS_COMMIT}}" -o bin/vault-sidekick_windows_amd64.exe;
-    docker login -u ${REGISTRY_USERNAME} -p ${REGISTRY_TOKEN} -e ${AUTHOR_EMAIL} ${REGISTRY};
-    VERSION=${TRAVIS_TAG:-latest} make docker-release;
-  fi
+- if ([[ ${TRAVIS_BRANCH} == "master" ]] && [[ ${TRAVIS_EVENT_TYPE} == "push" ]]);
+  then GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags "-X main.gitsha=${TRAVIS_TAG:-git+${TRAVIS_COMMIT}}"
+  -o bin/vault-sidekick_linux_amd64; GOOS=darwin GOARCH=amd64 CGO_ENABLED=0 go build
+  -ldflags "-X main.gitsha=${TRAVIS_TAG:-git+${TRAVIS_COMMIT}}" -o bin/vault-sidekick_darwin_amd64;
+  GOOS=windows GOARCH=amd64 CGO_ENABLED=0 go build -ldflags "-X main.gitsha=${TRAVIS_TAG:-git+${TRAVIS_COMMIT}}"
+  -o bin/vault-sidekick_windows_amd64.exe; docker login -u ${REGISTRY_USERNAME} -p
+  ${REGISTRY_TOKEN} -e ${AUTHOR_EMAIL} ${REGISTRY}; VERSION=${TRAVIS_TAG:-latest}
+  make docker-release; fi
 deploy:
   provider: releases
   skip_cleanup: true
@@ -30,6 +29,6 @@ deploy:
   api_key:
     secure: "${GITHUB_TOKEN}"
   file:
-    - bin/vault-sidekick_linux_amd64
-    - bin/vault-sidekick_darwin_amd64
-    - bin/vault-sidekick_windows_amd64.exe
+  - bin/vault-sidekick_linux_amd64
+  - bin/vault-sidekick_darwin_amd64
+  - bin/vault-sidekick_windows_amd64.exe
