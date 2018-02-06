@@ -48,6 +48,8 @@ type config struct {
 	vaultAuthFileFormat string
 	// the authentication options
 	vaultAuthOptions *vaultAuthOptions
+	// renew the token based on ttl
+	vaultRenewToken bool
 	// the vault ca file
 	vaultCaFile string
 	// the place to write the resources
@@ -82,6 +84,7 @@ func init() {
 
 	flag.StringVar(&options.vaultURL, "vault", getEnv("VAULT_ADDR", "https://127.0.0.1:8200"), "url the vault service or VAULT_ADDR")
 	flag.StringVar(&options.vaultAuthFile, "auth", getEnv("AUTH_FILE", ""), "a configuration file in json or yaml containing authentication arguments")
+	flag.BoolVar(&options.vaultRenewToken, "renew-token", false, "renew vault token according to its ttl")
 	flag.StringVar(&options.vaultAuthFileFormat, "format", getEnv("AUTH_FORMAT", "default"), "the auth file format")
 	flag.StringVar(&options.outputDir, "output", getEnv("VAULT_OUTPUT", "/etc/secrets"), "the full path to write resources or VAULT_OUTPUT")
 	flag.BoolVar(&options.dryRun, "dryrun", false, "perform a dry run, printing the content to screen")
