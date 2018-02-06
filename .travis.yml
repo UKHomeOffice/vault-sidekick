@@ -12,14 +12,13 @@ go: 1.9.3
 install: true
 script:
 - make test
-- if ([[ ${TRAVIS_BRANCH} == "master" ]] && [[ ${TRAVIS_EVENT_TYPE} == "push" ]]);
-  then GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags "-X main.gitsha=${TRAVIS_TAG:-git+${TRAVIS_COMMIT}}"
-  -o bin/vault-sidekick_linux_amd64; GOOS=darwin GOARCH=amd64 CGO_ENABLED=0 go build
-  -ldflags "-X main.gitsha=${TRAVIS_TAG:-git+${TRAVIS_COMMIT}}" -o bin/vault-sidekick_darwin_amd64;
-  GOOS=windows GOARCH=amd64 CGO_ENABLED=0 go build -ldflags "-X main.gitsha=${TRAVIS_TAG:-git+${TRAVIS_COMMIT}}"
-  -o bin/vault-sidekick_windows_amd64.exe; docker login -u ${REGISTRY_USERNAME} -p
-  ${REGISTRY_TOKEN} -e ${AUTHOR_EMAIL} ${REGISTRY}; VERSION=${TRAVIS_TAG:-latest}
-  make docker-release; fi
+- if ([[ ${TRAVIS_BRANCH} == "master" ]] && [[ ${TRAVIS_EVENT_TYPE} == "push" ]]); then
+    GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags "-X main.gitsha=${TRAVIS_TAG:-git+${TRAVIS_COMMIT}}" -o bin/vault-sidekick_linux_amd64;
+    GOOS=darwin GOARCH=amd64 CGO_ENABLED=0 go build -ldflags "-X main.gitsha=${TRAVIS_TAG:-git+${TRAVIS_COMMIT}}" -o bin/vault-sidekick_darwin_amd64;
+    GOOS=windows GOARCH=amd64 CGO_ENABLED=0 go build -ldflags "-X main.gitsha=${TRAVIS_TAG:-git+${TRAVIS_COMMIT}}" -o bin/vault-sidekick_windows_amd64.exe;
+    docker login -u ${REGISTRY_USERNAME} -p ${REGISTRY_TOKEN} ${REGISTRY};
+    VERSION=${TRAVIS_TAG:-latest} make docker-release;
+  fi
 deploy:
   provider: releases
   skip_cleanup: true
