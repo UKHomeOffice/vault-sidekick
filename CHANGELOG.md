@@ -1,3 +1,7 @@
+#### **Version v0.3.5**
+
+* Add ability to set vault auth method via env var (`VAULT_AUTH_METHOD`).
+* Add aws-ec2 auth method to authenticate with the aws backend using ec2 authorization.
 
 #### **Version v0.3.4**
 
