@@ -495,6 +495,9 @@ func newVaultClient(opts *config) (*api.Client, error) {
 		renewPeriod := tokenttl / 2
 		go func() {
 			for {
+				if renewPeriod < 1*time.Second {
+					glog.Fatalf("fatal: token renew period is <1s, aborting")
+				}
 				glog.Infof("scheduling token renew in %v", renewPeriod)
 				<-time.After(renewPeriod)
 
@@ -503,6 +506,7 @@ func newVaultClient(opts *config) (*api.Client, error) {
 				if err != nil {
 					renewPeriod = renewPeriod / 2
 					glog.Warningf("error: failed to renew token, retrying in %v: %v", renewPeriod, err)
+					continue
 				}
 
 				tokenttl, err := newtokeninfo.TokenTTL()
@@ -511,9 +515,6 @@ func newVaultClient(opts *config) (*api.Client, error) {
 				} else {
 					glog.Infof("token ttl is %v", tokenttl)
 					renewPeriod = tokenttl / 2
-				}
-				if renewPeriod < 1*time.Second {
-					glog.Fatalf("fatal: token renew period is <1s, aborting")
 				}
 			}
 		}()
