@@ -1,3 +1,7 @@
+#### **Version v0.3.6**
+
+* Added the ability to renew the vault token [#PR61](https://github.com/UKHomeOffice/vault-sidekick/pull/61)
+
 #### **Version v0.3.5**
 
 * Add ability to set vault auth method via env var (`VAULT_AUTH_METHOD`).
