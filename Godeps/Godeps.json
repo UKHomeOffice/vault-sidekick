@@ -1,7 +1,7 @@
 {
-	"ImportPath": "github.com/UKHomeOffice/vault-sidekick",
+	"ImportPath": "github.com/ukhomeoffice/vault-sidekick",
 	"GoVersion": "go1.7",
-	"GodepVersion": "v74",
+	"GodepVersion": "v80",
 	"Deps": [
 		{
 			"ImportPath": "github.com/davecgh/go-spew/spew",
@@ -69,8 +69,8 @@
 		},
 		{
 			"ImportPath": "github.com/hashicorp/vault/api",
-			"Comment": "v0.6.0-rebuild-70-ga7cfb3d",
-			"Rev": "a7cfb3dcdcd15231d01e9517e5f75f517a5ea510"
+			"Comment": "v0.9.3-41-gf4f66a977",
+			"Rev": "f4f66a9779410ab0aee37c999415f96e3db3265c"
 		},
 		{
 			"ImportPath": "github.com/mitchellh/go-homedir",
@@ -92,6 +92,151 @@
 		{
 			"ImportPath": "gopkg.in/yaml.v2",
 			"Rev": "49c95bdc21843256fb6c4e0d370a05f24a0bf213"
+		},
+		{
+			"ImportPath": "github.com/hashicorp/vault/vendor/github.com/fatih/structs",
+			"Comment": "v0.9.3-41-gf4f66a977",
+			"Rev": "f4f66a9779410ab0aee37c999415f96e3db3265c"
+		},
+		{
+			"ImportPath": "github.com/hashicorp/vault/vendor/github.com/hashicorp/errwrap",
+			"Comment": "v0.9.3-41-gf4f66a977",
+			"Rev": "f4f66a9779410ab0aee37c999415f96e3db3265c"
+		},
+		{
+			"ImportPath": "github.com/hashicorp/vault/vendor/github.com/hashicorp/go-cleanhttp",
+			"Comment": "v0.9.3-41-gf4f66a977",
+			"Rev": "f4f66a9779410ab0aee37c999415f96e3db3265c"
+		},
+		{
+			"ImportPath": "github.com/hashicorp/vault/vendor/github.com/hashicorp/go-multierror",
+			"Comment": "v0.9.3-41-gf4f66a977",
+			"Rev": "f4f66a9779410ab0aee37c999415f96e3db3265c"
+		},
+		{
+			"ImportPath": "github.com/hashicorp/vault/vendor/github.com/hashicorp/go-rootcerts",
+			"Comment": "v0.9.3-41-gf4f66a977",
+			"Rev": "f4f66a9779410ab0aee37c999415f96e3db3265c"
+		},
+		{
+			"ImportPath": "github.com/hashicorp/vault/vendor/github.com/hashicorp/hcl",
+			"Comment": "v0.9.3-41-gf4f66a977",
+			"Rev": "f4f66a9779410ab0aee37c999415f96e3db3265c"
+		},
+		{
+			"ImportPath": "github.com/hashicorp/vault/vendor/github.com/hashicorp/hcl/hcl/ast",
+			"Comment": "v0.9.3-41-gf4f66a977",
+			"Rev": "f4f66a9779410ab0aee37c999415f96e3db3265c"
+		},
+		{
+			"ImportPath": "github.com/hashicorp/vault/helper/jsonutil",
+			"Comment": "v0.9.3-41-gf4f66a977",
+			"Rev": "f4f66a9779410ab0aee37c999415f96e3db3265c"
+		},
+		{
+			"ImportPath": "github.com/hashicorp/vault/helper/parseutil",
+			"Comment": "v0.9.3-41-gf4f66a977",
+			"Rev": "f4f66a9779410ab0aee37c999415f96e3db3265c"
+		},
+		{
+			"ImportPath": "github.com/hashicorp/vault/vendor/github.com/mitchellh/mapstructure",
+			"Comment": "v0.9.3-41-gf4f66a977",
+			"Rev": "f4f66a9779410ab0aee37c999415f96e3db3265c"
+		},
+		{
+			"ImportPath": "github.com/hashicorp/vault/vendor/github.com/sethgrid/pester",
+			"Comment": "v0.9.3-41-gf4f66a977",
+			"Rev": "f4f66a9779410ab0aee37c999415f96e3db3265c"
+		},
+		{
+			"ImportPath": "github.com/hashicorp/vault/vendor/golang.org/x/net/http2",
+			"Comment": "v0.9.3-41-gf4f66a977",
+			"Rev": "f4f66a9779410ab0aee37c999415f96e3db3265c"
+		},
+		{
+			"ImportPath": "github.com/hashicorp/vault/vendor/github.com/mitchellh/go-homedir",
+			"Comment": "v0.9.3-41-gf4f66a977",
+			"Rev": "f4f66a9779410ab0aee37c999415f96e3db3265c"
+		},
+		{
+			"ImportPath": "github.com/hashicorp/vault/vendor/github.com/hashicorp/hcl/hcl/parser",
+			"Comment": "v0.9.3-41-gf4f66a977",
+			"Rev": "f4f66a9779410ab0aee37c999415f96e3db3265c"
+		},
+		{
+			"ImportPath": "github.com/hashicorp/vault/vendor/github.com/hashicorp/hcl/hcl/token",
+			"Comment": "v0.9.3-41-gf4f66a977",
+			"Rev": "f4f66a9779410ab0aee37c999415f96e3db3265c"
+		},
+		{
+			"ImportPath": "github.com/hashicorp/vault/vendor/github.com/hashicorp/hcl/json/parser",
+			"Comment": "v0.9.3-41-gf4f66a977",
+			"Rev": "f4f66a9779410ab0aee37c999415f96e3db3265c"
+		},
+		{
+			"ImportPath": "github.com/hashicorp/vault/helper/compressutil",
+			"Comment": "v0.9.3-41-gf4f66a977",
+			"Rev": "f4f66a9779410ab0aee37c999415f96e3db3265c"
+		},
+		{
+			"ImportPath": "github.com/hashicorp/vault/vendor/golang.org/x/net/http2/hpack",
+			"Comment": "v0.9.3-41-gf4f66a977",
+			"Rev": "f4f66a9779410ab0aee37c999415f96e3db3265c"
+		},
+		{
+			"ImportPath": "github.com/hashicorp/vault/vendor/golang.org/x/net/idna",
+			"Comment": "v0.9.3-41-gf4f66a977",
+			"Rev": "f4f66a9779410ab0aee37c999415f96e3db3265c"
+		},
+		{
+			"ImportPath": "github.com/hashicorp/vault/vendor/golang.org/x/net/lex/httplex",
+			"Comment": "v0.9.3-41-gf4f66a977",
+			"Rev": "f4f66a9779410ab0aee37c999415f96e3db3265c"
+		},
+		{
+			"ImportPath": "github.com/hashicorp/vault/vendor/github.com/hashicorp/hcl/hcl/scanner",
+			"Comment": "v0.9.3-41-gf4f66a977",
+			"Rev": "f4f66a9779410ab0aee37c999415f96e3db3265c"
+		},
+		{
+			"ImportPath": "github.com/hashicorp/vault/vendor/github.com/hashicorp/hcl/hcl/strconv",
+			"Comment": "v0.9.3-41-gf4f66a977",
+			"Rev": "f4f66a9779410ab0aee37c999415f96e3db3265c"
+		},
+		{
+			"ImportPath": "github.com/hashicorp/vault/vendor/github.com/hashicorp/hcl/json/scanner",
+			"Comment": "v0.9.3-41-gf4f66a977",
+			"Rev": "f4f66a9779410ab0aee37c999415f96e3db3265c"
+		},
+		{
+			"ImportPath": "github.com/hashicorp/vault/vendor/github.com/hashicorp/hcl/json/token",
+			"Comment": "v0.9.3-41-gf4f66a977",
+			"Rev": "f4f66a9779410ab0aee37c999415f96e3db3265c"
+		},
+		{
+			"ImportPath": "github.com/hashicorp/vault/vendor/github.com/golang/snappy",
+			"Comment": "v0.9.3-41-gf4f66a977",
+			"Rev": "f4f66a9779410ab0aee37c999415f96e3db3265c"
+		},
+		{
+			"ImportPath": "github.com/hashicorp/vault/vendor/golang.org/x/text/secure/bidirule",
+			"Comment": "v0.9.3-41-gf4f66a977",
+			"Rev": "f4f66a9779410ab0aee37c999415f96e3db3265c"
+		},
+		{
+			"ImportPath": "github.com/hashicorp/vault/vendor/golang.org/x/text/unicode/bidi",
+			"Comment": "v0.9.3-41-gf4f66a977",
+			"Rev": "f4f66a9779410ab0aee37c999415f96e3db3265c"
+		},
+		{
+			"ImportPath": "github.com/hashicorp/vault/vendor/golang.org/x/text/unicode/norm",
+			"Comment": "v0.9.3-41-gf4f66a977",
+			"Rev": "f4f66a9779410ab0aee37c999415f96e3db3265c"
+		},
+		{
+			"ImportPath": "github.com/hashicorp/vault/vendor/golang.org/x/text/transform",
+			"Comment": "v0.9.3-41-gf4f66a977",
+			"Rev": "f4f66a9779410ab0aee37c999415f96e3db3265c"
 		}
 	]
 }
