@@ -17,10 +17,10 @@ limitations under the License.
 package main
 
 import (
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"os"
-	"fmt"
 
 	"github.com/hashicorp/vault/api"
 )
@@ -56,7 +56,7 @@ func (r authGCPGCEPlugin) Create(cfg *vaultAuthOptions) (string, error) {
 	}
 	payload := map[string]interface{}{
 		"role": role,
-		"jwt": string(jwtToken),
+		"jwt":  string(jwtToken),
 	}
 
 	resp, err := r.client.Logical().Write("auth/gcp/login", payload)
