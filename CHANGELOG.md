@@ -1,3 +1,9 @@
+
+#### **Version v0.3.7**
+
+* Added support for GCP/GCE Authentication [#PR64](https://github.com/UKHomeOffice/vault-sidekick/pull/64)
+* Added support to pass arguments to the --command argument [#PR65](https://github.com/UKHomeOffice/vault-sidekick/pull/65)
+
 #### **Version v0.3.6**
 
 * Added the ability to renew the vault token [#PR61](https://github.com/UKHomeOffice/vault-sidekick/pull/61)
