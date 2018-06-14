@@ -1,4 +1,8 @@
 
+#### **Version v0.3.8**
+
+* Added support for kubernetes authentication [#PR68](https://github.com/UKHomeOffice/vault-sidekick/pull/68)
+
 #### **Version v0.3.7**
 
 * Added support for GCP/GCE Authentication [#PR64](https://github.com/UKHomeOffice/vault-sidekick/pull/64)
