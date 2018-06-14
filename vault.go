@@ -469,6 +469,8 @@ func newVaultClient(opts *config) (*api.Client, error) {
 		token, err = NewAWSEC2Plugin(client).Create(opts.vaultAuthOptions)
 	case "gcp-gce":
 		token, err = NewGCPGCEPlugin(client).Create(opts.vaultAuthOptions)
+	case "kubernetes":
+		token, err = NewKubernetesPlugin(client).Create(opts.vaultAuthOptions)
 	case "token":
 		opts.vaultAuthOptions.FileName = options.vaultAuthFile
 		opts.vaultAuthOptions.FileFormat = options.vaultAuthFileFormat
