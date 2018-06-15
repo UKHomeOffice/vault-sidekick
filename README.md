@@ -38,6 +38,8 @@ Usage of /vault-sidekick:
     	retrieve resources from vault once and then exit
   -output string
     	the full path to write resources or VAULT_OUTPUT (default "/etc/secrets")
+  -renew-token
+      renew vault token according to its ttl
   -stats duration
     	the interval to produce statistics on the accessed resources (default 1h0m0s)
   -stderrthreshold value
