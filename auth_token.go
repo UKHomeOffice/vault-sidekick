@@ -18,6 +18,7 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 
 	"github.com/hashicorp/vault/api"
@@ -55,6 +56,15 @@ func (r authTokenPlugin) Create(cfg *vaultAuthOptions) (string, error) {
 	// step: check the VAULT_TOKEN
 	if val := os.Getenv("VAULT_TOKEN"); val != "" {
 		return val, nil
+	}
+
+	// step: check the VAULT_TOKEN_FILE
+	if filepath := os.Getenv("VAULT_TOKEN_FILE"); filepath != "" {
+		content, err := ioutil.ReadFile(filepath)
+		if err != nil {
+			return "", err
+		}
+		return string(content), nil
 	}
 
 	return "", fmt.Errorf("no token provided")
