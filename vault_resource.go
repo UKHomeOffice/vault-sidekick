@@ -71,7 +71,7 @@ var (
 		"transit":   true,
 		"cubbyhole": true,
 		"cassandra": true,
-		"ssh": true,
+		"ssh":       true,
 	}
 )
 

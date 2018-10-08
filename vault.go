@@ -423,7 +423,7 @@ func (r VaultService) get(rn *watchedResource) error {
 
 		sshParams := map[string]interface{}{
 			"public_key": publicKeyDataString,
-			"cert_type": params["cert_type"].(string),
+			"cert_type":  params["cert_type"].(string),
 		}
 
 		secret, err = r.client.Logical().Write(fmt.Sprintf(rn.resource.path), sshParams)
