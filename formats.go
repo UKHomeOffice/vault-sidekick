@@ -23,6 +23,7 @@ import (
 	"io/ioutil"
 	"os"
 	"strings"
+	"text/template"
 
 	"github.com/golang/glog"
 	"gopkg.in/yaml.v2"
@@ -151,6 +152,19 @@ func writeJSONFile(filename string, data map[string]interface{}, mode os.FileMod
 	if err != nil {
 		return err
 	}
+
+	return writeFile(filename, content, mode)
+}
+
+func writeTemplateFile(filename string, data map[string]interface{}, mode os.FileMode, templateFile string) error {
+	tpl := template.Must(template.ParseFiles(templateFile))
+
+	var templateOutput bytes.Buffer
+	if err := tpl.Execute(&templateOutput, data); err != nil {
+		return err
+	}
+
+	content := []byte(fmt.Sprintf("%s", templateOutput.String()))
 
 	return writeFile(filename, content, mode)
 }
