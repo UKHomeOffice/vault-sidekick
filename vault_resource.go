@@ -64,6 +64,7 @@ var (
 		"raw":       true,
 		"pki":       true,
 		"aws":       true,
+		"gcp":       true,
 		"secret":    true,
 		"mysql":     true,
 		"tpl":       true,

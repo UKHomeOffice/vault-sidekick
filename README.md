@@ -127,7 +127,7 @@ The format is;
 -cn=RESOURCE_TYPE:PATH:OPTIONS
 ```
 
-The sidekick supports the following resource types: mysql, postgres, pki, aws, secret, cubbyhole, raw, cassandra and transit
+The sidekick supports the following resource types: mysql, postgres, pki, aws, gcp, secret, cubbyhole, raw, cassandra and transit
 
 ## Environment Variable Expansion
 

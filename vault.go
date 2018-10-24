@@ -395,6 +395,8 @@ func (r VaultService) get(rn *watchedResource) error {
 		fallthrough
 	case "cubbyhole":
 		fallthrough
+	case "gcp":
+		fallthrough
 	case "mysql":
 		fallthrough
 	case "postgres":
