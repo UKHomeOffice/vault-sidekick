@@ -57,7 +57,7 @@ const (
 )
 
 var (
-	resourceFormatRegex = regexp.MustCompile("^(yaml|yml|json|env|ini|txt|cert|bundle|csv)$")
+	resourceFormatRegex = regexp.MustCompile("^(yaml|yml|json|env|ini|txt|cert|bundle|csv|credential)$")
 
 	// a map of valid resource to retrieve from vault
 	validResources = map[string]bool{
