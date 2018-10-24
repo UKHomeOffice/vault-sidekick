@@ -7,6 +7,7 @@ RUN apk update && \
 RUN adduser -D vault
 
 ADD bin/vault-sidekick /vault-sidekick
+RUN chmod 755 /vault-sidekick
 
 USER vault
 
