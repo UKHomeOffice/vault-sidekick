@@ -57,7 +57,7 @@ const (
 )
 
 var (
-	resourceFormatRegex = regexp.MustCompile("^(yaml|yml|json|env|ini|txt|cert|bundle|csv)$")
+	resourceFormatRegex = regexp.MustCompile("^(yaml|yml|json|env|ini|txt|cert|bundle|csv|template)$")
 
 	// a map of valid resource to retrieve from vault
 	validResources = map[string]bool{
@@ -71,6 +71,7 @@ var (
 		"transit":   true,
 		"cubbyhole": true,
 		"cassandra": true,
+		"ssh":       true,
 	}
 )
 
@@ -165,6 +166,13 @@ func (r *VaultResource) isValidResource() error {
 	case "tpl":
 		if _, found := r.options[optionTemplatePath]; !found {
 			return fmt.Errorf("template resource requires a template path option")
+		}
+	case "ssh":
+		if _, found := r.options["public_key_path"]; !found {
+			return fmt.Errorf("ssh resource requires a public key file path specified")
+		}
+		if _, found := r.options["cert_type"]; !found {
+			return fmt.Errorf("ssh resource requires cert_type to be either host or user")
 		}
 	}
 
