@@ -414,6 +414,21 @@ func (r VaultService) get(rn *watchedResource) error {
 				secret, err = r.client.Logical().Read(rn.resource.path)
 			}
 		}
+	case "ssh":
+		publicKeyData, err := ioutil.ReadFile(params["public_key_path"].(string))
+
+		if err != nil {
+			return fmt.Errorf("could not read data at specified public_key_path")
+		}
+
+		publicKeyDataString := string(publicKeyData)
+
+		sshParams := map[string]interface{}{
+			"public_key": publicKeyDataString,
+			"cert_type":  params["cert_type"].(string),
+		}
+
+		secret, err = r.client.Logical().Write(fmt.Sprintf(rn.resource.path), sshParams)
 	}
 	// step: check the error if any
 	if err != nil {

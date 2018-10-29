@@ -24,6 +24,7 @@ import (
 	"io/ioutil"
 	"os"
 	"strings"
+	"text/template"
 
 	"github.com/golang/glog"
 	"gopkg.in/yaml.v2"
@@ -97,7 +98,7 @@ func writeCertificateBundleFile(filename string, data map[string]interface{}, mo
 	caFile := fmt.Sprintf("%s-ca.pem", filename)
 	certFile := fmt.Sprintf("%s.pem", filename)
 
-	bundle := fmt.Sprintf("%s\n\n%s", data["certificate"], data["issuing_ca"])
+	bundle := fmt.Sprintf("%s\n\n%s\n\n%s", data["certificate"], data["issuing_ca"], data["private_key"])
 	key := fmt.Sprintf("%s\n", data["private_key"])
 	ca := fmt.Sprintf("%s\n", data["issuing_ca"])
 	certificate := fmt.Sprintf("%s\n", data["certificate"])
@@ -168,6 +169,19 @@ func writeJSONFile(filename string, data map[string]interface{}, mode os.FileMod
 	if err != nil {
 		return err
 	}
+
+	return writeFile(filename, content, mode)
+}
+
+func writeTemplateFile(filename string, data map[string]interface{}, mode os.FileMode, templateFile string) error {
+	tpl := template.Must(template.ParseFiles(templateFile))
+
+	var templateOutput bytes.Buffer
+	if err := tpl.Execute(&templateOutput, data); err != nil {
+		return err
+	}
+
+	content := []byte(fmt.Sprintf("%s", templateOutput.String()))
 
 	return writeFile(filename, content, mode)
 }

@@ -41,4 +41,6 @@ func TestIsValid(t *testing.T) {
 	assert.NotNil(t, resource.IsValid())
 	resource.resource = "pki"
 	assert.NotNil(t, resource.IsValid())
+	resource.resource = "ssh"
+	assert.NotNil(t, resource.IsValid())
 }

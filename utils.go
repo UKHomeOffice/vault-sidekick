@@ -193,6 +193,8 @@ func processResource(rn *VaultResource, data map[string]interface{}) (err error)
 		err = writeCertificateBundleFile(filename, data, rn.fileMode)
 	case "credential":
 		err = writeCredentialFile(filename, data, rn.fileMode)
+	case "template":
+		err = writeTemplateFile(filename, data, rn.fileMode, rn.templateFile)
 	default:
 		return fmt.Errorf("unknown output format: %s", rn.format)
 	}
