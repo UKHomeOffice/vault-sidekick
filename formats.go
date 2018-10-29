@@ -18,6 +18,7 @@ package main
 
 import (
 	"bytes"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -119,6 +120,22 @@ func writeCertificateBundleFile(filename string, data map[string]interface{}, mo
 
 	if err := writeFile(keyFile, []byte(key), mode); err != nil {
 		glog.Errorf("failed to write the key file, errro: %s", err)
+		return err
+	}
+
+	return nil
+}
+
+func writeCredentialFile(filename string, data map[string]interface{}, mode os.FileMode) error {
+	privateKeyData := fmt.Sprintf("%s", data["private_key_data"])
+	key, err := base64.StdEncoding.DecodeString(privateKeyData)
+	if err != nil {
+		glog.Errorf("failed to decode private key data, error: %s", err)
+		return err
+	}
+
+	if err := writeFile(filename, key, mode); err != nil {
+		glog.Errorf("failed to write the bundled certificate file, error: %s", err)
 		return err
 	}
 
