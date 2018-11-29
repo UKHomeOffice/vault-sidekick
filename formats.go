@@ -27,6 +27,7 @@ import (
 	"text/template"
 
 	"github.com/golang/glog"
+	"gopkg.in/yaml.v2"
 )
 
 func writeIniFile(filename string, data map[string]interface{}, mode os.FileMode) error {
