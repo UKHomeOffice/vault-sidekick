@@ -27,7 +27,6 @@ import (
 	"text/template"
 
 	"github.com/golang/glog"
-	"gopkg.in/yaml.v2"
 )
 
 func writeIniFile(filename string, data map[string]interface{}, mode os.FileMode) error {
@@ -61,7 +60,7 @@ func writeYAMLFile(filename string, data map[string]interface{}, mode os.FileMod
 func writeEnvFile(filename string, data map[string]interface{}, mode os.FileMode) error {
 	var buf bytes.Buffer
 	for key, val := range data {
-		buf.WriteString(fmt.Sprintf("%s=%v\n", strings.ToUpper(key), val))
+		buf.WriteString(fmt.Sprintf("%s=\"%v\"\n", strings.ToUpper(key), val))
 	}
 
 	return writeFile(filename, buf.Bytes(), mode)
