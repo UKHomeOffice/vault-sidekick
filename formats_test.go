@@ -24,11 +24,13 @@ func TestWriteAwsCredentialFileAssumedRole(t *testing.T) {
 		"access_key":     "AKIAJIVWN52VCBFROAFA",
 		"secret_key":     "oocha7Wahma3bahmaitoo8ufae6Yahzouphooy2p",
 		"security_token": "phe2lahD7oofoo8eibohpu1kuwohn0eir7wieH7E",
+		"session_token": "phe2lahD7oofoo8eibohpu1kuwohn0eir7wieH7E",
 	}
 
 	expected := `[default]
 aws_access_key_id=AKIAJIVWN52VCBFROAFA
 aws_secret_access_key=oocha7Wahma3bahmaitoo8ufae6Yahzouphooy2p
+aws_security_token=phe2lahD7oofoo8eibohpu1kuwohn0eir7wieH7E
 aws_session_token=phe2lahD7oofoo8eibohpu1kuwohn0eir7wieH7E
 `
 	assert.Equal(t, expected, string(generateAwsCredentialFile(data)))

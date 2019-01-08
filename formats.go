@@ -157,8 +157,13 @@ func generateAwsCredentialFile(data map[string]interface{}) []byte {
 
 	// Credentials of type IAM User do not have a security token, and are returned as nil
 	if data["security_token"] != nil {
-		securityToken := fmt.Sprintf("aws_session_token=%s", data["security_token"])
-		return []byte(fmt.Sprintf("%s\n%s\n%s\n%s\n", profileName, accessKey, secretKey, securityToken))
+		sessionToken := fmt.Sprintf("aws_session_token=%s", data["security_token"])
+
+		// Support clients that are using boto
+		securityToken := fmt.Sprintf("aws_security_token=%s", data["security_token"])
+
+		return []byte(fmt.Sprintf("%s\n%s\n%s\n%s\n%s\n",
+			profileName, accessKey, secretKey, securityToken, sessionToken))
 	}
 
 	return []byte(fmt.Sprintf("%s\n%s\n%s\n", profileName, accessKey, secretKey))
