@@ -8,8 +8,8 @@ import (
 
 func TestWriteAwsCredentialFileIAMUser(t *testing.T) {
 	data := map[string]interface{}{
-		"access_key": "AKIAJIVWU52VCBFROFFA",
-		"secret_key": "oocha7Wahma3bahmaitoo8ufae6Yahzouphooy2p",
+		"access_key":     "AKIAJIVWU52VCBFROFFA",
+		"secret_key":     "oocha7Wahma3bahmaitoo8ufae6Yahzouphooy2p",
 		"security_token": nil,
 	}
 	expected := `[default]
@@ -24,7 +24,7 @@ func TestWriteAwsCredentialFileAssumedRole(t *testing.T) {
 		"access_key":     "AKIAJIVWN52VCBFROAFA",
 		"secret_key":     "oocha7Wahma3bahmaitoo8ufae6Yahzouphooy2p",
 		"security_token": "phe2lahD7oofoo8eibohpu1kuwohn0eir7wieH7E",
-		"session_token": "phe2lahD7oofoo8eibohpu1kuwohn0eir7wieH7E",
+		"session_token":  "phe2lahD7oofoo8eibohpu1kuwohn0eir7wieH7E",
 	}
 
 	expected := `[default]
