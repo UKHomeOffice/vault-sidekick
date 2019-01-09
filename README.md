@@ -136,7 +136,7 @@ or domain within the resource e.g -cn=secret:secrets/myservice/${ENV}/config:fmt
 
 ## Output Formatting
 
-The following output formats are supported: json, yaml, ini, txt, cert, csv, bundle, env, credential
+The following output formats are supported: json, yaml, ini, txt, cert, csv, bundle, env, credential, aws
 
 Using the following at the demo secrets
 
@@ -163,7 +163,7 @@ In order to change the output format:
 
 Format: 'cert' is less of a format of more file scheme i.e. is just extracts the 'certificate', 'issuing_ca' and 'private_key' and creates the three files FILE.{ca,key,crt}. The
 bundle format is very similar in the sense it similar takes the private key and certificate and places into a single file.
-'credential' will attempt to decode a GCP credential file.
+'credential' will attempt to decode a GCP credential file and 'aws' will write an AWS credentials file.
 
 ## Resource Options
 
