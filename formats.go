@@ -142,6 +142,33 @@ func writeCredentialFile(filename string, data map[string]interface{}, mode os.F
 	return nil
 }
 
+func writeAwsCredentialFile(filename string, data map[string]interface{}, mode os.FileMode) error {
+	if err := writeFile(filename, generateAwsCredentialFile(data), mode); err != nil {
+		glog.Errorf("failed to write aws credentials file, error: %s", err)
+		return err
+	}
+	return nil
+}
+
+func generateAwsCredentialFile(data map[string]interface{}) []byte {
+	const profileName = "[default]"
+	accessKey := fmt.Sprintf("aws_access_key_id=%s", data["access_key"])
+	secretKey := fmt.Sprintf("aws_secret_access_key=%s", data["secret_key"])
+
+	// Credentials of type IAM User do not have a security token, and are returned as nil
+	if data["security_token"] != nil {
+		sessionToken := fmt.Sprintf("aws_session_token=%s", data["security_token"])
+
+		// Support clients that are using boto
+		securityToken := fmt.Sprintf("aws_security_token=%s", data["security_token"])
+
+		return []byte(fmt.Sprintf("%s\n%s\n%s\n%s\n%s\n",
+			profileName, accessKey, secretKey, securityToken, sessionToken))
+	}
+
+	return []byte(fmt.Sprintf("%s\n%s\n%s\n", profileName, accessKey, secretKey))
+}
+
 func writeTxtFile(filename string, data map[string]interface{}, mode os.FileMode) error {
 	keys := getKeys(data)
 	if len(keys) > 1 {

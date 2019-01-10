@@ -195,6 +195,8 @@ func processResource(rn *VaultResource, data map[string]interface{}) (err error)
 		err = writeCredentialFile(filename, data, rn.fileMode)
 	case "template":
 		err = writeTemplateFile(filename, data, rn.fileMode, rn.templateFile)
+	case "aws":
+		err = writeAwsCredentialFile(filename, data, rn.fileMode)
 	default:
 		return fmt.Errorf("unknown output format: %s", rn.format)
 	}
