@@ -1,3 +1,6 @@
+#### **Version v0.3.9**
+
+* Added support for the database backend [#PR85](https://github.com/UKHomeOffice/vault-sidekick/pull/85)
 
 #### **Version v0.3.8**
 

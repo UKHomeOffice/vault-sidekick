@@ -401,6 +401,8 @@ func (r VaultService) get(rn *watchedResource) error {
 		fallthrough
 	case "postgres":
 		fallthrough
+	case "database":
+		fallthrough
 	case "secret":
 		secret, err = r.client.Logical().Read(rn.resource.path)
 		// We must generate the secret if we have the create flag
