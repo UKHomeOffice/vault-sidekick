@@ -134,7 +134,11 @@ func readYAMLFile(filename string) (*vaultAuthOptions, error) {
 //	min			: the smallest number we can accept
 //	max			: the largest number we can accept
 func getDurationWithin(min, max int) time.Duration {
-	duration := rand.Intn(max-min) + min
+	jitter := max-min
+	if (jitter <= 0) {
+		jitter = 1
+	}
+	duration := rand.Intn(jitter) + min
 	return time.Duration(duration) * time.Second
 }
 
