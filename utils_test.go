@@ -113,3 +113,11 @@ func TestReadConfigTokenYAML(t *testing.T) {
 		t.Errorf("Expected token %s got %s", expected, o.Token)
 	}
 }
+
+func TestGetDurationWithin(t *testing.T) {
+	duration := getDurationWithin(1, 1)
+
+	if duration <= 0 {
+		t.Errorf("Expected duration to be higher than 0 got %d", duration)
+	}
+}
