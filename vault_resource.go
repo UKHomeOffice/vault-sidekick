@@ -73,6 +73,7 @@ var (
 		"cubbyhole": true,
 		"cassandra": true,
 		"ssh":       true,
+		"database":  true,
 	}
 )
 
