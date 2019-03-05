@@ -1,18 +1,18 @@
 #### ***Version v0.3.10**
 
-7742ca5 Merge pull request #84 from nested-tech/kv2
-4439487 Merge pull request #85 from gmaliar/database-backend
-784383a Merge pull request #86 from gmaliar/lease-duration-fix
-41e729c Merge pull request #83 from luke-richardson/aws-credentials
-35db490 Merge pull request #80 from kamsz/master
+* 7742ca5 https://github.com/UKHomeOffice/vault-sidekick/pull/84 from nested-tech/kv2
+* 4439487 https://github.com/UKHomeOffice/vault-sidekick/pull/85 from gmaliar/database-backend
+* 784383a https://github.com/UKHomeOffice/vault-sidekick/pull/86 from gmaliar/lease-duration-fix
+* 41e729c https://github.com/UKHomeOffice/vault-sidekick/pull/83 from luke-richardson/aws-credentials
+* 35db490 https://github.com/UKHomeOffice/vault-sidekick/pull/80 from kamsz/master
 
 #### **Version v0.3.9**
 
-cf44a88 (tag: v0.3.9) Merge pull request #78 from cpick/gcp
-678d5ee Merge pull request #77 from madjam002/ssh-resource-type
-1b9cd5a Merge pull request #76 from dvulpe/master
-f21a8f5 Merge pull request #75 from roboll/roboll/token-file
-72ffdbf Merge pull request #70 from avoidik/patch-1
+* cf44a88 https://github.com/UKHomeOffice/vault-sidekick/pull/78 from cpick/gcp
+* 678d5ee https://github.com/UKHomeOffice/vault-sidekick/pull/77 from madjam002/ssh-resource-type
+* 1b9cd5a https://github.com/UKHomeOffice/vault-sidekick/pull/76 from dvulpe/master
+* f21a8f5 https://github.com/UKHomeOffice/vault-sidekick/pull/75 from roboll/roboll/token-file
+* 72ffdbf https://github.com/UKHomeOffice/vault-sidekick/pull/70 from avoidik/patch-1
 
 #### **Version v0.3.8**
 
