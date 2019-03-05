@@ -74,6 +74,7 @@ spec:
       - -cn=pki:project1/certs/example.com:common_name=commons.example.com,revoke=true,update=2h
       - -cn=secret:secret/db/prod/username:file=.credentials
       - -cn=secret:secret/db/prod/password:retries=true
+      - -cn=secret:secret/data/db/dev/username:file=.kv2credentials
       - -cn=aws:aws/creds/s3_backup_policy:file=.s3_creds
     volumeMounts:
       - name: secrets
@@ -85,6 +86,7 @@ The above equates to:
 - Write all the secrets to the /etc/secrets directory
 - Retrieve a dynamic certificate pair for me, with the common name: 'commons.example.com' and renew the cert when it expires automatically
 - Retrieve the two static secrets /db/prod/{username,password} and write them to .credentials and password.secret respectively
+- Retrieve the latest version of static secret /db/dev/username from a v2 kv store and write it to .kv2credentials
 - Apply the IAM policy, renew the policy when required and file the API tokens to .s3_creds in the /etc/secrets directory
 - Read the template at /etc/templates/db.tmpl, produce the content from Vault and write to /etc/credentials file
 
