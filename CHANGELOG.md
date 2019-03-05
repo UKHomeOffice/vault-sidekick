@@ -1,6 +1,18 @@
+#### ***Version v0.3.10**
+
+7742ca5 Merge pull request #84 from nested-tech/kv2
+4439487 Merge pull request #85 from gmaliar/database-backend
+784383a Merge pull request #86 from gmaliar/lease-duration-fix
+41e729c Merge pull request #83 from luke-richardson/aws-credentials
+35db490 Merge pull request #80 from kamsz/master
+
 #### **Version v0.3.9**
 
-* Added support for the database backend [#PR85](https://github.com/UKHomeOffice/vault-sidekick/pull/85)
+cf44a88 (tag: v0.3.9) Merge pull request #78 from cpick/gcp
+678d5ee Merge pull request #77 from madjam002/ssh-resource-type
+1b9cd5a Merge pull request #76 from dvulpe/master
+f21a8f5 Merge pull request #75 from roboll/roboll/token-file
+72ffdbf Merge pull request #70 from avoidik/patch-1
 
 #### **Version v0.3.8**
 
