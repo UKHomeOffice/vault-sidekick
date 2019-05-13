@@ -2,6 +2,44 @@
 
 
 [[projects]]
+  digest = "1:b5704b0c573a8e8c53e1c8245aec975a93df80679e99436c60c5b91fabef168d"
+  name = "github.com/aws/aws-sdk-go"
+  packages = [
+    "aws",
+    "aws/awserr",
+    "aws/awsutil",
+    "aws/client",
+    "aws/client/metadata",
+    "aws/corehandlers",
+    "aws/credentials",
+    "aws/credentials/ec2rolecreds",
+    "aws/credentials/endpointcreds",
+    "aws/credentials/processcreds",
+    "aws/credentials/stscreds",
+    "aws/csm",
+    "aws/defaults",
+    "aws/ec2metadata",
+    "aws/endpoints",
+    "aws/request",
+    "aws/session",
+    "aws/signer/v4",
+    "internal/ini",
+    "internal/sdkio",
+    "internal/sdkrand",
+    "internal/sdkuri",
+    "internal/shareddefaults",
+    "private/protocol",
+    "private/protocol/query",
+    "private/protocol/query/queryutil",
+    "private/protocol/rest",
+    "private/protocol/xml/xmlutil",
+    "service/sts",
+  ]
+  pruneopts = "UT"
+  revision = "d2d56572a432fff4d2dca7b4e52b3ee956d5c4bc"
+  version = "v1.19.28"
+
+[[projects]]
   digest = "1:620bade21ddf8256869717861431d52650c7e40bc56bdcd3d5ec3da63e7573b0"
   name = "github.com/davecgh/go-spew"
   packages = ["spew"]
@@ -88,6 +126,13 @@
   revision = "f4f66a9779410ab0aee37c999415f96e3db3265c"
 
 [[projects]]
+  digest = "1:bb81097a5b62634f3e9fec1014657855610c82d19b9a40c17612e32651e35dca"
+  name = "github.com/jmespath/go-jmespath"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "c2b33e84"
+
+[[projects]]
   digest = "1:df41a5c94494f2f1d11ca168367c3ff550fa4e062ef17f951b5f7326b3b451de"
   name = "github.com/mitchellh/go-homedir"
   packages = ["."]
@@ -172,6 +217,11 @@
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
+    "github.com/aws/aws-sdk-go/aws",
+    "github.com/aws/aws-sdk-go/aws/credentials",
+    "github.com/aws/aws-sdk-go/aws/defaults",
+    "github.com/aws/aws-sdk-go/aws/session",
+    "github.com/aws/aws-sdk-go/service/sts",
     "github.com/golang/glog",
     "github.com/hashicorp/vault/api",
     "github.com/stretchr/testify/assert",
