@@ -25,7 +25,7 @@ import (
 	"github.com/hashicorp/vault/api"
 )
 
-// aws authentication plugin
+// aws ec2 authentication plugin
 type authAWSEC2Plugin struct {
 	// the vault client
 	client *api.Client
