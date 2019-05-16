@@ -492,6 +492,8 @@ func newVaultClient(opts *config) (*api.Client, error) {
 		token, err = NewAppRolePlugin(client).Create(opts.vaultAuthOptions)
 	case "aws-ec2":
 		token, err = NewAWSEC2Plugin(client).Create(opts.vaultAuthOptions)
+	case "aws-iam":
+		token, err = NewAWSIAMPlugin(client).Create(opts.vaultAuthOptions)
 	case "gcp-gce":
 		token, err = NewGCPGCEPlugin(client).Create(opts.vaultAuthOptions)
 	case "kubernetes":
