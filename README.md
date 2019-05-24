@@ -138,7 +138,7 @@ or domain within the resource e.g -cn=secret:secrets/myservice/${ENV}/config:fmt
 
 ## Output Formatting
 
-The following output formats are supported: json, yaml, ini, txt, cert, csv, bundle, env, credential, aws
+The following output formats are supported: json, yaml, ini, txt, cert, certchain, csv, bundle, env, credential, aws
 
 Using the following at the demo secrets
 
@@ -169,7 +169,7 @@ bundle format is very similar in the sense it similar takes the private key and 
 
 ## Resource Options
 
-- **file**: (filaname) by default all file are relative to the output directory specified and will have the name NAME.RESOURCE; the fn options allows you to switch names and paths to write the files
+- **file**: (filename) by default all file are relative to the output directory specified and will have the name NAME.RESOURCE; the fn options allows you to switch names and paths to write the files
 - **mode**: (mode) overrides the default file permissions of the secret from 0664
 - **create**: (create) create the resource
 - **update**: (update) override the lease time of this resource and get/renew a secret on the specified duration e.g 1m, 2d, 5m10s
