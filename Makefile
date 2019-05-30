@@ -13,15 +13,15 @@ VETARGS?=-asmdecl -atomic -bool -buildtags -copylocks -methods -nilfunc -printf 
 
 default: build
 
-build: deps
+build:
 	@echo "--> Compiling the project"
 	mkdir -p bin
-	godep go build -ldflags '-w ${LFLAGS}' -o bin/${NAME}
+	go build -ldflags '-w ${LFLAGS}' -o bin/${NAME}
 
-static: deps
+static:
 	@echo "--> Compiling the static binary"
 	mkdir -p bin
-	CGO_ENABLED=0 GOOS=linux godep go build -a -tags netgo -ldflags '-w ${LFLAGS}' -o bin/${NAME}
+	CGO_ENABLED=0 GOOS=linux go build -a -tags netgo -ldflags '-w ${LFLAGS}' -o bin/${NAME}
 
 docker-build:
 	@echo "--> Compiling the project"
@@ -59,10 +59,6 @@ authors:
 	@echo "--> Updating the AUTHORS"
 	git log --format='%aN <%aE>' | sort -u > AUTHORS
 
-deps:
-	@echo "--> Installing build dependencies"
-	@go get github.com/tools/godep
-
 vet:
 	@echo "--> Running go tool vet $(VETARGS) ."
 	@go tool vet 2>/dev/null ; if [ $$? -eq 3 ]; then \
@@ -84,7 +80,7 @@ gofmt:
       fi
 cover:
 	@echo "--> Running go cover"
-	@godep go test --cover
+	@go test --cover
 
 test: deps
 	@echo "--> Running the tests"
