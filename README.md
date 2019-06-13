@@ -56,6 +56,21 @@ Usage of /vault-sidekick:
     	comma-separated list of pattern=N settings for file-filtered logging
 ```
 
+It's also possible to specify most of the options as an env variable:
+
+* `AUTH_FILE`: `auth`
+* `AUTH_FORMAT`: `format`
+* `VAULT_ADDR`: `vault`
+* `VAULT_AUTH_METHOD`: (doesn't map to any vault-sidekick option)
+* `VAULT_OUTPUT`: `output`
+* `VAULT_SIDEKICK_CA_CERT`: `ca-cert`
+* `VAULT_SIDEKICK_DRY_RUN`: `dryrun`
+* `VAULT_SIDEKICK_EXEC_TIMEOUT`: `exec-timeout`
+* `VAULT_SIDEKICK_ONE_SHOT`: `one-shot`
+* `VAULT_SIDEKICK_RENEW_TOKEN`: `renew-token`
+* `VAULT_SIDEKICK_SKIP_TLS_VERIFY`: `tls-skip-verify`
+* `VAULT_SIDEKICK_STATS_INTERVAL`: `stats`
+
 ## Building
 
 There is a Makefile in the base repository, so assuming you have make and go: `$ make`

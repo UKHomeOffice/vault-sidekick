@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"net/url"
 	"os"
+	"strconv"
 	"time"
 )
 
@@ -82,19 +83,49 @@ func init() {
 		Method: authMethod,
 	}
 
+	defaultRenewToken, err := strconv.ParseBool(getEnv("VAULT_SIDEKICK_RENEW_TOKEN", "false"))
+	if err != nil {
+		defaultRenewToken = false
+	}
+
+	defaultDryRun, err := strconv.ParseBool(getEnv("VAULT_SIDEKICK_DRY_RUN", "false"))
+	if err != nil {
+		defaultDryRun = false
+	}
+
+	defaultSkipTLSVerify, err := strconv.ParseBool(getEnv("VAULT_SIDEKICK_SKIP_TLS_VERIFY", "false"))
+	if err != nil {
+		defaultSkipTLSVerify = false
+	}
+
+	defaultStatsInterval, err := time.ParseDuration(getEnv("VAULT_SIDEKICK_STATS_INTERVAL", "1h"))
+	if err != nil {
+		defaultStatsInterval = time.Duration(1) * time.Hour
+	}
+
+	defaultExecTimeout, err := time.ParseDuration(getEnv("VAULT_SIDEKICK_EXEC_TIMEOUT", "60s"))
+	if err != nil {
+		defaultExecTimeout = time.Duration(60) * time.Second
+	}
+
+	defaultOneShot, err := strconv.ParseBool(getEnv("VAULT_SIDEKICK_ONE_SHOT", "false"))
+	if err != nil {
+		defaultOneShot = false
+	}
+
 	flag.StringVar(&options.vaultURL, "vault", getEnv("VAULT_ADDR", "https://127.0.0.1:8200"), "url the vault service or VAULT_ADDR")
 	flag.StringVar(&options.vaultAuthFile, "auth", getEnv("AUTH_FILE", ""), "a configuration file in json or yaml containing authentication arguments")
-	flag.BoolVar(&options.vaultRenewToken, "renew-token", false, "renew vault token according to its ttl")
+	flag.BoolVar(&options.vaultRenewToken, "renew-token", defaultRenewToken, "renew vault token according to its ttl")
 	flag.StringVar(&options.vaultAuthFileFormat, "format", getEnv("AUTH_FORMAT", "default"), "the auth file format")
 	flag.StringVar(&options.outputDir, "output", getEnv("VAULT_OUTPUT", "/etc/secrets"), "the full path to write resources or VAULT_OUTPUT")
-	flag.BoolVar(&options.dryRun, "dryrun", false, "perform a dry run, printing the content to screen")
-	flag.BoolVar(&options.skipTLSVerify, "tls-skip-verify", false, "whether to check and verify the vault service certificate")
-	flag.StringVar(&options.vaultCaFile, "ca-cert", "", "the path to the file container the CA used to verify the vault service")
-	flag.DurationVar(&options.statsInterval, "stats", time.Duration(1)*time.Hour, "the interval to produce statistics on the accessed resources")
-	flag.DurationVar(&options.execTimeout, "exec-timeout", time.Duration(60)*time.Second, "the timeout applied to commands on the exec option")
+	flag.BoolVar(&options.dryRun, "dryrun", defaultDryRun, "perform a dry run, printing the content to screen")
+	flag.BoolVar(&options.skipTLSVerify, "tls-skip-verify", defaultSkipTLSVerify, "whether to check and verify the vault service certificate")
+	flag.StringVar(&options.vaultCaFile, "ca-cert", getEnv("VAULT_SIDEKICK_CA_CERT", ""), "the path to the file container the CA used to verify the vault service")
+	flag.DurationVar(&options.statsInterval, "stats", defaultStatsInterval, "the interval to produce statistics on the accessed resources")
+	flag.DurationVar(&options.execTimeout, "exec-timeout", defaultExecTimeout, "the timeout applied to commands on the exec option")
 	flag.BoolVar(&options.showVersion, "version", false, "show the vault-sidekick version")
 	flag.Var(options.resources, "cn", "a resource to retrieve and monitor from vault")
-	flag.BoolVar(&options.oneShot, "one-shot", false, "retrieve resources from vault once and then exit")
+	flag.BoolVar(&options.oneShot, "one-shot", defaultOneShot, "retrieve resources from vault once and then exit")
 }
 
 // parseOptions validate the command line options and validates them
