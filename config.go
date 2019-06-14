@@ -159,6 +159,21 @@ func parseOptions() error {
 			return err
 		}
 
+		// Set resource's default vaules in case they are not
+		// set already
+		defaultResource := defaultVaultResource()
+		for _, resource := range *resources {
+			if resource.FileMode == 0 {
+				resource.FileMode = defaultResource.FileMode
+			}
+			if resource.Format == "" {
+				resource.Format = defaultResource.Format
+			}
+			if resource.Size == 0 {
+				resource.Size = defaultResource.Size
+			}
+		}
+
 		options.resources.items = append(options.resources.items, []*VaultResource(*resources)...)
 	}
 
