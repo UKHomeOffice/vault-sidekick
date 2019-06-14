@@ -97,7 +97,7 @@ func main() {
 						}
 					}
 				case EventTypeFailure:
-					if evt.Resource.maxRetries > 0 && evt.Resource.maxRetries < evt.Resource.retries {
+					if evt.Resource.MaxRetries > 0 && evt.Resource.MaxRetries < evt.Resource.Retries {
 						for i, r := range toProcess {
 							if evt.Resource == r {
 								toProcess = append(toProcess[:i], toProcess[i+1:]...)

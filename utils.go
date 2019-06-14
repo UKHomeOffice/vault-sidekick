@@ -176,35 +176,35 @@ func processResource(rn *VaultResource, data map[string]interface{}) (err error)
 		filename = fmt.Sprintf("%s/%s", options.outputDir, filepath.Base(filename))
 	}
 	// step: format and write the file
-	switch rn.format {
+	switch rn.Format {
 	case "yaml":
 		fallthrough
 	case "yml":
-		err = writeYAMLFile(filename, data, rn.fileMode)
+		err = writeYAMLFile(filename, data, rn.FileMode)
 	case "json":
-		err = writeJSONFile(filename, data, rn.fileMode)
+		err = writeJSONFile(filename, data, rn.FileMode)
 	case "ini":
-		err = writeIniFile(filename, data, rn.fileMode)
+		err = writeIniFile(filename, data, rn.FileMode)
 	case "csv":
-		err = writeCSVFile(filename, data, rn.fileMode)
+		err = writeCSVFile(filename, data, rn.FileMode)
 	case "env":
-		err = writeEnvFile(filename, data, rn.fileMode)
+		err = writeEnvFile(filename, data, rn.FileMode)
 	case "cert":
-		err = writeCertificateFile(filename, data, rn.fileMode)
+		err = writeCertificateFile(filename, data, rn.FileMode)
 	case "certchain":
-		err = writeCertificateChainFile(filename, data, rn.fileMode)
+		err = writeCertificateChainFile(filename, data, rn.FileMode)
 	case "txt":
-		err = writeTxtFile(filename, data, rn.fileMode)
+		err = writeTxtFile(filename, data, rn.FileMode)
 	case "bundle":
-		err = writeCertificateBundleFile(filename, data, rn.fileMode)
+		err = writeCertificateBundleFile(filename, data, rn.FileMode)
 	case "credential":
-		err = writeCredentialFile(filename, data, rn.fileMode)
+		err = writeCredentialFile(filename, data, rn.FileMode)
 	case "template":
-		err = writeTemplateFile(filename, data, rn.fileMode, rn.templateFile)
+		err = writeTemplateFile(filename, data, rn.FileMode, rn.TemplateFile)
 	case "aws":
-		err = writeAwsCredentialFile(filename, data, rn.fileMode)
+		err = writeAwsCredentialFile(filename, data, rn.FileMode)
 	default:
-		return fmt.Errorf("unknown output format: %s", rn.format)
+		return fmt.Errorf("unknown output format: %s", rn.Format)
 	}
 	// step: check for an error
 	if err != nil {
@@ -212,9 +212,9 @@ func processResource(rn *VaultResource, data map[string]interface{}) (err error)
 	}
 
 	// step: check if we need to execute a command
-	if rn.execPath != "" {
-		glog.V(10).Infof("executing the command: %s for resource: %s", rn.execPath, filename)
-		parts := strings.Split(rn.execPath, " ")
+	if rn.ExecPath != "" {
+		glog.V(10).Infof("executing the command: %s for resource: %s", rn.ExecPath, filename)
+		parts := strings.Split(rn.ExecPath, " ")
 		var args []string
 		if len(parts) > 1 {
 			args = parts[1:]

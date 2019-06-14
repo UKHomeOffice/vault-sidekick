@@ -79,71 +79,71 @@ var (
 
 func defaultVaultResource() *VaultResource {
 	return &VaultResource{
-		fileMode:  os.FileMode(0664),
-		format:    "yaml",
-		options:   make(map[string]string, 0),
-		renewable: false,
-		revoked:   false,
-		size:      defaultSize,
+		FileMode:  os.FileMode(0664),
+		Format:    "yaml",
+		Options:   make(map[string]string, 0),
+		Renewable: false,
+		Revoked:   false,
+		Size:      defaultSize,
 	}
 }
 
 // VaultResource is the structure which defined a resource set from vault
 type VaultResource struct {
 	// the namespace of the resource
-	resource string
+	Resource string
 	// the name of the resource
-	path string
+	Path string
 	// the format of the resource
-	format string
+	Format string
 	// whether the resource should be renewed?
-	renewable bool
+	Renewable bool
 	// whether the resource should be revoked?
-	revoked bool
+	Revoked bool
 	// the revoke delay
-	revokeDelay time.Duration
+	RevokeDelay time.Duration
 	// the lease duration
-	update time.Duration
+	Update time.Duration
 	// whether the resource should be created?
-	create bool
+	Create bool
 	// the size of a secret to create
-	size int64
+	Size int64
 	// the filename to save the secret
-	filename string
+	Filename string
 	// the template file
-	templateFile string
+	TemplateFile string
 	// the path to an exec to run on a change
-	execPath string
+	ExecPath string
 	// additional options to the resource
-	options map[string]string
+	Options map[string]string
 	// the file permissions on the resource
-	fileMode os.FileMode
+	FileMode os.FileMode
 	// maxRetries is the maximum number of times this resource should be
 	// attempted to be retrieved from Vault before failing
-	maxRetries int
+	MaxRetries int
 	// retries is the number of times this resource has been retried since it
 	// last succeeded
-	retries int
+	Retries int
 	// maxJitter is the maximum jitter duration to use for this resource when
 	// performing renewals
-	maxJitter time.Duration
+	MaxJitter time.Duration
 }
 
 // GetFilename generates a resource filename by default the resource name and resource type, which
 // can override by the OPTION_FILENAME option
 func (r VaultResource) GetFilename() string {
-	if r.filename != "" {
-		return r.filename
+	if r.Filename != "" {
+		return r.Filename
 	}
 
-	return fmt.Sprintf("%s.%s", r.path, r.resource)
+	return fmt.Sprintf("%s.%s", r.Path, r.Resource)
 }
 
 // IsValid checks to see if the resource is valid
 func (r *VaultResource) IsValid() error {
 	// step: check the resource type
-	if _, found := validResources[r.resource]; !found {
-		return fmt.Errorf("unsupported resource type: %s", r.resource)
+	if _, found := validResources[r.Resource]; !found {
+		return fmt.Errorf("unsupported resource type: %s", r.Resource)
 	}
 
 	// step: check is have all the required options to this resource type
@@ -156,24 +156,24 @@ func (r *VaultResource) IsValid() error {
 
 // isValidResource validates the resource meets the requirements
 func (r *VaultResource) isValidResource() error {
-	switch r.resource {
+	switch r.Resource {
 	case "pki":
-		if _, found := r.options["common_name"]; !found {
+		if _, found := r.Options["common_name"]; !found {
 			return fmt.Errorf("pki resource requires a common name specified")
 		}
 	case "transit":
-		if _, found := r.options["ciphertext"]; !found {
+		if _, found := r.Options["ciphertext"]; !found {
 			return fmt.Errorf("transit requires a ciphertext option")
 		}
 	case "tpl":
-		if _, found := r.options[optionTemplatePath]; !found {
+		if _, found := r.Options[optionTemplatePath]; !found {
 			return fmt.Errorf("template resource requires a template path option")
 		}
 	case "ssh":
-		if _, found := r.options["public_key_path"]; !found {
+		if _, found := r.Options["public_key_path"]; !found {
 			return fmt.Errorf("ssh resource requires a public key file path specified")
 		}
-		if _, found := r.options["cert_type"]; !found {
+		if _, found := r.Options["cert_type"]; !found {
 			return fmt.Errorf("ssh resource requires cert_type to be either host or user")
 		}
 	}
@@ -183,9 +183,9 @@ func (r *VaultResource) isValidResource() error {
 
 // String returns a string representation of the struct
 func (r VaultResource) String() string {
-	str := fmt.Sprintf("type: %s, path: %s", r.resource, r.path)
-	if r.maxRetries > 0 {
-		str = fmt.Sprintf("%s, attempts: %d/%d", str, r.retries, r.maxRetries+1)
+	str := fmt.Sprintf("type: %s, path: %s", r.Resource, r.Path)
+	if r.MaxRetries > 0 {
+		str = fmt.Sprintf("%s, attempts: %d/%d", str, r.Retries, r.MaxRetries+1)
 	}
 	return str
 }

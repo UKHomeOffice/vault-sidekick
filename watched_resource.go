@@ -47,20 +47,20 @@ type watchedResource struct {
 func (r *watchedResource) notifyOnRenewal(ch chan *watchedResource) {
 	go func() {
 		// step: check if the resource has a pre-configured renewal time
-		r.renewalTime = r.resource.update
+		r.renewalTime = r.resource.Update
 		// step: if the answer is no, we set the notification between 80-95% of the lease time of the secret
 		if r.renewalTime <= 0 {
 			// if there is no lease time, we canout set a renewal, just fade into the background
 			if r.secret.LeaseDuration <= 0 {
-				glog.Warningf("resource: %s has no lease duration, no custom update set, so item will not be updated", r.resource.path)
+				glog.Warningf("resource: %s has no lease duration, no custom update set, so item will not be updated", r.resource.Path)
 				return
 			}
 			r.renewalTime = r.calculateRenewal()
 		}
-		if r.resource.maxJitter != 0 {
-			glog.V(4).Infof("using maxJitter (%s) to calculate renewal time", r.resource.maxJitter)
+		if r.resource.MaxJitter != 0 {
+			glog.V(4).Infof("using maxJitter (%s) to calculate renewal time", r.resource.MaxJitter)
 			r.renewalTime = time.Duration(getDurationWithin(
-				int((r.renewalTime-r.resource.maxJitter)/time.Second),
+				int((r.renewalTime-r.resource.MaxJitter)/time.Second),
 				int(r.renewalTime/time.Second),
 			))
 		}

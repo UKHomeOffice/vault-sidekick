@@ -19,6 +19,8 @@ package main
 import (
 	"flag"
 	"fmt"
+	"gopkg.in/yaml.v2"
+	"io/ioutil"
 	"net/url"
 	"os"
 	"strconv"
@@ -69,7 +71,11 @@ type config struct {
 	showVersion bool
 	// one-shot mode
 	oneShot bool
+	// resources YAML file
+	resourcesYAML string
 }
+
+type VaultResourcesYAML []*VaultResource
 
 var (
 	options config
@@ -126,11 +132,36 @@ func init() {
 	flag.BoolVar(&options.showVersion, "version", false, "show the vault-sidekick version")
 	flag.Var(options.resources, "cn", "a resource to retrieve and monitor from vault")
 	flag.BoolVar(&options.oneShot, "one-shot", defaultOneShot, "retrieve resources from vault once and then exit")
+	flag.StringVar(&options.resourcesYAML, "resources-yaml", getEnv("VAULT_SIDEKICK_RESOURCES_YAML", ""), "a YAML file containing a list of resources to retrieve and monitor from vault")
+}
+
+func parseResourcesFromYAML(filename string) (*VaultResourcesYAML, error) {
+	r := &VaultResourcesYAML{}
+	content, err := ioutil.ReadFile(filename)
+	if err != nil {
+		return nil, err
+	}
+	err = yaml.Unmarshal(content, r)
+	if err != nil {
+		return nil, err
+	}
+
+	return r, nil
 }
 
 // parseOptions validate the command line options and validates them
 func parseOptions() error {
 	flag.Parse()
+
+	if options.resourcesYAML != "" {
+		resources, err := parseResourcesFromYAML(options.resourcesYAML)
+		if err != nil {
+			return err
+		}
+
+		options.resources.items = append(options.resources.items, []*VaultResource(*resources)...)
+	}
+
 	return validateOptions(&options)
 }
 

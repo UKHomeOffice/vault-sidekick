@@ -50,9 +50,9 @@ func (r *VaultResources) Set(value string) error {
 	}
 
 	// step: extract the elements
-	rn.resource = items[0]
-	rn.path = items[1]
-	rn.options = make(map[string]string, 0)
+	rn.Resource = items[0]
+	rn.Path = items[1]
+	rn.Options = make(map[string]string, 0)
 
 	// step: extract any options
 	if len(items) > 2 {
@@ -82,71 +82,71 @@ func (r *VaultResources) Set(value string) error {
 				if err != nil {
 					return errors.New("invalid file permissions on resource")
 				}
-				rn.fileMode = os.FileMode(v)
+				rn.FileMode = os.FileMode(v)
 			case optionFormat:
 				if matched := resourceFormatRegex.MatchString(value); !matched {
 					return fmt.Errorf("unsupported output format: %s", value)
 				}
-				rn.format = value
+				rn.Format = value
 			case optionUpdate:
 				duration, err := time.ParseDuration(value)
 				if err != nil {
 					return fmt.Errorf("update option: %s is not value, should be a duration format", value)
 				}
-				rn.update = duration
+				rn.Update = duration
 			case optionRevoke:
 				choice, err := strconv.ParseBool(value)
 				if err != nil {
 					return fmt.Errorf("the revoke option: %s is invalid, should be a boolean", value)
 				}
-				rn.revoked = choice
+				rn.Revoked = choice
 			case optionsRevokeDelay:
 				duration, err := time.ParseDuration(value)
 				if err != nil {
 					return fmt.Errorf("the revoke delay option: %s is not value, should be a duration format", value)
 				}
-				rn.revokeDelay = duration
+				rn.RevokeDelay = duration
 			case optionRenewal:
 				choice, err := strconv.ParseBool(value)
 				if err != nil {
 					return fmt.Errorf("the renewal option: %s is invalid, should be a boolean", value)
 				}
-				rn.renewable = choice
+				rn.Renewable = choice
 			case optionCreate:
 				choice, err := strconv.ParseBool(value)
 				if err != nil {
 					return fmt.Errorf("the create option: %s is invalid, should be a boolean", value)
 				}
-				if rn.resource != "secret" {
+				if rn.Resource != "secret" {
 					return fmt.Errorf("the create option is only supported for 'cn=secret' at this time")
 				}
-				rn.create = choice
+				rn.Create = choice
 			case optionSize:
 				size, err := strconv.ParseInt(value, 10, 16)
 				if err != nil {
 					return fmt.Errorf("the size option: %s is invalid, should be an integer", value)
 				}
-				rn.size = size
+				rn.Size = size
 			case optionExec:
-				rn.execPath = value
+				rn.ExecPath = value
 			case optionFilename:
-				rn.filename = value
+				rn.Filename = value
 			case optionTemplatePath:
-				rn.templateFile = value
+				rn.TemplateFile = value
 			case optionMaxRetries:
 				maxRetries, err := strconv.ParseInt(value, 10, 32)
 				if err != nil {
 					return fmt.Errorf("the retries option: %s is invalid, should be an integer", value)
 				}
-				rn.maxRetries = int(maxRetries)
+				rn.MaxRetries = int(maxRetries)
 			case optionMaxJitter:
 				maxJitter, err := time.ParseDuration(value)
 				if err != nil {
 					return fmt.Errorf("the jitter option: %s is invalid, should be in duration format", value)
 				}
-				rn.maxJitter = maxJitter
+				rn.MaxJitter = maxJitter
 			default:
-				rn.options[name] = value
+				rn.Options[name] = value
 			}
 		}
 	}

@@ -40,6 +40,8 @@ Usage of /vault-sidekick:
     	the full path to write resources or VAULT_OUTPUT (default "/etc/secrets")
   -renew-token
       renew vault token according to its ttl
+  -resources-yaml string
+    	a YAML file containing a list of resources to retrieve and monitor from vault
   -stats duration
     	the interval to produce statistics on the accessed resources (default 1h0m0s)
   -stderrthreshold value
@@ -68,8 +70,41 @@ It's also possible to specify most of the options as an env variable:
 * `VAULT_SIDEKICK_EXEC_TIMEOUT`: `exec-timeout`
 * `VAULT_SIDEKICK_ONE_SHOT`: `one-shot`
 * `VAULT_SIDEKICK_RENEW_TOKEN`: `renew-token`
+* `VAULT_SIDEKICK_RESOURCES_YAML`: `resources-yaml`
 * `VAULT_SIDEKICK_SKIP_TLS_VERIFY`: `tls-skip-verify`
 * `VAULT_SIDEKICK_STATS_INTERVAL`: `stats`
+
+The YAML file passed to the `-resources-yaml` option is formatted as an
+array of `VaultResource`s, where a `VaultResource` is defined in
+`vault_resource.go`.
+
+An example resources file may look like this:
+
+```
+- resource: pki
+  path: pki/k8s/issue/apiserver
+  options:
+    common_name: k8s apiserver
+    ip_sans: 127.0.0.1,10.250.0.1
+    alt_names: alt-name.example.com
+    ttl: 604800
+  format: certchain
+  update: 24h
+  maxjitter: 6h
+  execpath: /bin/command
+  filemode: 0600
+
+- resource: pki
+  path: pki/k8s/issue/scheduler
+  options:
+    common_name: system:kube-scheduler
+    ttl: 604800
+  format: certchain
+  update: 24h
+  maxjitter: 6h
+  execpath: /bin/command
+  filemode: 0600
+```
 
 ## Building
 

@@ -137,8 +137,8 @@ func (r *VaultService) vaultServiceProcessor() {
 			//  - if ok, we grab the lease it and lease time, we setup a notification on renewal
 			case x := <-retrieveChannel:
 				// step: skip this resource if it's reached maxRetries
-				if x.resource.maxRetries > 0 && x.resource.retries > x.resource.maxRetries {
-					glog.V(4).Infof("skipping resource %s as it's failed %d/%d times", x.resource.retries, x.resource.maxRetries+1)
+				if x.resource.MaxRetries > 0 && x.resource.Retries > x.resource.MaxRetries {
+					glog.V(4).Infof("skipping resource %s as it's failed %d/%d times", x.resource.Retries, x.resource.MaxRetries+1)
 					break
 				}
 
@@ -154,7 +154,7 @@ func (r *VaultService) vaultServiceProcessor() {
 					glog.Errorf("failed to retrieve the resource: %s from vault, error: %s", x.resource, err)
 					// reschedule the attempt for later
 					r.scheduleIn(x, retrieveChannel, getDurationWithin(3, 10))
-					x.resource.retries++
+					x.resource.Retries++
 					r.upstream(VaultEvent{
 						Resource: x.resource,
 						Type:     EventTypeFailure,
@@ -163,10 +163,10 @@ func (r *VaultService) vaultServiceProcessor() {
 				}
 
 				glog.V(4).Infof("successfully retrieved resource: %s, leaseID: %s", x.resource, x.secret.LeaseID)
-				x.resource.retries = 0
+				x.resource.Retries = 0
 
 				// step: if we had a previous lease and the option is to revoke, lets throw into the revoke channel
-				if leaseID != "" && x.resource.revoked {
+				if leaseID != "" && x.resource.Revoked {
 					// step: make a rough copy
 					copy := &watchedResource{
 						secret: &api.Secret{
@@ -174,7 +174,7 @@ func (r *VaultService) vaultServiceProcessor() {
 						},
 					}
 
-					r.scheduleIn(copy, revokeChannel, x.resource.revokeDelay)
+					r.scheduleIn(copy, revokeChannel, x.resource.RevokeDelay)
 				}
 
 				// step: setup a timer for renewal
@@ -193,13 +193,13 @@ func (r *VaultService) vaultServiceProcessor() {
 			//	- if we're ok, we update the watchedResource and we send a notification of the change upstream
 			case x := <-renewChannel:
 				// step: skip this resource if it's reached maxRetries
-				if x.resource.maxRetries > 0 && x.resource.retries > x.resource.maxRetries {
-					glog.V(4).Infof("skipping resource %s as it's failed %d/%d times", x.resource.retries, x.resource.maxRetries+1)
+				if x.resource.MaxRetries > 0 && x.resource.Retries > x.resource.MaxRetries {
+					glog.V(4).Infof("skipping resource %s as it's failed %d/%d times", x.resource.Retries, x.resource.MaxRetries+1)
 					break
 				}
 
 				glog.V(4).Infof("resource: %s, lease: %s up for renewal, renewable: %t, revoked: %t", x.resource,
-					x.secret.LeaseID, x.resource.renewable, x.resource.revoked)
+					x.secret.LeaseID, x.resource.Renewable, x.resource.Revoked)
 
 				// step: we need to check if the lease has expired?
 				if time.Now().Before(x.leaseExpireTime) {
@@ -210,7 +210,7 @@ func (r *VaultService) vaultServiceProcessor() {
 				}
 
 				// step: are we renewing the resource?
-				if x.resource.renewable {
+				if x.resource.Renewable {
 					// step: is the underlining resource even renewable? - otherwise we can just grab a new lease
 					if !x.secret.Renewable {
 						glog.V(10).Infof("the resource: %s is not renewable, retrieving a new lease instead", x.resource)
@@ -224,7 +224,7 @@ func (r *VaultService) vaultServiceProcessor() {
 						glog.Errorf("failed to renew the resource: %s for renewal, error: %s", x.resource, err)
 						// reschedule the attempt for later
 						r.scheduleIn(x, renewChannel, getDurationWithin(3, 10))
-						x.resource.retries++
+						x.resource.Retries++
 						r.upstream(VaultEvent{
 							Resource: x.resource,
 							Type:     EventTypeFailure,
@@ -233,11 +233,11 @@ func (r *VaultService) vaultServiceProcessor() {
 					}
 
 					glog.V(4).Infof("successfully renewed resource: %s, leaseID: %s", x.resource, x.secret.LeaseID)
-					x.resource.retries = 0
+					x.resource.Retries = 0
 				}
 
 				// step: the option for this resource is not to renew the secret but regenerate a new secret
-				if !x.resource.renewable {
+				if !x.resource.Renewable {
 					glog.V(4).Infof("resource: %s flagged as not renewable, shifting to regenerating the resource", x.resource)
 					r.scheduleNow(x, retrieveChannel)
 					break
@@ -352,17 +352,17 @@ func (r VaultService) get(rn *watchedResource) error {
 	// step: not sure who to cast map[string]string to map[string]interface{} doesn't like it anyway i try and do it
 
 	params := make(map[string]interface{}, 0)
-	for k, v := range rn.resource.options {
+	for k, v := range rn.resource.Options {
 		params[k] = interface{}(v)
 	}
-	glog.V(10).Infof("resource: %s, path: %s, params: %v", rn.resource.resource, rn.resource.path, params)
+	glog.V(10).Infof("resource: %s, path: %s, params: %v", rn.resource.Resource, rn.resource.Path, params)
 
 	glog.V(5).Infof("attempting to retrieve the resource: %s from vault", rn.resource)
 	// step: perform a request to vault
-	switch rn.resource.resource {
+	switch rn.resource.Resource {
 	case "raw":
-		request := r.client.NewRequest("GET", "/v1/"+rn.resource.path)
-		for k, v := range rn.resource.options {
+		request := r.client.NewRequest("GET", "/v1/"+rn.resource.Path)
+		for k, v := range rn.resource.Options {
 			request.Params.Add(k, v)
 		}
 		resp, err := r.client.RawRequest(request)
@@ -382,15 +382,15 @@ func (r VaultService) get(rn *watchedResource) error {
 				"content": fmt.Sprintf("%s", content),
 			},
 		}
-		if rn.resource.update > 0 {
-			secret.LeaseDuration = int(rn.resource.update.Seconds())
+		if rn.resource.Update > 0 {
+			secret.LeaseDuration = int(rn.resource.Update.Seconds())
 		} else {
 			secret.LeaseDuration = int((time.Duration(24) * time.Hour).Seconds())
 		}
 	case "pki":
-		secret, err = r.client.Logical().Write(fmt.Sprintf(rn.resource.path), params)
+		secret, err = r.client.Logical().Write(fmt.Sprintf(rn.resource.Path), params)
 	case "transit":
-		secret, err = r.client.Logical().Write(fmt.Sprintf(rn.resource.path), params)
+		secret, err = r.client.Logical().Write(fmt.Sprintf(rn.resource.Path), params)
 	case "aws":
 		fallthrough
 	case "cubbyhole":
@@ -404,16 +404,16 @@ func (r VaultService) get(rn *watchedResource) error {
 	case "database":
 		fallthrough
 	case "secret":
-		secret, err = r.client.Logical().Read(rn.resource.path)
+		secret, err = r.client.Logical().Read(rn.resource.Path)
 		// We must generate the secret if we have the create flag
-		if rn.resource.create && secret == nil && err == nil {
-			glog.V(3).Infof("Create param specified, creating resource: %s", rn.resource.path)
-			params["value"] = newPassword(int(rn.resource.size))
-			secret, err = r.client.Logical().Write(fmt.Sprintf(rn.resource.path), params)
-			glog.V(3).Infof("Secret created: %s", rn.resource.path)
+		if rn.resource.Create && secret == nil && err == nil {
+			glog.V(3).Infof("Create param specified, creating resource: %s", rn.resource.Path)
+			params["value"] = newPassword(int(rn.resource.Size))
+			secret, err = r.client.Logical().Write(fmt.Sprintf(rn.resource.Path), params)
+			glog.V(3).Infof("Secret created: %s", rn.resource.Path)
 			if err == nil {
 				// Populate the secret data as stored in Vault...
-				secret, err = r.client.Logical().Read(rn.resource.path)
+				secret, err = r.client.Logical().Read(rn.resource.Path)
 			}
 		}
 		// if there is a top-level metadata key this is from a v2 kv store
@@ -436,7 +436,7 @@ func (r VaultService) get(rn *watchedResource) error {
 			"cert_type":  params["cert_type"].(string),
 		}
 
-		secret, err = r.client.Logical().Write(fmt.Sprintf(rn.resource.path), sshParams)
+		secret, err = r.client.Logical().Write(fmt.Sprintf(rn.resource.Path), sshParams)
 	}
 	// step: check the error if any
 	if err != nil {
