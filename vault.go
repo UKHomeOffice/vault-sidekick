@@ -537,9 +537,6 @@ func newVaultClient(opts *config) (*api.Client, error) {
 		renewPeriod := tokenttl / 2
 		go func() {
 			for {
-				if renewPeriod < 1*time.Second {
-					glog.Fatalf("fatal: token renew period is <1s, aborting")
-				}
 				glog.Infof("scheduling token renew in %v", renewPeriod)
 				<-time.After(renewPeriod)
 
@@ -547,6 +544,15 @@ func newVaultClient(opts *config) (*api.Client, error) {
 				newtokeninfo, err := client.Auth().Token().RenewSelf(0)
 				if err != nil {
 					renewPeriod = renewPeriod / 2
+
+					// Keep renewPeriod >= 30 seconds (plus a variable jitter time in the 0-15s range)
+					// N.B.: This means that in case token renewal fails multiple times, we'll begin
+					// scheduling it for *after* the token expires.
+					// This is fine as we want to prioritise not overloading Vault over renewing the token.
+					if renewPeriod < 30*time.Second {
+						renewPeriod = 30*time.Second + getDurationWithin(0, 15)
+					}
+
 					glog.Warningf("error: failed to renew token, retrying in %v: %v", renewPeriod, err)
 					continue
 				}
