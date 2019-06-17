@@ -23,7 +23,6 @@ import (
 	"io/ioutil"
 	"net"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/golang/glog"
@@ -451,10 +450,6 @@ func (r VaultService) get(rn *watchedResource) error {
 	}
 	// step: check the error if any
 	if err != nil {
-		if strings.Contains(err.Error(), "missing client token") {
-			// decision: until the rewrite, lets just exit for now
-			glog.Fatalf("the vault token is no longer valid, exitting, error: %s", err)
-		}
 		return err
 	}
 	if secret == nil && err == nil {
