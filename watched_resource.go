@@ -17,6 +17,7 @@ limitations under the License.
 package main
 
 import (
+	"math"
 	"time"
 
 	"github.com/golang/glog"
@@ -77,4 +78,20 @@ func (r watchedResource) calculateRenewal() time.Duration {
 	return time.Duration(getDurationWithin(
 		int(float64(r.secret.LeaseDuration)*renewalMinimum),
 		int(float64(r.secret.LeaseDuration)*renewalMaximum)))
+}
+
+// calculateRetry calculates the time to wait before retrying a failed
+// attempt to retrieve or renew a resource.
+// The duration is calculated using an exponential backoff algorithm
+// based on the number of attempts.
+// The maximum retry time is set to 1h.
+func (r watchedResource) calculateRetry() time.Duration {
+	retryMinimum := 10 * time.Second
+
+	retryMaximum := time.Duration(math.Pow(float64(r.resource.Retries), 2)) * 10 * time.Second
+	if retryMaximum > 1*time.Hour {
+		retryMaximum = 1 * time.Hour
+	}
+
+	return getDurationWithin(int(retryMinimum/time.Second), int(retryMaximum/time.Second))
 }
