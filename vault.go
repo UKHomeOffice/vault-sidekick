@@ -471,24 +471,9 @@ func (r VaultService) get(rn *watchedResource) error {
 	return err
 }
 
-// newVaultClient creates and authenticates a vault client
-func newVaultClient(opts *config) (*api.Client, error) {
+func getVaultClientToken(client *api.Client, opts *config) error {
 	var err error
 	var token string
-
-	config := api.DefaultConfig()
-	config.Address = opts.vaultURL
-
-	config.HttpClient.Transport, err = buildHTTPTransport(opts)
-	if err != nil {
-		return nil, err
-	}
-
-	// step: create the actual client
-	client, err := api.NewClient(config)
-	if err != nil {
-		return nil, err
-	}
 
 	plugin := opts.vaultAuthOptions.Method
 	switch plugin {
@@ -509,34 +494,70 @@ func newVaultClient(opts *config) (*api.Client, error) {
 		opts.vaultAuthOptions.FileFormat = options.vaultAuthFileFormat
 		token, err = NewUserTokenPlugin(client).Create(opts.vaultAuthOptions)
 	default:
-		return nil, fmt.Errorf("unsupported authentication plugin: %s", plugin)
+		return fmt.Errorf("unsupported authentication plugin: %s", plugin)
 	}
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	// step: set the token for the client
 	client.SetToken(token)
 
-	if opts.vaultRenewToken {
-		tokeninfo, err := client.Auth().Token().LookupSelf()
-		if err != nil {
-			return nil, fmt.Errorf("failed to lookup token info: %s", err)
-		}
+	return nil
+}
 
-		tokenttl, err := tokeninfo.TokenTTL()
+func getVaultClientTokenTTL(client *api.Client) (time.Duration, error) {
+	tokeninfo, err := client.Auth().Token().LookupSelf()
+	if err != nil {
+		return 0, fmt.Errorf("failed to lookup token info: %s", err)
+	}
+
+	tokenttl, err := tokeninfo.TokenTTL()
+	if err != nil {
+		return 0, fmt.Errorf("failed to lookup token ttl: %s", err)
+	}
+	glog.Infof("token ttl is %v", tokenttl)
+
+	return tokenttl, nil
+}
+
+// newVaultClient creates and authenticates a vault client
+func newVaultClient(opts *config) (*api.Client, error) {
+	var err error
+
+	config := api.DefaultConfig()
+	config.Address = opts.vaultURL
+
+	config.HttpClient.Transport, err = buildHTTPTransport(opts)
+	if err != nil {
+		return nil, err
+	}
+
+	// step: create the actual client
+	client, err := api.NewClient(config)
+	if err != nil {
+		return nil, err
+	}
+
+	err = getVaultClientToken(client, opts)
+	if err != nil {
+		return nil, err
+	}
+
+	if opts.vaultRenewToken {
+		tokenttl, err := getVaultClientTokenTTL(client)
 		if err != nil {
-			return nil, fmt.Errorf("failed to lookup token ttl: %s", err)
+			return nil, err
 		}
-		glog.Infof("token ttl is %v", tokenttl)
 		renewPeriod := tokenttl / 2
+
 		go func() {
 			for {
 				glog.Infof("scheduling token renew in %v", renewPeriod)
 				<-time.After(renewPeriod)
 
-				glog.Infof("attempting token renew")
-				newtokeninfo, err := client.Auth().Token().RenewSelf(0)
+				glog.Infof("attempting token refresh")
+				err = getVaultClientToken(client, opts)
 				if err != nil {
 					renewPeriod = renewPeriod / 2
 
@@ -552,11 +573,10 @@ func newVaultClient(opts *config) (*api.Client, error) {
 					continue
 				}
 
-				tokenttl, err := newtokeninfo.TokenTTL()
+				tokenttl, err = getVaultClientTokenTTL(client)
 				if err != nil {
 					glog.Warningf("error: failed to get new token ttl, using previous value %s: %s", renewPeriod, err)
 				} else {
-					glog.Infof("token ttl is %v", tokenttl)
 					renewPeriod = tokenttl / 2
 				}
 			}
