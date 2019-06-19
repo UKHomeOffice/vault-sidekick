@@ -156,7 +156,9 @@ func (r *VaultService) vaultServiceProcessor() {
 					metrics.ResourceError(x.resource.ID())
 					glog.Errorf("failed to retrieve the resource: %s from vault, error: %s", x.resource, err)
 					// reschedule the attempt for later
-					r.scheduleIn(x, retrieveChannel, x.calculateRetry())
+					retryDuration := x.calculateRetry()
+					glog.V(3).Infof("rescheduling next get attempt for resource: %s in %s", x.resource, retryDuration)
+					r.scheduleIn(x, retrieveChannel, retryDuration)
 					x.resource.Retries++
 					r.upstream(VaultEvent{
 						Resource: x.resource,
@@ -231,7 +233,9 @@ func (r *VaultService) vaultServiceProcessor() {
 						metrics.ResourceError(x.resource.ID())
 						glog.Errorf("failed to renew the resource: %s for renewal, error: %s", x.resource, err)
 						// reschedule the attempt for later
-						r.scheduleIn(x, renewChannel, x.calculateRetry())
+						retryDuration := x.calculateRetry()
+						glog.V(3).Infof("rescheduling next renew attempt for resource: %s in %s", x.resource, retryDuration)
+						r.scheduleIn(x, renewChannel, retryDuration)
 						x.resource.Retries++
 						r.upstream(VaultEvent{
 							Resource: x.resource,
