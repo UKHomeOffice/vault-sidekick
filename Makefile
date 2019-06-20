@@ -8,6 +8,7 @@ VERSION ?= $(shell awk '/release =/ { print $$3 }' main.go | sed 's/"//g')
 GIT_SHA=$(shell git --no-pager describe --always --dirty)
 LFLAGS ?= -X main.gitsha=${GIT_SHA}
 VETARGS?=-asmdecl -atomic -bool -buildtags -copylocks -methods -nilfunc -printf -rangeloops -shift -structtags -unsafeptr
+tag ?= ***REMOVED***:${NAME}-${GIT_SHA}
 
 .PHONY: test authors changelog build docker static release
 
@@ -34,17 +35,16 @@ docker-build:
 
 docker: static
 	@echo "--> Building the docker image"
-	docker build -t ${REGISTRY}/${AUTHOR}/${NAME}:${VERSION} .
+	docker build -t ${tag} .
 
 docker-release:
 	@echo "--> Building a release image"
-	@make static
 	@make docker
-	@docker push ${REGISTRY}/${AUTHOR}/${NAME}:${VERSION}
+	@docker push ${tag}
 
 push: docker
 	@echo "--> Pushing the image to docker.io"
-	docker push ${REGISTRY}/${AUTHOR}/${NAME}:${VERSION}
+	docker push ${tag}
 
 release: static
 	mkdir -p release
