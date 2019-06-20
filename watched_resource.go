@@ -78,3 +78,24 @@ func (r watchedResource) calculateRenewal() time.Duration {
 		int(float64(r.secret.LeaseDuration)*renewalMinimum),
 		int(float64(r.secret.LeaseDuration)*renewalMaximum)))
 }
+
+// calculateRetry calculates the time to wait before retrying a failed
+// attempt to retrieve or renew a resource.
+// The duration is calculated using an exponential backoff algorithm
+// based on the number of attempts.
+// The maximum retry time is set to 1h.
+func (r watchedResource) calculateRetry() time.Duration {
+	var retryMaximum time.Duration
+	retryMinimum := 10 * time.Second
+
+	switch r.resource.Retries {
+	case 0:
+		retryMaximum = 1 * time.Minute
+	case 1:
+		retryMaximum = 10 * time.Minute
+	default:
+		retryMaximum = 1 * time.Hour
+	}
+
+	return getDurationWithin(int(retryMinimum/time.Second), int(retryMaximum/time.Second))
+}
