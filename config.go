@@ -121,9 +121,9 @@ func init() {
 		defaultOneShot = false
 	}
 
-	defaultMetricsPort, err := strconv.ParseUint(getEnv("VAULT_METRICS_PORT", "8080"), 10, 16)
+	defaultMetricsPort, err := strconv.ParseUint(getEnv("VAULT_METRICS_PORT", "9092"), 10, 16)
 	if err != nil {
-		defaultMetricsPort = 8080
+		defaultMetricsPort = 9092
 	}
 
 	flag.StringVar(&options.vaultURL, "vault", getEnv("VAULT_ADDR", "https://127.0.0.1:8200"), "url the vault service or VAULT_ADDR")
