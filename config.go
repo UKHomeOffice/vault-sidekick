@@ -73,6 +73,8 @@ type config struct {
 	oneShot bool
 	// resources YAML file
 	resourcesYAML string
+	// Prometheus metrics port
+	metricsPort uint
 }
 
 type VaultResourcesYAML []*VaultResource
@@ -119,6 +121,11 @@ func init() {
 		defaultOneShot = false
 	}
 
+	defaultMetricsPort, err := strconv.ParseUint(getEnv("VAULT_METRICS_PORT", "8080"), 10, 16)
+	if err != nil {
+		defaultMetricsPort = 8080
+	}
+
 	flag.StringVar(&options.vaultURL, "vault", getEnv("VAULT_ADDR", "https://127.0.0.1:8200"), "url the vault service or VAULT_ADDR")
 	flag.StringVar(&options.vaultAuthFile, "auth", getEnv("AUTH_FILE", ""), "a configuration file in json or yaml containing authentication arguments")
 	flag.BoolVar(&options.vaultRenewToken, "renew-token", defaultRenewToken, "renew vault token according to its ttl")
@@ -133,6 +140,7 @@ func init() {
 	flag.Var(options.resources, "cn", "a resource to retrieve and monitor from vault")
 	flag.BoolVar(&options.oneShot, "one-shot", defaultOneShot, "retrieve resources from vault once and then exit")
 	flag.StringVar(&options.resourcesYAML, "resources-yaml", getEnv("VAULT_SIDEKICK_RESOURCES_YAML", ""), "a YAML file containing a list of resources to retrieve and monitor from vault")
+	flag.UintVar(&options.metricsPort, "metrics-port", uint(defaultMetricsPort), "TCP port used to export Prometheus metrics")
 }
 
 func parseResourcesFromYAML(filename string) (*VaultResourcesYAML, error) {

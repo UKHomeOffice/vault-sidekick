@@ -17,13 +17,17 @@ limitations under the License.
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"os/signal"
 	"sync"
 	"syscall"
+	"time"
 
 	"github.com/golang/glog"
+
+	"github.com/monzo/vault-sidekick/metrics"
 )
 
 var (
@@ -44,18 +48,30 @@ func main() {
 	}
 	glog.Infof("starting the %s, %s", prog, version)
 
-	if options.oneShot {
-		glog.Infof("running in one-shot mode")
-	}
-
 	// step: create a client to vault
 	vault, err := NewVaultService(options.vaultURL)
 	if err != nil {
 		showUsage("unable to create the vault client: %s", err)
 	}
+
+	//  Don't initialise metrics in one-shot mode.
+	if options.oneShot {
+		glog.Infof("running in one-shot mode")
+	} else {
+		metrics.Init(options.vaultAuthOptions.RoleID, options.metricsPort)
+	}
+
 	// step: create a channel to receive events upon and add our resources for renewal
 	updates := make(chan VaultEvent, 10)
 	vault.AddListener(updates)
+
+	// Start a background worker which listens for resource updates and reports expiry metrics.
+	go reportExpiryMetrics(updates)
+
+	// step: create a channel to receive events and keep the metrics
+	// collector data in sync
+	metricUpdates := make(chan VaultEvent, 10)
+	vault.AddListener(metricUpdates)
 
 	// step: setup the termination signals
 	signalChannel := make(chan os.Signal)
@@ -118,6 +134,32 @@ func main() {
 		case <-signalChannel:
 			glog.Infof("recieved a termination signal, shutting down the service")
 			os.Exit(0)
+		}
+	}
+}
+
+// reportExpiryMetrics takes a channel of VaultEvents, and reports expiry metrics on every successful renewal event.
+func reportExpiryMetrics(updates chan VaultEvent) {
+	for {
+		select {
+		case event := <-updates:
+			if event.Type == EventTypeFailure {
+				continue
+			}
+
+			expirationJSON, ok := event.Secret["expiration"].(json.Number)
+			if !ok {
+				metrics.Error("metrics_error")
+				continue
+			}
+
+			expiration, err := expirationJSON.Int64()
+			if err != nil {
+				metrics.Error("metrics_error")
+				continue
+			}
+
+			metrics.ResourceExpiry(event.Resource.ID(), time.Unix(expiration, 0))
 		}
 	}
 }

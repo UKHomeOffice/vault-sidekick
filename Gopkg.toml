@@ -29,6 +29,11 @@
   branch = "master"
   name = "github.com/golang/glog"
 
+[[constraint]]
+  name = "github.com/prometheus/client_golang"
+  version = "0.8.0"
+
 [prune]
   go-tests = true
   unused-packages = true
+
