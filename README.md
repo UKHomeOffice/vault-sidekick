@@ -188,7 +188,7 @@ or domain within the resource e.g -cn=secret:secrets/myservice/${ENV}/config:fmt
 
 ## Output Formatting
 
-The following output formats are supported: json, yaml, ini, txt, cert, certchain, csv, bundle, env, credential, aws
+The following output formats are supported: json, yaml, ini, txt, rootca, cert, certchain, csv, bundle, env, credential, aws
 
 Using the following at the demo secrets
 

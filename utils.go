@@ -189,6 +189,8 @@ func processResource(rn *VaultResource, data map[string]interface{}) (err error)
 		err = writeCSVFile(filename, data, rn.FileMode)
 	case "env":
 		err = writeEnvFile(filename, data, rn.FileMode)
+	case "rootca":
+		err = writeRootCAFile(filename, data, rn.FileMode)
 	case "cert":
 		err = writeCertificateFile(filename, data, rn.FileMode)
 	case "certchain":

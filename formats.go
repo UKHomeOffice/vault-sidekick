@@ -20,6 +20,8 @@ import (
 	"bytes"
 	"encoding/base64"
 	"encoding/json"
+	"encoding/pem"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -222,6 +224,37 @@ func writeTxtFile(filename string, data map[string]interface{}, mode os.FileMode
 	value, _ := data[keys[0]]
 	content := []byte(fmt.Sprintf("%s", value))
 
+	return writeFile(filename, content, mode)
+}
+
+func writeRootCAFile(filename string, data map[string]interface{}, mode os.FileMode) error {
+	keys := getKeys(data)
+	if len(keys) != 1 {
+		return errors.New("rootca format is only supported for secrets with a single key")
+	}
+
+	// step: we only have the one key, so will write plain
+	value, _ := data[keys[0]].(string)
+	pemCerts := []byte(value)
+	var lastValidBlock *pem.Block
+
+	for len(pemCerts) > 0 {
+		var block *pem.Block
+		block, pemCerts = pem.Decode(pemCerts)
+		if block == nil {
+			break
+		}
+		if block.Type != "CERTIFICATE" || len(block.Headers) != 0 {
+			continue
+		}
+
+		lastValidBlock = block
+	}
+
+	if lastValidBlock == nil {
+		return errors.New("no certificate blocks in secret data, cannot write root CA")
+	}
+	content := pem.EncodeToMemory(lastValidBlock)
 	return writeFile(filename, content, mode)
 }
 
