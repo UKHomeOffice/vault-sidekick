@@ -65,8 +65,10 @@ func main() {
 	updates := make(chan VaultEvent, 10)
 	vault.AddListener(updates)
 
+	expiryUpdates := make(chan VaultEvent, 10)
+	vault.AddListener(expiryUpdates)
 	// Start a background worker which listens for resource updates and reports expiry metrics.
-	go reportExpiryMetrics(updates)
+	go reportExpiryMetrics(expiryUpdates)
 
 	// step: create a channel to receive events and keep the metrics
 	// collector data in sync
