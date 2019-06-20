@@ -64,8 +64,6 @@ func Init(role string, metricsPort uint) {
 			nil,
 		),
 
-		role: role,
-
 		resourceExpiry: make(map[string]time.Time),
 
 		resourceTotals:    make(map[string]int),
