@@ -20,8 +20,8 @@ func Init(role string, metricsPort uint) {
 	defer collectorMutex.Unlock()
 
 	col = &collector{
-		resourceExpiryMetric: prometheus.NewDesc("vault_sidekick_certificate_expiry_gauge",
-			"vault_sidekick_certificate_expiry_gauge",
+		resourceExpiryMetric: prometheus.NewDesc("vault_sidekick_resource_expiry_gauge",
+			"vault_sidekick_resource_expiry_gauge",
 			[]string{"resource_id"},
 			nil,
 		),
@@ -43,17 +43,17 @@ func Init(role string, metricsPort uint) {
 		),
 
 		tokenTotalMetric: prometheus.NewDesc("vault_sidekick_token_total_counter",
-			"vault_sidekick_resource_total_counter",
+			"vault_sidekick_token_total_counter",
 			nil,
 			nil,
 		),
 		tokenSuccessMetric: prometheus.NewDesc("vault_sidekick_token_success_counter",
-			"vault_sidekick_resource_success_counter",
+			"vault_sidekick_token_success_counter",
 			nil,
 			nil,
 		),
 		tokenErrorsMetric: prometheus.NewDesc("vault_sidekick_token_error_counter",
-			"vault_sidekick_resource_error_counter",
+			"vault_sidekick_token_error_counter",
 			nil,
 			nil,
 		),
