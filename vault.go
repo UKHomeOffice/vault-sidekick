@@ -561,6 +561,7 @@ func newVaultClient(opts *config) (*api.Client, error) {
 				<-time.After(renewPeriod)
 
 				glog.Infof("attempting token refresh")
+				metrics.TokenTotal()
 				err = getVaultClientToken(client, opts)
 				if err != nil {
 					renewPeriod = renewPeriod / 2
@@ -574,8 +575,10 @@ func newVaultClient(opts *config) (*api.Client, error) {
 					}
 
 					glog.Warningf("error: failed to renew token, retrying in %v: %v", renewPeriod, err)
+					metrics.TokenError()
 					continue
 				}
+				metrics.TokenSuccess()
 
 				tokenttl, err = getVaultClientTokenTTL(client)
 				if err != nil {
