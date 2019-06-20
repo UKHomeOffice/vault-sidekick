@@ -476,6 +476,7 @@ func (r VaultService) get(rn *watchedResource) error {
 }
 
 func getVaultClientToken(client *api.Client, opts *config) error {
+	metrics.TokenTotal()
 	var err error
 	var token string
 
@@ -498,15 +499,18 @@ func getVaultClientToken(client *api.Client, opts *config) error {
 		opts.vaultAuthOptions.FileFormat = options.vaultAuthFileFormat
 		token, err = NewUserTokenPlugin(client).Create(opts.vaultAuthOptions)
 	default:
+		metrics.TokenError()
 		return fmt.Errorf("unsupported authentication plugin: %s", plugin)
 	}
 	if err != nil {
+		metrics.TokenError()
 		return err
 	}
 
 	// step: set the token for the client
 	client.SetToken(token)
 
+	metrics.TokenSuccess()
 	return nil
 }
 
@@ -561,7 +565,6 @@ func newVaultClient(opts *config) (*api.Client, error) {
 				<-time.After(renewPeriod)
 
 				glog.Infof("attempting token refresh")
-				metrics.TokenTotal()
 				err = getVaultClientToken(client, opts)
 				if err != nil {
 					renewPeriod = renewPeriod / 2
@@ -575,10 +578,8 @@ func newVaultClient(opts *config) (*api.Client, error) {
 					}
 
 					glog.Warningf("error: failed to renew token, retrying in %v: %v", renewPeriod, err)
-					metrics.TokenError()
 					continue
 				}
-				metrics.TokenSuccess()
 
 				tokenttl, err = getVaultClientTokenTTL(client)
 				if err != nil {
