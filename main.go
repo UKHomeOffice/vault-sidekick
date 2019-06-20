@@ -48,17 +48,17 @@ func main() {
 	}
 	glog.Infof("starting the %s, %s", prog, version)
 
-	// step: create a client to vault
-	vault, err := NewVaultService(options.vaultURL)
-	if err != nil {
-		showUsage("unable to create the vault client: %s", err)
-	}
-
 	//  Don't initialise metrics in one-shot mode.
 	if options.oneShot {
 		glog.Infof("running in one-shot mode")
 	} else {
 		metrics.Init(options.vaultAuthOptions.RoleID, options.metricsPort)
+	}
+
+	// step: create a client to vault
+	vault, err := NewVaultService(options.vaultURL)
+	if err != nil {
+		showUsage("unable to create the vault client: %s", err)
 	}
 
 	// step: create a channel to receive events upon and add our resources for renewal
