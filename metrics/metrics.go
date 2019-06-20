@@ -66,9 +66,9 @@ func Init(role string, metricsPort uint) {
 
 		resourceExpiry: make(map[string]time.Time),
 
-		resourceTotals:    make(map[string]int),
-		resourceSuccesses: make(map[string]int),
-		resourceErrors:    make(map[string]int),
+		resourceTotals:    make(map[string]int64),
+		resourceSuccesses: make(map[string]int64),
+		resourceErrors:    make(map[string]int64),
 
 		errors: make(map[string]int),
 	}

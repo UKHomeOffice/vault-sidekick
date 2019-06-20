@@ -24,9 +24,9 @@ type collector struct {
 	resourceExpiry map[string]time.Time
 
 	// resource{Totals,Successes,Errors} tracks counts of renewals per resource ID, and whether they succeeded or failed.
-	resourceTotals    map[string]int
-	resourceSuccesses map[string]int
-	resourceErrors    map[string]int
+	resourceTotals    map[string]int64
+	resourceSuccesses map[string]int64
+	resourceErrors    map[string]int64
 
 	// token{Totals,Successes,Errors} tracks counts of authentication attempts, and whether they succeeded or failed.
 	tokenTotals    int64
