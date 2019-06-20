@@ -19,31 +19,48 @@ func Init(role string, metricsPort uint) {
 	collectorMutex.Lock()
 	defer collectorMutex.Unlock()
 
-	resourceAndRoleLabels := []string{"resource_id", "role"}
 	col = &collector{
 		resourceExpiryMetric: prometheus.NewDesc("vault_sidekick_certificate_expiry_gauge",
 			"vault_sidekick_certificate_expiry_gauge",
-			resourceAndRoleLabels,
+			[]string{"resource_id"},
 			nil,
 		),
+
 		resourceTotalMetric: prometheus.NewDesc("vault_sidekick_resource_total_counter",
 			"vault_sidekick_resource_total_counter",
-			resourceAndRoleLabels,
+			[]string{"resource_id"},
 			nil,
 		),
 		resourceSuccessMetric: prometheus.NewDesc("vault_sidekick_resource_success_counter",
 			"vault_sidekick_resource_success_counter",
-			resourceAndRoleLabels,
+			[]string{"resource_id"},
 			nil,
 		),
 		resourceErrorsMetric: prometheus.NewDesc("vault_sidekick_resource_error_counter",
 			"vault_sidekick_resource_error_counter",
-			resourceAndRoleLabels,
+			[]string{"resource_id"},
 			nil,
 		),
+
+		tokenTotalMetric: prometheus.NewDesc("vault_sidekick_token_total_counter",
+			"vault_sidekick_resource_total_counter",
+			nil,
+			nil,
+		),
+		tokenSuccessMetric: prometheus.NewDesc("vault_sidekick_token_success_counter",
+			"vault_sidekick_resource_success_counter",
+			nil,
+			nil,
+		),
+		tokenErrorsMetric: prometheus.NewDesc("vault_sidekick_token_error_counter",
+			"vault_sidekick_resource_error_counter",
+			nil,
+			nil,
+		),
+
 		errorsMetric: prometheus.NewDesc("vault_sidekick_error_counter",
 			"vault_sidekick_error_counter",
-			[]string{"error", "role"},
+			nil,
 			nil,
 		),
 
@@ -102,6 +119,35 @@ func ResourceError(resourceID string) {
 		return
 	}
 	col.ResourceError(resourceID)
+}
+
+func TokenTotal() {
+	collectorMutex.RLock()
+	defer collectorMutex.RUnlock()
+
+	if col == nil {
+		return
+	}
+	col.TokenTotal()
+}
+
+func TokenSuccess() {
+	collectorMutex.RLock()
+	defer collectorMutex.RUnlock()
+	if col == nil {
+		return
+	}
+	col.TokenSuccess()
+}
+
+func TokenError() {
+	collectorMutex.RLock()
+	defer collectorMutex.RUnlock()
+
+	if col == nil {
+		return
+	}
+	col.TokenError()
 }
 
 func Error(reason string) {
