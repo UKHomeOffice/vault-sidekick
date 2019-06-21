@@ -149,15 +149,19 @@ func reportExpiryMetrics(updates chan VaultEvent) {
 				continue
 			}
 
+			if event.Resource.Resource != "pki" {
+				continue
+			}
+
 			expirationJSON, ok := event.Secret["expiration"].(json.Number)
 			if !ok {
-				metrics.Error("metrics_error")
+				metrics.Error("no_expiration_in_pki_resource")
 				continue
 			}
 
 			expiration, err := expirationJSON.Int64()
 			if err != nil {
-				metrics.Error("metrics_error")
+				metrics.Error("expiration_not_int64")
 				continue
 			}
 

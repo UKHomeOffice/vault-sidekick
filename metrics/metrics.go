@@ -60,7 +60,7 @@ func Init(role string, metricsPort uint) {
 
 		errorsMetric: prometheus.NewDesc("vault_sidekick_error_counter",
 			"vault_sidekick_error_counter",
-			nil,
+			[]string{"reason"},
 			nil,
 		),
 
