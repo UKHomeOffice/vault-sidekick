@@ -214,17 +214,16 @@ func processResource(rn *VaultResource, data map[string]interface{}) (err error)
 	}
 
 	// step: check if we need to execute a command
-	if rn.ExecPath != "" {
+	if len(rn.ExecPath) > 0{
 		glog.V(10).Infof("executing the command: %s for resource: %s", rn.ExecPath, filename)
-		parts := strings.Split(rn.ExecPath, " ")
 		var args []string
-		if len(parts) > 1 {
-			args = parts[1:]
+		if len(rn.ExecPath) > 1 {
+			args = rn.ExecPath[1:]
 		} else {
 			args = []string{filename}
 		}
 
-		cmd := exec.Command(parts[0], args...)
+		cmd := exec.Command(rn.ExecPath[0], args...)
 		cmd.Start()
 		timer := time.AfterFunc(options.execTimeout, func() {
 			if err = cmd.Process.Kill(); err != nil {

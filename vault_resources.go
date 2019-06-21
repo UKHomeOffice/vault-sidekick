@@ -128,7 +128,7 @@ func (r *VaultResources) Set(value string) error {
 				}
 				rn.Size = size
 			case optionExec:
-				rn.ExecPath = value
+				rn.ExecPath = strings.Split(value, " ")
 			case optionFilename:
 				rn.Filename = value
 			case optionTemplatePath:

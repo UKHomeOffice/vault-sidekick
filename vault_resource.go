@@ -113,7 +113,7 @@ type VaultResource struct {
 	// the template file
 	TemplateFile string
 	// the path to an exec to run on a change
-	ExecPath string
+	ExecPath []string
 	// additional options to the resource
 	Options map[string]string
 	// the file permissions on the resource
