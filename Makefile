@@ -8,7 +8,7 @@ VERSION ?= $(shell awk '/release =/ { print $$3 }' main.go | sed 's/"//g')
 GIT_SHA=$(shell git --no-pager describe --always --dirty)
 LFLAGS ?= -X main.gitsha=${GIT_SHA}
 VETARGS?=-asmdecl -atomic -bool -buildtags -copylocks -methods -nilfunc -printf -rangeloops -shift -structtags -unsafeptr
-tag ?= ***REMOVED***:${NAME}-${GIT_SHA}
+tag ?= ${NAME}-${GIT_SHA}
 
 .PHONY: test authors changelog build docker static release
 
