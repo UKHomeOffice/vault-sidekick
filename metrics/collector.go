@@ -14,6 +14,10 @@ type collector struct {
 	resourceSuccessMetric *prometheus.Desc
 	resourceErrorsMetric  *prometheus.Desc
 
+	resourceProcessTotalMetric   *prometheus.Desc
+	resourceProcessSuccessMetric *prometheus.Desc
+	resourceProcessErrorsMetric  *prometheus.Desc
+
 	tokenTotalMetric   *prometheus.Desc
 	tokenSuccessMetric *prometheus.Desc
 	tokenErrorsMetric  *prometheus.Desc
@@ -27,6 +31,11 @@ type collector struct {
 	resourceTotals    map[string]int64
 	resourceSuccesses map[string]int64
 	resourceErrors    map[string]int64
+
+	// resourceProcess{Totals,Successes,Errors} tracks counts of resource processes (i.e. writing to disk, running exec) per resource ID, and whether they succeeded or failed.
+	resourceProcessTotals    map[string]map[string]int64
+	resourceProcessSuccesses map[string]map[string]int64
+	resourceProcessErrors    map[string]map[string]int64
 
 	// token{Totals,Successes,Errors} tracks counts of authentication attempts, and whether they succeeded or failed.
 	tokenTotals    int64
@@ -60,6 +69,33 @@ func (c *collector) ResourceSuccess(resourceID string) {
 func (c *collector) ResourceError(resourceID string) {
 	c.metricsMutex.Lock()
 	c.resourceErrors[resourceID]++
+	c.metricsMutex.Unlock()
+}
+
+func (c *collector) ResourceProcessTotal(resourceID, stage string) {
+	c.metricsMutex.Lock()
+	if _, ok := c.resourceProcessTotals[resourceID]; !ok {
+		c.resourceProcessTotals[resourceID] = make(map[string]int64)
+	}
+	c.resourceProcessTotals[resourceID][stage]++
+	c.metricsMutex.Unlock()
+}
+
+func (c *collector) ResourceProcessSuccess(resourceID, stage string) {
+	c.metricsMutex.Lock()
+	if _, ok := c.resourceProcessSuccesses[resourceID]; !ok {
+		c.resourceProcessSuccesses[resourceID] = make(map[string]int64)
+	}
+	c.resourceProcessSuccesses[resourceID][stage]++
+	c.metricsMutex.Unlock()
+}
+
+func (c *collector) ResourceProcessError(resourceID, stage string) {
+	c.metricsMutex.Lock()
+	if _, ok := c.resourceProcessErrors[resourceID]; !ok {
+		c.resourceProcessErrors[resourceID] = make(map[string]int64)
+	}
+	c.resourceProcessErrors[resourceID][stage]++
 	c.metricsMutex.Unlock()
 }
 
@@ -128,6 +164,27 @@ func (c *collector) Collect(ch chan<- prometheus.Metric) {
 	for resourceID, errCount := range c.resourceErrors {
 		ch <- prometheus.MustNewConstMetric(c.resourceErrorsMetric, prometheus.CounterValue, float64(errCount),
 			resourceID)
+	}
+
+	for resourceID, countsByStage := range c.resourceProcessTotals {
+		for stage, count := range countsByStage {
+			ch <- prometheus.MustNewConstMetric(c.resourceProcessTotalMetric, prometheus.CounterValue, float64(count),
+				resourceID, stage)
+		}
+	}
+
+	for resourceID, countsByStage := range c.resourceProcessSuccesses {
+		for stage, count := range countsByStage {
+			ch <- prometheus.MustNewConstMetric(c.resourceProcessSuccessMetric, prometheus.CounterValue, float64(count),
+				resourceID, stage)
+		}
+	}
+
+	for resourceID, countsByStage := range c.resourceProcessErrors {
+		for stage, count := range countsByStage {
+			ch <- prometheus.MustNewConstMetric(c.resourceProcessErrorsMetric, prometheus.CounterValue, float64(count),
+				resourceID, stage)
+		}
 	}
 
 	ch <- prometheus.MustNewConstMetric(c.tokenTotalMetric, prometheus.CounterValue, float64(c.tokenTotals))

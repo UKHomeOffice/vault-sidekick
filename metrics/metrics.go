@@ -42,6 +42,22 @@ func Init(role string, metricsPort uint) {
 			nil,
 		),
 
+		resourceProcessTotalMetric: prometheus.NewDesc("vault_sidekick_resource_process_total_counter",
+			"vault_sidekick_resource_process_total_counter",
+			[]string{"resource_id", "stage"},
+			nil,
+		),
+		resourceProcessSuccessMetric: prometheus.NewDesc("vault_sidekick_resource_process_success_counter",
+			"vault_sidekick_resource_process_",
+			[]string{"resource_id", "stage"},
+			nil,
+		),
+		resourceProcessErrorsMetric: prometheus.NewDesc("vault_sidekick_resource_process_error_counter",
+			"vault_sidekick_resource_process_",
+			[]string{"resource_id", "stage"},
+			nil,
+		),
+
 		tokenTotalMetric: prometheus.NewDesc("vault_sidekick_token_total_counter",
 			"vault_sidekick_token_total_counter",
 			nil,
@@ -69,6 +85,10 @@ func Init(role string, metricsPort uint) {
 		resourceTotals:    make(map[string]int64),
 		resourceSuccesses: make(map[string]int64),
 		resourceErrors:    make(map[string]int64),
+
+		resourceProcessTotals:    make(map[string]map[string]int64),
+		resourceProcessSuccesses: make(map[string]map[string]int64),
+		resourceProcessErrors:    make(map[string]map[string]int64),
 
 		errors: make(map[string]int),
 	}
@@ -117,6 +137,35 @@ func ResourceError(resourceID string) {
 		return
 	}
 	col.ResourceError(resourceID)
+}
+
+func ResourceProcessTotal(resourceID, stage string) {
+	collectorMutex.RLock()
+	defer collectorMutex.RUnlock()
+
+	if col == nil {
+		return
+	}
+	col.ResourceProcessTotal(resourceID, stage)
+}
+
+func ResourceProcessSuccess(resourceID, stage string) {
+	collectorMutex.RLock()
+	defer collectorMutex.RUnlock()
+	if col == nil {
+		return
+	}
+	col.ResourceProcessSuccess(resourceID, stage)
+}
+
+func ResourceProcessError(resourceID, stage string) {
+	collectorMutex.RLock()
+	defer collectorMutex.RUnlock()
+
+	if col == nil {
+		return
+	}
+	col.ResourceProcessError(resourceID, stage)
 }
 
 func TokenTotal() {

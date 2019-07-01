@@ -30,6 +30,7 @@ import (
 	"os/exec"
 	"path/filepath"
 
+	"github.com/UKHomeOffice/vault-sidekick/metrics"
 	"github.com/golang/glog"
 	"gopkg.in/yaml.v2"
 )
@@ -175,6 +176,9 @@ func processResource(rn *VaultResource, data map[string]interface{}) (err error)
 	if !strings.HasPrefix(filename, "/") {
 		filename = fmt.Sprintf("%s/%s", options.outputDir, filepath.Base(filename))
 	}
+
+	metrics.ResourceProcessTotal(rn.ID(), "disk_write")
+
 	// step: format and write the file
 	switch rn.Format {
 	case "yaml":
@@ -206,15 +210,22 @@ func processResource(rn *VaultResource, data map[string]interface{}) (err error)
 	case "aws":
 		err = writeAwsCredentialFile(filename, data, rn.FileMode)
 	default:
+		metrics.ResourceProcessError(rn.ID(), "disk_write")
 		return fmt.Errorf("unknown output format: %s", rn.Format)
 	}
 	// step: check for an error
 	if err != nil {
+		metrics.ResourceProcessError(rn.ID(), "disk_write")
+
 		return err
 	}
 
+	metrics.ResourceProcessSuccess(rn.ID(), "disk_write")
+
 	// step: check if we need to execute a command
-	if len(rn.ExecPath) > 0{
+	if len(rn.ExecPath) > 0 {
+		metrics.ResourceProcessTotal(rn.ID(), "exec")
+
 		glog.V(10).Infof("executing the command: %s for resource: %s", rn.ExecPath, filename)
 		var args []string
 		if len(rn.ExecPath) > 1 {
@@ -233,6 +244,12 @@ func processResource(rn *VaultResource, data map[string]interface{}) (err error)
 		// step: wait for the command to finish
 		err = cmd.Wait()
 		timer.Stop()
+
+		if err == nil {
+			metrics.ResourceProcessSuccess(rn.ID(), "exec")
+		} else {
+			metrics.ResourceProcessError(rn.ID(), "exec")
+		}
 	}
 
 	return err
