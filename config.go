@@ -33,6 +33,7 @@ type vaultAuthOptions struct {
 	VaultURL      string `json:"vaultAddr"`
 	RoleID        string `json:"role_id" yaml:"role_id"`
 	SecretID      string `json:"secret_id" yaml:"secret_id"`
+	LoginPath     string `json:"login_path" yaml:"login_path"`
 	FileName      string
 	FileFormat    string
 	Username      string
