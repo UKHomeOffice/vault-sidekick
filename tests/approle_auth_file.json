@@ -1,1 +1,1 @@
-{"method": "approle", "role_id": "admin", "secret_id": "foobar"}
+{"method": "approle", "role_id": "admin", "secret_id": "foobar", "login_path": "/v1/auth/approle/login"}
