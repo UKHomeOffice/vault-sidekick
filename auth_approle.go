@@ -28,8 +28,8 @@ type authAppRolePlugin struct {
 }
 
 type appRoleLogin struct {
-	RoleID   string `json:"role_id,omitempty"`
-	SecretID string `json:"secret_id,omitempty"`
+	RoleID    string `json:"role_id,omitempty"`
+	SecretID  string `json:"secret_id,omitempty"`
 	LoginPath string `json:"login_path,omitempty"`
 }
 
