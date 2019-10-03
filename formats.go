@@ -95,7 +95,9 @@ func writeCAChain(filename string, data map[string]interface{}, mode os.FileMode
 	return nil
 }
 func writeCertificateFile(filename string, data map[string]interface{}, mode os.FileMode) error {
-	writeCAChain(filename, data, mode)
+	if err := writeCAChain(filename, data, mode); err != nil {
+		glog.Errorf("failed to write CA chain: %s", err)
+	}
 	files := map[string]string{
 		"certificate": "crt",
 		"issuing_ca":  "ca",
