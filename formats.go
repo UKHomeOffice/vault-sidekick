@@ -71,9 +71,9 @@ func writeCAChain(filename string, data map[string]interface{}, mode os.FileMode
 	const element = "ca_chain"
 	const suffix = "ca"
 
-	// assume this is always a slice so cast the entry to []interface
-	chain, found := data[element].([]interface{})
-	if !found {
+	// the chain should be a slice so assert that the type is []interface
+	chain, ok := data[element].([]interface{})
+	if !ok {
 		glog.Errorf("didn't find the certification option: %s", element)
 	}
 
@@ -89,7 +89,7 @@ func writeCAChain(filename string, data map[string]interface{}, mode os.FileMode
 	}
 
 	if err := writeFile(name, []byte(fmt.Sprintf("%s", certChain)), mode); err != nil {
-		glog.Errorf("failed to write resource: %s, element: %s, filename: %s, error: %s", filename, suffix, name, err)
+		return fmt.Errorf("failed to write resource: %s, element: %s, filename: %s, error: %s", filename, suffix, name, err)
 	}
 
 	return nil
@@ -98,6 +98,7 @@ func writeCertificateFile(filename string, data map[string]interface{}, mode os.
 	if err := writeCAChain(filename, data, mode); err != nil {
 		glog.Errorf("failed to write CA chain: %s", err)
 	}
+
 	files := map[string]string{
 		"certificate": "crt",
 		"issuing_ca":  "ca",
