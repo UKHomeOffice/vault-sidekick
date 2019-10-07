@@ -75,6 +75,7 @@ func writeCAChain(filename string, data map[string]interface{}, mode os.FileMode
 	chain, ok := data[element].([]interface{})
 	if !ok {
 		glog.Errorf("didn't find the certification option: %s", element)
+		return nil
 	}
 
 	name := fmt.Sprintf("%s.%s.%s", filename, element, suffix)
