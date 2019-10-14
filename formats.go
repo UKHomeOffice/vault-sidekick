@@ -67,7 +67,39 @@ func writeEnvFile(filename string, data map[string]interface{}, mode os.FileMode
 	return writeFile(filename, buf.Bytes(), mode)
 }
 
+func writeCAChain(filename string, data map[string]interface{}, mode os.FileMode) error {
+	const element = "ca_chain"
+	const suffix = "ca"
+
+	// the chain should be a slice so assert that the type is []interface
+	chain, ok := data[element].([]interface{})
+	if !ok {
+		glog.Errorf("didn't find the certification option: %s", element)
+		return nil
+	}
+
+	name := fmt.Sprintf("%s.%s.%s", filename, element, suffix)
+
+	certChain := ""
+	for count, cert := range chain {
+		certChain += fmt.Sprintf("%s", cert)
+		// append a newline after each cert except last
+		if count < len(chain)-1 {
+			certChain += "\n"
+		}
+	}
+
+	if err := writeFile(name, []byte(fmt.Sprintf("%s", certChain)), mode); err != nil {
+		return fmt.Errorf("failed to write resource: %s, element: %s, filename: %s, error: %s", filename, suffix, name, err)
+	}
+
+	return nil
+}
 func writeCertificateFile(filename string, data map[string]interface{}, mode os.FileMode) error {
+	if err := writeCAChain(filename, data, mode); err != nil {
+		glog.Errorf("failed to write CA chain: %s", err)
+	}
+
 	files := map[string]string{
 		"certificate": "crt",
 		"issuing_ca":  "ca",
