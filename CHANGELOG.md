@@ -1,4 +1,7 @@
-#### ***Version v0.3.10**
+#### **Version v0.3.11**
+* 0ae421a https://github.com/UKHomeOffice/vault-sidekick/pull/93 from james-bjss/vault-sidekick
+
+#### **Version v0.3.10**
 
 * 7742ca5 https://github.com/UKHomeOffice/vault-sidekick/pull/84 from nested-tech/kv2
 * 4439487 https://github.com/UKHomeOffice/vault-sidekick/pull/85 from gmaliar/database-backend
