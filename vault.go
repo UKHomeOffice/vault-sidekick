@@ -202,7 +202,7 @@ func (r *VaultService) vaultServiceProcessor() {
 					x.secret.LeaseID, x.resource.renewable, x.resource.revoked)
 
 				// step: we need to check if the lease has expired?
-				if time.Now().Before(x.leaseExpireTime) {
+				if time.Now().After(x.leaseExpireTime) {
 					glog.V(3).Infof("the lease on resource: %s has expired, we need to get a new lease", x.resource)
 					// push into the retrieval channel and break
 					r.scheduleNow(x, retrieveChannel)
