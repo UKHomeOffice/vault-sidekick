@@ -324,8 +324,8 @@ func (r VaultService) renew(rn *watchedResource) error {
 	rn.lastUpdated = time.Now()
 	rn.leaseExpireTime = rn.lastUpdated.Add(time.Duration(secret.LeaseDuration))
 
-	glog.V(3).Infof("renewed resource: %s, leaseId: %s, lease_time: %s, expiration: %s",
-		rn.resource, rn.secret.LeaseID, rn.secret.LeaseID, rn.leaseExpireTime)
+	glog.V(3).Infof("renewed resource: %s, leaseId: %s, leaseDuration: %s, expiration: %s",
+		rn.resource, rn.secret.LeaseID, time.Duration(rn.secret.LeaseDuration)*time.Second, rn.leaseExpireTime)
 
 	return nil
 }
@@ -459,7 +459,7 @@ func (r VaultService) get(rn *watchedResource) error {
 	rn.secret = secret
 	rn.leaseExpireTime = rn.lastUpdated.Add(time.Duration(secret.LeaseDuration))
 
-	glog.V(3).Infof("retrieved resource: %s, leaseId: %s, lease_time: %s",
+	glog.V(3).Infof("retrieved resource: %s, leaseId: %s, leaseDuration: %s",
 		rn.resource, rn.secret.LeaseID, time.Duration(rn.secret.LeaseDuration)*time.Second)
 
 	return err
