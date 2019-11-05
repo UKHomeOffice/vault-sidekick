@@ -28,8 +28,9 @@ type authAppRolePlugin struct {
 }
 
 type appRoleLogin struct {
-	RoleID   string `json:"role_id,omitempty"`
-	SecretID string `json:"secret_id,omitempty"`
+	RoleID    string `json:"role_id,omitempty"`
+	SecretID  string `json:"secret_id,omitempty"`
+	LoginPath string `json:"login_path,omitempty"`
 }
 
 // NewAppRolePlugin creates a new App Role plugin
@@ -47,9 +48,12 @@ func (r authAppRolePlugin) Create(cfg *vaultAuthOptions) (string, error) {
 	if cfg.SecretID == "" {
 		cfg.SecretID = os.Getenv("VAULT_SIDEKICK_SECRET_ID")
 	}
+	if cfg.LoginPath == "" {
+		cfg.LoginPath = getEnv("VAULT_APPROLE_LOGIN_PATH", "/v1/auth/approle/login")
+	}
 
 	// step: create the token request
-	request := r.client.NewRequest("POST", "/v1/auth/approle/login")
+	request := r.client.NewRequest("POST", cfg.LoginPath)
 	login := appRoleLogin{SecretID: cfg.SecretID, RoleID: cfg.RoleID}
 	if err := request.SetJSONBody(login); err != nil {
 		return "", err

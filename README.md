@@ -106,6 +106,14 @@ The Kubernetes auth plugin supports the following environment variables:
 - `VAULT_K8S_LOGIN_PATH` - If your Kubernetes auth backend is mounted at a path other than `kubernetes/` you will need to set this. Default `/v1/auth/kubernetes/login`
 - `VAULT_K8S_TOKEN_PATH` - If you mount in-pod service account tokens to a non-default path, you will need to set this. Default `/var/run/secrets/kubernetes.io/serviceaccount/token`
 
+### AppRole Authentication
+
+The AppRole auth plugin supports the following configurations / environment variables:
+
+- `role_id` / `VAULT_SIDEKICK_ROLE_ID` - The approle role_id to authenticate with (**REQUIRED**)
+- `secret_id` / `VAULT_SIDEKICK_SECRET_ID` - The approle secret_id to authenticate with (**REQUIRED**)
+- `login_path` / `VAULT_APPROLE_LOGIN_PATH` - If your AppRole auth backend is mounted at a path other than `approle/` you will need to set this. Default `/v1/auth/approle/login`
+
 ## Secret Renewals
 
 The default behaviour of vault-sidekick is **not** to renew a lease, but to retrieve a new secret and allow the previous to
