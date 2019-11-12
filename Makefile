@@ -82,7 +82,7 @@ cover:
 	@echo "--> Running go cover"
 	@go test --cover
 
-test: deps
+test:
 	@echo "--> Running the tests"
 	go test -v
 	@$(MAKE) gofmt
