@@ -202,7 +202,7 @@ func (r *VaultService) vaultServiceProcessor() {
 					x.secret.LeaseID, x.resource.renewable, x.resource.revoked)
 
 				// step: we need to check if the lease has expired?
-				if time.Now().Before(x.leaseExpireTime) {
+				if time.Now().After(x.leaseExpireTime) {
 					glog.V(3).Infof("the lease on resource: %s has expired, we need to get a new lease", x.resource)
 					// push into the retrieval channel and break
 					r.scheduleNow(x, retrieveChannel)
@@ -322,10 +322,11 @@ func (r VaultService) renew(rn *watchedResource) error {
 
 	// step: update the resource
 	rn.lastUpdated = time.Now()
-	rn.leaseExpireTime = rn.lastUpdated.Add(time.Duration(secret.LeaseDuration))
+	leaseDuration := time.Duration(secret.LeaseDuration) * time.Second
+	rn.leaseExpireTime = rn.lastUpdated.Add(leaseDuration)
 
-	glog.V(3).Infof("renewed resource: %s, leaseId: %s, lease_time: %s, expiration: %s",
-		rn.resource, rn.secret.LeaseID, rn.secret.LeaseID, rn.leaseExpireTime)
+	glog.V(3).Infof("renewed resource: %s, leaseId: %s, leaseDuration: %s, expiration: %s",
+		rn.resource, rn.secret.LeaseID, leaseDuration, rn.leaseExpireTime)
 
 	return nil
 }
@@ -457,10 +458,11 @@ func (r VaultService) get(rn *watchedResource) error {
 	// step: update the watched resource
 	rn.lastUpdated = time.Now()
 	rn.secret = secret
-	rn.leaseExpireTime = rn.lastUpdated.Add(time.Duration(secret.LeaseDuration))
+	leaseDuration := time.Duration(rn.secret.LeaseDuration) * time.Second
+	rn.leaseExpireTime = rn.lastUpdated.Add(leaseDuration)
 
-	glog.V(3).Infof("retrieved resource: %s, leaseId: %s, lease_time: %s",
-		rn.resource, rn.secret.LeaseID, time.Duration(rn.secret.LeaseDuration)*time.Second)
+	glog.V(3).Infof("retrieved resource: %s, leaseId: %s, leaseDuration: %s, expiration: %s",
+		rn.resource, rn.secret.LeaseID, leaseDuration, rn.leaseExpireTime)
 
 	return err
 }
