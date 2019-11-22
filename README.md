@@ -188,3 +188,4 @@ bundle format is very similar in the sense it similar takes the private key and 
 - **exec** (execute) execute's a command when resource is updated or changed
 - **retries**: (retries) the maximum number of times to retry retrieving a resource. If not set, resources will be retried indefinitely
 - **jitter**: (jitter) an optional maximum jitter duration. If specified, a random duration between 0 and `jitter` will be subtracted from the renewal time for the resource
+- **ttl**: (ttl) an optional ttl to use with the Vault PKI backend, should be specified as per the Vault PKI backend ttl resource (eg. 24h for one day). Hours are the largest suffix.
