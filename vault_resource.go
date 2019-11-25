@@ -52,6 +52,8 @@ const (
 	// to updates for this resource. If non-zero, a random value between 0 and
 	// maxJitter will be subtracted from the update period.
 	optionMaxJitter = "jitter"
+	// optionTtl specifies requested Time To Live for use with the PKI Backend
+	optionTtl = "ttl"
 	// defaultSize sets the default size of a generic secret
 	defaultSize = 20
 )
@@ -127,6 +129,8 @@ type VaultResource struct {
 	// maxJitter is the maximum jitter duration to use for this resource when
 	// performing renewals
 	maxJitter time.Duration
+	// specifies requested Time To Live for use with the PKI Backend
+	ttl string
 }
 
 // GetFilename generates a resource filename by default the resource name and resource type, which
