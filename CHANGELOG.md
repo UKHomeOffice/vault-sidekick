@@ -1,3 +1,6 @@
+#### **Version v0.3.13**
+* e0b061f Add support for the ttl parameter for the PKI backend
+
 #### **Version v0.3.12**
 * 7d13cc9 Fix lease expiration checks [#PR96](https://github.com/UKHomeOffice/vault-sidekick/pull/96)
 * 8b7d3de Support custom login path for approle auth backend [#PR68](https://github.com/UKHomeOffice/vault-sidekick/pull/92)
