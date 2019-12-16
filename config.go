@@ -53,9 +53,9 @@ type config struct {
 	vaultRenewToken bool
 	// the vault ca file
 	vaultCaFile string
-	// the client certificate
+	// the client certificate file
 	vaultClientCertificate string
-	// the client private key
+	// the client private key file
 	vaultClientPrivateKey string
 	// the place to write the resources
 	outputDir string
