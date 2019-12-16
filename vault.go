@@ -576,11 +576,13 @@ func buildHTTPTransport(opts *config) (*http.Transport, error) {
 	}
 
 	// step: are we using client authentication
-	cert, err := tls.LoadX509KeyPair("vault-client.crt", "vault-client.key")
-	if err != nil {
-		return nil, fmt.Errorf("unable to read in the ca: %s, reason: %s", opts.vaultCaFile, err)
+	if opts.vaultClientCertificate != "" && opts.vaultClientPrivateKey != "" {
+		cert, err := tls.LoadX509KeyPair(opts.vaultClientCertificate, opts.vaultClientPrivateKey)
+		if err != nil {
+			return nil, fmt.Errorf("unable to read the client keypair, reason: %s", err)
+		}
+		transport.TLSClientConfig.Certificates = []tls.Certificate{cert}
 	}
-	transport.TLSClientConfig.Certificates = []tls.Certificate{cert}
 
 	// step: are we loading a CA file
 	if opts.vaultCaFile != "" {
