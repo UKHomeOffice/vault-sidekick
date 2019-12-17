@@ -54,9 +54,9 @@ type config struct {
 	// the vault ca file
 	vaultCaFile string
 	// the client certificate file
-	vaultClientCertificate string
+	vaultClientCertFile string
 	// the client private key file
-	vaultClientPrivateKey string
+	vaultClientKeyFile string
 	// the place to write the resources
 	outputDir string
 	// switch on dry run
@@ -95,8 +95,8 @@ func init() {
 	flag.BoolVar(&options.dryRun, "dryrun", false, "perform a dry run, printing the content to screen")
 	flag.BoolVar(&options.skipTLSVerify, "tls-skip-verify", false, "whether to check and verify the vault service certificate")
 	flag.StringVar(&options.vaultCaFile, "ca-cert", "", "the path to the file container the CA used to verify the vault service")
-	flag.StringVar(&options.vaultClientCertificate, "client-cert", "", "the path to the file container that vault will use to verify the client")
-	flag.StringVar(&options.vaultClientPrivateKey, "client-key", "", "the path to the file container that vault will use to identify the client")
+	flag.StringVar(&options.vaultClientCertFile, "client-cert", "", "the path to the file container that vault will use to verify the client or VAULT_CLIENT_CERT")
+	flag.StringVar(&options.vaultClientKeyFile, "client-key", "", "the path to the file container that vault will use to identify the client or VAULT_CLIENT_KEY")
 	flag.DurationVar(&options.statsInterval, "stats", time.Duration(1)*time.Hour, "the interval to produce statistics on the accessed resources")
 	flag.DurationVar(&options.execTimeout, "exec-timeout", time.Duration(60)*time.Second, "the timeout applied to commands on the exec option")
 	flag.BoolVar(&options.showVersion, "version", false, "show the vault-sidekick version")
@@ -147,26 +147,36 @@ func validateOptions(cfg *config) (err error) {
 		}
 	}
 
-	if cfg.vaultClientCertificate != "" {
-		if exists, _ := fileExists(cfg.vaultClientCertificate); !exists {
-			return fmt.Errorf("the client certificate file: %s does not exist", cfg.vaultClientCertificate)
+	// step: client side authorisation
+	if cfg.vaultClientCertFile == "" {
+		cfg.vaultClientCertFile = os.Getenv("VAULT_CLIENT_CERT")
+	}
+
+	if cfg.vaultClientKeyFile == "" {
+		cfg.vaultClientKeyFile = os.Getenv("VAULT_CLIENT_KEY")
+	}
+
+	if cfg.vaultClientCertFile != "" {
+		if exists, _ := fileExists(cfg.vaultClientCertFile); !exists {
+			return fmt.Errorf("the client certificate file: %s does not exist", cfg.vaultClientCertFile)
 		}
 	}
 
-	if cfg.vaultClientPrivateKey != "" {
-		if exists, _ := fileExists(cfg.vaultClientPrivateKey); !exists {
-			return fmt.Errorf("the client private key file: %s does not exist", cfg.vaultClientPrivateKey)
+	if cfg.vaultClientKeyFile != "" {
+		if exists, _ := fileExists(cfg.vaultClientKeyFile); !exists {
+			return fmt.Errorf("the client private key file: %s does not exist", cfg.vaultClientKeyFile)
 		}
 	}
 
-	if cfg.vaultClientPrivateKey != "" && cfg.vaultClientCertificate == "" {
+	if cfg.vaultClientKeyFile != "" && cfg.vaultClientCertFile == "" {
 		return fmt.Errorf("you are supplying the client private key, but not the certificate")
 	}
 
-	if cfg.vaultClientPrivateKey == "" && cfg.vaultClientCertificate != "" {
+	if cfg.vaultClientKeyFile == "" && cfg.vaultClientCertFile != "" {
 		return fmt.Errorf("you are supplying the client certificate, but not the private key")
 	}
 
+	// step: sense check server side authorisation
 	if cfg.skipTLSVerify == true && cfg.vaultCaFile != "" {
 		return fmt.Errorf("you are skipping the tls but supplying a CA, doesn't make sense")
 	}

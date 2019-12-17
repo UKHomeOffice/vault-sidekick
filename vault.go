@@ -576,8 +576,8 @@ func buildHTTPTransport(opts *config) (*http.Transport, error) {
 	}
 
 	// step: are we using client authentication
-	if opts.vaultClientCertificate != "" && opts.vaultClientPrivateKey != "" {
-		cert, err := tls.LoadX509KeyPair(opts.vaultClientCertificate, opts.vaultClientPrivateKey)
+	if opts.vaultClientCertFile != "" && opts.vaultClientKeyFile != "" {
+		cert, err := tls.LoadX509KeyPair(opts.vaultClientCertFile, opts.vaultClientKeyFile)
 		if err != nil {
 			return nil, fmt.Errorf("unable to read the client keypair, reason: %s", err)
 		}
