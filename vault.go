@@ -567,7 +567,7 @@ func buildHTTPTransport(opts *config) (*http.Transport, error) {
 		TLSHandshakeTimeout: 10 * time.Second,
 		TLSClientConfig: &tls.Config{
 			InsecureSkipVerify: opts.skipTLSVerify,
-			Certificates: []tls.Certificate{},
+			Certificates:       []tls.Certificate{},
 		},
 	}
 
