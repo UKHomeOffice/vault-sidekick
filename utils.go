@@ -180,27 +180,27 @@ func processResource(rn *VaultResource, data map[string]interface{}) (err error)
 	case "yaml":
 		fallthrough
 	case "yml":
-		err = writeYAMLFile(filename, data, rn.fileMode)
+		err = writeYAMLFile(filename, data, rn.fileMode, rn.append)
 	case "json":
-		err = writeJSONFile(filename, data, rn.fileMode)
+		err = writeJSONFile(filename, data, rn.fileMode, rn.append)
 	case "ini":
-		err = writeIniFile(filename, data, rn.fileMode)
+		err = writeIniFile(filename, data, rn.fileMode, rn.append)
 	case "csv":
-		err = writeCSVFile(filename, data, rn.fileMode)
+		err = writeCSVFile(filename, data, rn.fileMode, rn.append)
 	case "env":
-		err = writeEnvFile(filename, data, rn.fileMode)
+		err = writeEnvFile(filename, data, rn.fileMode, rn.append)
 	case "cert":
-		err = writeCertificateFile(filename, data, rn.fileMode)
+		err = writeCertificateFile(filename, data, rn.fileMode, rn.append)
 	case "txt":
-		err = writeTxtFile(filename, data, rn.fileMode)
+		err = writeTxtFile(filename, data, rn.fileMode, rn.append)
 	case "bundle":
-		err = writeCertificateBundleFile(filename, data, rn.fileMode)
+		err = writeCertificateBundleFile(filename, data, rn.fileMode, rn.append)
 	case "credential":
-		err = writeCredentialFile(filename, data, rn.fileMode)
+		err = writeCredentialFile(filename, data, rn.fileMode, rn.append)
 	case "template":
-		err = writeTemplateFile(filename, data, rn.fileMode, rn.templateFile)
+		err = writeTemplateFile(filename, data, rn.fileMode, rn.templateFile, rn.append)
 	case "aws":
-		err = writeAwsCredentialFile(filename, data, rn.fileMode)
+		err = writeAwsCredentialFile(filename, data, rn.fileMode, rn.append)
 	default:
 		return fmt.Errorf("unknown output format: %s", rn.format)
 	}

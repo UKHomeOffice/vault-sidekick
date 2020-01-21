@@ -120,6 +120,15 @@ func (r *VaultResources) Set(value string) error {
 					return fmt.Errorf("the create option is only supported for 'cn=secret' at this time")
 				}
 				rn.create = choice
+			case optionAppend:
+				choice, err := strconv.ParseBool(value)
+				if err != nil {
+					return fmt.Errorf("the create option: %s is invalid, should be a boolean", value)
+				}
+				if rn.resource != "secret" {
+					return fmt.Errorf("the create option is only supported for 'cn=secret' at this time")
+				}
+				rn.append = choice
 			case optionSize:
 				size, err := strconv.ParseInt(value, 10, 16)
 				if err != nil {
