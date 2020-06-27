@@ -418,7 +418,7 @@ func (r VaultService) get(rn *watchedResource) error {
 			}
 		}
 		// if there is a top-level metadata key this is from a v2 kv store
-		if err == nil {
+		if err == nil && secret != nil {
 			if _, ok := secret.Data["metadata"]; ok {
 				secret.Data = secret.Data["data"].(map[string]interface{})
 			}
