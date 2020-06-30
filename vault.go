@@ -221,6 +221,14 @@ func (r *VaultService) vaultServiceProcessor() {
 					// step: lets renew the resource
 					err := r.renew(x)
 					if err != nil {
+						// bad request errors won't be fixed via a retry they can happen if the resource (or its lease) is revoked
+						// permission errors won't be fixed via a retry they can happen if the token (or its lease) is revoked
+						if strings.Contains(err.Error(), "Code: 400") ||
+							strings.Contains(err.Error(), "Code: 403") {
+							glog.Errorf("failed to renew the resource: %s for renewal, retrieving a new lease instead, error: %s", x.resource, err)
+							r.scheduleNow(x, retrieveChannel)
+							break
+						}
 						glog.Errorf("failed to renew the resource: %s for renewal, error: %s", x.resource, err)
 						// reschedule the attempt for later
 						r.scheduleIn(x, renewChannel, getDurationWithin(3, 10))
@@ -535,6 +543,10 @@ func newVaultClient(opts *config) (*api.Client, error) {
 				glog.Infof("attempting token renew")
 				newtokeninfo, err := client.Auth().Token().RenewSelf(0)
 				if err != nil {
+					// permission errors won't be fixed via a retry they can happen if the token (or its lease) is revoked
+					if strings.Contains(err.Error(), "Code: 403") {
+						glog.Fatalf("fatal: failed to renew token: %v", err)
+					}
 					renewPeriod = renewPeriod / 2
 					glog.Warningf("error: failed to renew token, retrying in %v: %v", renewPeriod, err)
 					continue
