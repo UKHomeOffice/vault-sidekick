@@ -145,7 +145,7 @@ func (r *VaultResources) Set(value string) error {
 				}
 				rn.maxJitter = maxJitter
 			case optionTtl:
-				rn.ttl = value
+				rn.options["ttl"] = value
 			default:
 				rn.options[name] = value
 			}

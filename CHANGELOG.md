@@ -1,3 +1,6 @@
+#### **Version v0.3.14**
+* 7654a3c Fix support for the ttl parameter
+
 #### **Version v0.3.13**
 * e0b061f Add support for the ttl parameter for the PKI backend
 
