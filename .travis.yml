@@ -25,7 +25,7 @@ deploy:
   skip_cleanup: true
   on:
     repo: UKHomeOffice/vault-sidekick
-    tags: true
+  #  tags: true
   api_key:
     secure: "${GITHUB_TOKEN}"
   file:
