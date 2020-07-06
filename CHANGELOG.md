@@ -1,3 +1,6 @@
+#### **Version v0.3.15**
+* 2cad76b Fixed Github API Token
+
 #### **Version v0.3.14**
 * 7654a3c Fix support for the ttl parameter
 
