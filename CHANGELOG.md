@@ -1,3 +1,6 @@
+#### **Version v0.3.16**
+* 56f4c0f Bumped alpine to v3.12 in [#PR105](https://github.com/UKHomeOffice/vault-sidekick/pull/105)
+
 #### **Version v0.3.15**
 * 2cad76b Fixed Github API Token
 
