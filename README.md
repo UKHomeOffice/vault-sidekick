@@ -114,6 +114,13 @@ The AppRole auth plugin supports the following configurations / environment vari
 - `secret_id` / `VAULT_SIDEKICK_SECRET_ID` - The approle secret_id to authenticate with (**REQUIRED**)
 - `login_path` / `VAULT_APPROLE_LOGIN_PATH` - If your AppRole auth backend is mounted at a path other than `approle/` you will need to set this. Default `/v1/auth/approle/login`
 
+### IAM Token Authentication for IBM Cloud Secrets Manager
+
+The [IBM Cloud Secrets Manager](https://cloud.ibm.com/docs/secrets-manager?topic=secrets-manager-vault-api#vault-login) supports IAM token only:
+
+- `IAM_TOKEN` - Your IBM Cloud IAM access token - cam be acquired by using an
+API key by following the guide [Setting up your environment](https://cloud.ibm.com/docs/secrets-manager?topic=secrets-manager-configure-vault-cli)
+
 ## Secret Renewals
 
 The default behaviour of vault-sidekick is **not** to renew a lease, but to retrieve a new secret and allow the previous to
