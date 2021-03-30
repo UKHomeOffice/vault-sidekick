@@ -1,3 +1,6 @@
+#### **Version v0.3.17**
+* d8c795d go modules implementation [#PR107](https://github.com/UKHomeOffice/vault-sidekick/pull/107)
+
 #### **Version v0.3.16**
 * 56f4c0f Bumped alpine to v3.12 in [#PR105](https://github.com/UKHomeOffice/vault-sidekick/pull/105)
 
