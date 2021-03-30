@@ -138,7 +138,7 @@ func (r *VaultService) vaultServiceProcessor() {
 			case x := <-retrieveChannel:
 				// step: skip this resource if it's reached maxRetries
 				if x.resource.maxRetries > 0 && x.resource.retries > x.resource.maxRetries {
-					glog.V(4).Infof("skipping resource %s as it's failed %d/%d times", x.resource.retries, x.resource.maxRetries+1)
+					glog.V(4).Infof("skipping resource as it's failed %d/%d times", x.resource.retries, x.resource.maxRetries+1)
 					break
 				}
 
@@ -194,7 +194,7 @@ func (r *VaultService) vaultServiceProcessor() {
 			case x := <-renewChannel:
 				// step: skip this resource if it's reached maxRetries
 				if x.resource.maxRetries > 0 && x.resource.retries > x.resource.maxRetries {
-					glog.V(4).Infof("skipping resource %s as it's failed %d/%d times", x.resource.retries, x.resource.maxRetries+1)
+					glog.V(4).Infof("skipping resource as it's failed %d/%d times", x.resource.retries, x.resource.maxRetries+1)
 					break
 				}
 
