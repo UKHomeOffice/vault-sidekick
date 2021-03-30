@@ -13,16 +13,19 @@ VETARGS?=-asmdecl -atomic -bool -buildtags -copylocks -methods -nilfunc -printf 
 
 default: build
 
-build:
+
+mod:
+	@echo "--> Downloading dependencies"
+	go mod download
+
+build: mod
 	@echo "--> Compiling the project"
 	mkdir -p bin
-	go mod download
 	go build -ldflags '-w ${LFLAGS}' -o bin/${NAME}
 
-static:
+static: mod
 	@echo "--> Compiling the static binary"
 	mkdir -p bin
-	go mod download
 	CGO_ENABLED=0 GOOS=linux  go build -a -tags netgo -ldflags '-w ${LFLAGS}' -o bin/${NAME}
 
 docker-build:
@@ -80,14 +83,12 @@ gofmt:
             gofmt -s -l *.go; \
             exit 1; \
       fi
-cover:
+cover: mod
 	@echo "--> Running go cover"
-	go mod download
 	@go test --cover
 
-test:
+test: mod
 	@echo "--> Running the tests"
-	go mod download
 	go test -v
 	@$(MAKE) gofmt
 	@$(MAKE) vet
