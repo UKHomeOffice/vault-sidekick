@@ -2,26 +2,28 @@
 NAME=vault-sidekick
 AUTHOR ?= ukhomeofficedigital
 REGISTRY ?= quay.io
-GOVERSION ?= 1.8.1
+GOVERSION ?= 1.15.10
 HARDWARE=$(shell uname -m)
 VERSION ?= $(shell awk '/release =/ { print $$3 }' main.go | sed 's/"//g')
 GIT_SHA=$(shell git --no-pager describe --always --dirty)
 LFLAGS ?= -X main.gitsha=${GIT_SHA}
-VETARGS?=-asmdecl -atomic -bool -buildtags -copylocks -methods -nilfunc -printf -rangeloops -shift -structtags -unsafeptr
+VETARGS?=-asmdecl -atomic -bool -buildtags -copylocks -methods -nilfunc -printf -rangeloops -shift -unsafeptr
 
 .PHONY: test authors changelog build docker static release
 
 default: build
 
-build: deps
+build:
 	@echo "--> Compiling the project"
 	mkdir -p bin
-	godep go build -ldflags '-w ${LFLAGS}' -o bin/${NAME}
+	go mod download
+	go build -ldflags '-w ${LFLAGS}' -o bin/${NAME}
 
-static: deps
+static:
 	@echo "--> Compiling the static binary"
 	mkdir -p bin
-	CGO_ENABLED=0 GOOS=linux godep go build -a -tags netgo -ldflags '-w ${LFLAGS}' -o bin/${NAME}
+	go mod download
+	CGO_ENABLED=0 GOOS=linux  go build -a -tags netgo -ldflags '-w ${LFLAGS}' -o bin/${NAME}
 
 docker-build:
 	@echo "--> Compiling the project"
@@ -59,16 +61,12 @@ authors:
 	@echo "--> Updating the AUTHORS"
 	git log --format='%aN <%aE>' | sort -u > AUTHORS
 
-deps:
-	@echo "--> Installing build dependencies"
-	@go get github.com/tools/godep
-
 vet:
 	@echo "--> Running go tool vet $(VETARGS) ."
 	@go tool vet 2>/dev/null ; if [ $$? -eq 3 ]; then \
 		go get golang.org/x/tools/cmd/vet; \
 	fi
-	@go tool vet $(VETARGS) .
+	@go vet $(VETARGS) .
 
 format:
 	@echo "--> Running go fmt"
@@ -84,10 +82,12 @@ gofmt:
       fi
 cover:
 	@echo "--> Running go cover"
-	@godep go test --cover
+	go mod download
+	@go test --cover
 
-test: deps
+test:
 	@echo "--> Running the tests"
+	go mod download
 	go test -v
 	@$(MAKE) gofmt
 	@$(MAKE) vet
