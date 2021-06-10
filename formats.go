@@ -134,7 +134,19 @@ func writeCertificateChainFile(filename string, data map[string]interface{}, mod
 	caFile := fmt.Sprintf("%s-ca.pem", filename)
 	certFile := fmt.Sprintf("%s.pem", filename)
 
-	certChain := fmt.Sprintf("%s\n\n%s", data["certificate"], data["issuing_ca"])
+	// the chain should be a slice so assert that the type is []interface
+	chain, ok := data["ca_chain"].([]interface{})
+	if !ok {
+		glog.Errorf("Could not find the ca_chain")
+		return errors.New("Could not find the ca_chain")
+	}
+
+	ca_chain := []string{}
+	for _, cert := range chain {
+		ca_chain = append(ca_chain, fmt.Sprintf("%s", cert))
+	}
+
+	certChain := fmt.Sprintf("%s\n\n%s", data["certificate"], strings.Join(ca_chain, "\n"))
 	key := fmt.Sprintf("%s\n", data["private_key"])
 	ca := fmt.Sprintf("%s\n", data["issuing_ca"])
 	certificate := fmt.Sprintf("%s\n", data["certificate"])
