@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	renewalPercentage = 0.75 // Renew the vault-token after 75% of it's TTL has lapsed
+	renewalPercentage = 0.02 // Renew the vault-token after 2% of it's TTL has lapsed
 
 )
 

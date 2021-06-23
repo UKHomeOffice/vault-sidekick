@@ -82,11 +82,10 @@ func main() {
 		glog.Infof("nothing to retrieve from vault. exiting...")
 		os.Exit(0)
 	}
-	// fire up go routine to handle auth token renewal
-	go renewToken()
 
 	// step: we simply wait for events i.e. secrets from vault and write them to the output directory
 	for {
+		renewToken()
 		select {
 		case evt := <-updates:
 			glog.V(10).Infof("recieved an update from the resource: %s", evt.Resource)
