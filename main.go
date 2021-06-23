@@ -28,7 +28,7 @@ import (
 
 var (
 	prog    = "vault-sidekick"
-	release = "v0.3.16"
+	release = "v0.3.18"
 	gitsha  = ""
 )
 
@@ -43,6 +43,11 @@ func main() {
 		return
 	}
 	glog.Infof("starting the %s, %s", prog, version)
+
+	// if --request-token=true  - request token, generate auth file and exit
+	if options.requestToken {
+		requestToken()
+	}
 
 	if options.oneShot {
 		glog.Infof("running in one-shot mode")
@@ -116,7 +121,7 @@ func main() {
 				}
 			}(evt)
 		case <-signalChannel:
-			glog.Infof("recieved a termination signal, shutting down the service")
+			glog.Infof("received a termination signal, shutting down the service")
 			os.Exit(0)
 		}
 	}
