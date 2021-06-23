@@ -47,7 +47,6 @@ func main() {
 	// if --request-token=true  - request token, generate auth file and exit
 	if options.requestToken {
 		requestToken()
-
 	}
 
 	if options.oneShot {
@@ -85,7 +84,6 @@ func main() {
 
 	// step: we simply wait for events i.e. secrets from vault and write them to the output directory
 	for {
-		renewToken()
 		select {
 		case evt := <-updates:
 			glog.V(10).Infof("recieved an update from the resource: %s", evt.Resource)

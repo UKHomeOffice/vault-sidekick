@@ -52,6 +52,7 @@ func renewToken() {
 	glog.Info("Retrieving vault-token metadata...")
 
 	token, err := client.Auth().Token().LookupSelf()
+	glog.Infof("token  %s", token.Data)
 	if err != nil {
 		glog.Fatal(err.Error())
 	}
@@ -59,16 +60,19 @@ func renewToken() {
 	glog.Info("Parsing vault-token metadata...")
 
 	ttl, err := token.Data["creation_ttl"].(json.Number).Float64()
+	glog.Infof("token TTL %d", ttl)
 	if err != nil {
 		glog.Fatal(err.Error())
 	}
 
 	expireTime, err := time.Parse(time.RFC3339, token.Data["expire_time"].(string))
+	glog.Infof("expireTime  %s", expireTime.Format("Mon Jan 2 15:04:05 MST 2006"))
 	if err != nil {
 		glog.Fatal(err.Error())
 	}
 
 	renewalPeriod := int(math.Round(ttl * renewalPercentage))
+	glog.Infof("renewPeriod %d", renewalPeriod)
 	secondsUntilExpires := int(time.Until(expireTime).Seconds())
 
 	// If the time left on the token is less than the renewal period
@@ -101,6 +105,20 @@ func renewToken() {
 
 		time.Sleep(time.Duration(renewalPeriod) * time.Second)
 		renew(client)
+
+		auth.Token = client.Token()
+		auth.Method = "token"
+
+		authFileData, err := yaml.Marshal(auth)
+		if err != nil {
+			glog.Fatal(err.Error())
+		}
+		glog.Infof("Writing the vault-auth file out to %s", vaultAuthFilePath)
+		if err := ioutil.WriteFile(vaultAuthFilePath, authFileData, 0644); err != nil {
+			glog.Fatal(err.Error())
+		}
+
+		glog.Info("Done")
 
 	}
 

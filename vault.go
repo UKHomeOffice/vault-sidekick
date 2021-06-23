@@ -521,6 +521,12 @@ func newVaultClient(opts *config) (*api.Client, error) {
 	client.SetToken(token)
 
 	if opts.vaultRenewToken {
+
+		go func() {
+			glog.Info("Renewing Token..")
+			renewToken()
+		}()
+
 		tokeninfo, err := client.Auth().Token().LookupSelf()
 		if err != nil {
 			return nil, fmt.Errorf("failed to lookup token info: %s", err)
