@@ -47,6 +47,7 @@ func main() {
 	// if --request-token=true  - request token, generate auth file and exit
 	if options.requestToken {
 		requestToken()
+
 	}
 
 	if options.oneShot {
@@ -81,6 +82,9 @@ func main() {
 		glog.Infof("nothing to retrieve from vault. exiting...")
 		os.Exit(0)
 	}
+	// fire up go routine to handle auth token renewal
+	go renewToken()
+
 	// step: we simply wait for events i.e. secrets from vault and write them to the output directory
 	for {
 		select {
