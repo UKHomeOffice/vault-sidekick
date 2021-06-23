@@ -54,6 +54,8 @@ Usage of /vault-sidekick:
     	show the vault-sidekick version
   -vmodule value
     	comma-separated list of pattern=N settings for file-filtered logging
+  -request-token 
+        request an authentication token from vault and exit
 ```
 
 ## Building
