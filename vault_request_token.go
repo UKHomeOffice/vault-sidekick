@@ -17,7 +17,7 @@ import (
 const (
 	serviceAccountTokenPath = "/var/run/secrets/kubernetes.io/serviceaccount/token"
 	vaultTokenFilePath      = "/var/run/secrets/vaultproject.io/.vault-token"
-	vaultAuthFilePath       = "/var/run/secrets/vaultproject.io/.vault-auth"
+	vaultAuthFilePath       = "/var/run/secrets/vaultproject.io/.vault-auth.yml"
 )
 
 var (
