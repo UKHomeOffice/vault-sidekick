@@ -1,3 +1,6 @@
+#### **Version v0.3.18**
+* 65d22e9 request auth token feature [#PR111](https://github.com/UKHomeOffice/vault-sidekick/pull/111)
+
 #### **Version v0.3.17**
 * d8c795d go modules implementation [#PR107](https://github.com/UKHomeOffice/vault-sidekick/pull/107)
 
