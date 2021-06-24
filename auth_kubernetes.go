@@ -54,7 +54,7 @@ func (r authKubernetesPlugin) Create(cfg *vaultAuthOptions) (string, error) {
 	}
 
 	// in case you mounted your kubernetes auth engine somewhere else
-	//loginPath := getEnv("VAULT_K8S_LOGIN_PATH", "/v1/auth/kubernetes/login")
+	loginPath := getEnv("VAULT_K8S_LOGIN_PATH", "/v1/auth/kubernetes/login")
 
 	tokenPath := getEnv("VAULT_K8S_TOKEN_PATH", "/var/run/secrets/kubernetes.io/serviceaccount/token")
 
@@ -65,37 +65,15 @@ func (r authKubernetesPlugin) Create(cfg *vaultAuthOptions) (string, error) {
 		return "", err
 	}
 
-	// build the token request
-	//request := r.client.NewRequest("POST", loginPath)
-	//login := kubernetesLogin{Role: vaultRole, Jwt: string(bytes.TrimSpace(token))}
-	//if err := request.SetJSONBody(login); err != nil {
-	//	glog.Error("Error building request body ", err.Error())
-	//	return "", err
-	//}
-	//
-	//// send the request to Vault
-	//resp, err := r.client.RawRequest(request)
-	//if err != nil {
-	//	glog.Error("Error sending request to vault: ", err.Error())
-	//	return "Request to vault", err
-	//}
-	//defer resp.Body.Close()
-
 	glog.Infof("Requesting for role %s vault-token..", vaultRole)
 
-	secret, err := r.client.Logical().Write(path.Join(vaultAuthPath, "login"), map[string]interface{}{
+	secret, err := r.client.Logical().Write(path.Join(loginPath, "login"), map[string]interface{}{
 		"jwt":  string(bytes.TrimSpace(token)),
 		"role": vaultRole,
 	})
 	if err != nil {
 		glog.Fatal(err.Error())
 	}
-
-	//// parse the auth object into something useful
-	//secret, err := api.ParseSecret(resp.Body)
-	//if err != nil {
-	//	return "", err
-	//}
 
 	return secret.Auth.ClientToken, nil
 }

@@ -44,11 +44,6 @@ func main() {
 	}
 	glog.Infof("starting the %s, %s", prog, version)
 
-	// if --request-token=true  - request token, generate auth file and exit
-	if options.requestToken {
-		requestToken()
-	}
-
 	if options.oneShot {
 		glog.Infof("running in one-shot mode")
 	}
