@@ -17,9 +17,13 @@ limitations under the License.
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path"
+
+	"github.com/golang/glog"
 
 	"github.com/hashicorp/vault/api"
 )
@@ -57,27 +61,18 @@ func (r authKubernetesPlugin) Create(cfg *vaultAuthOptions) (string, error) {
 	// read the JWT from the token file
 	token, err := ioutil.ReadFile(tokenPath)
 	if err != nil {
+		glog.Error("Error reading token file: ", err.Error())
 		return "", err
 	}
 
-	// build the token request
-	request := r.client.NewRequest("POST", loginPath)
-	login := kubernetesLogin{Role: vaultRole, Jwt: string(token)}
-	if err := request.SetJSONBody(login); err != nil {
-		return "", err
-	}
+	glog.Infof("Requesting for role %s vault-token..", vaultRole)
 
-	// send the request to Vault
-	resp, err := r.client.RawRequest(request)
+	secret, err := r.client.Logical().Write(path.Join(loginPath, "login"), map[string]interface{}{
+		"jwt":  string(bytes.TrimSpace(token)),
+		"role": vaultRole,
+	})
 	if err != nil {
-		return "", err
-	}
-	defer resp.Body.Close()
-
-	// parse the auth object into something useful
-	secret, err := api.ParseSecret(resp.Body)
-	if err != nil {
-		return "", err
+		glog.Fatal(err.Error())
 	}
 
 	return secret.Auth.ClientToken, nil

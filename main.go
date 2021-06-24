@@ -44,11 +44,6 @@ func main() {
 	}
 	glog.Infof("starting the %s, %s", prog, version)
 
-	// if --request-token=true  - request token, generate auth file and exit
-	if options.requestToken {
-		requestToken()
-	}
-
 	if options.oneShot {
 		glog.Infof("running in one-shot mode")
 	}
@@ -81,6 +76,7 @@ func main() {
 		glog.Infof("nothing to retrieve from vault. exiting...")
 		os.Exit(0)
 	}
+
 	// step: we simply wait for events i.e. secrets from vault and write them to the output directory
 	for {
 		select {

@@ -69,8 +69,6 @@ type config struct {
 	showVersion bool
 	// one-shot mode
 	oneShot bool
-	// requestToken -  if set to true, will attempt to request and write a vault token - see vault_request_token.go
-	requestToken bool
 }
 
 var (
@@ -98,7 +96,6 @@ func init() {
 	flag.BoolVar(&options.showVersion, "version", false, "show the vault-sidekick version")
 	flag.Var(options.resources, "cn", "a resource to retrieve and monitor from vault")
 	flag.BoolVar(&options.oneShot, "one-shot", false, "retrieve resources from vault once and then exit")
-	flag.BoolVar(&options.requestToken, "request-token", false, "attempt to request an auth token from vault")
 }
 
 // parseOptions validate the command line options and validates them
