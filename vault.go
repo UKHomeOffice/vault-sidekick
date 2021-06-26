@@ -408,6 +408,8 @@ func (r VaultService) get(rn *watchedResource) error {
 		fallthrough
 	case "mysql":
 		fallthrough
+	case "rabbitmq":
+		fallthrough
 	case "postgres":
 		fallthrough
 	case "database":
