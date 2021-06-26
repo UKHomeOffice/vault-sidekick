@@ -12,7 +12,7 @@ Vault Sidekick is a add-on container which can be used as a generic entry-point 
 ## Usage
 
 ```shell
-$ sudo docker run --rm quay.io/ukhomeofficedigital/vault-sidekick:v0.3.3 -help
+$ sudo docker run --rm quay.io/ukhomeofficedigital/vault-sidekick:v0.3.14 -help
 Usage of /vault-sidekick:
   -alsologtostderr
     	log to standard error as well as files
@@ -70,7 +70,7 @@ The below is taken from a [Kubernetes](https://github.com/kubernetes/kubernetes)
 spec:
   containers:
   - name: vault-side-kick
-    image: quay.io/ukhomeofficedigital/vault-sidekick:v0.3.3
+    image: quay.io/ukhomeofficedigital/vault-sidekick:v0.3.14
     args:
       - -output=/etc/secrets
       - -cn=pki:project1/certs/example.com:common_name=commons.example.com,revoke=true,update=2h
@@ -182,6 +182,7 @@ bundle format is very similar in the sense it similar takes the private key and 
 - **file**: (filaname) by default all file are relative to the output directory specified and will have the name NAME.RESOURCE; the fn options allows you to switch names and paths to write the files
 - **mode**: (mode) overrides the default file permissions of the secret from 0664
 - **create**: (create) create the resource
+- **append**: (appends) appends secrets to the resource. 
 - **update**: (update) override the lease time of this resource and get/renew a secret on the specified duration e.g 1m, 2d, 5m10s
 - **renew**: (renewal) override the default behavour on this resource, renew the resource when coming close to expiration e.g true, TRUE
 - **delay**: (renewal-delay) delay the revoking the lease of a resource for x period once time e.g 1m, 1h20s

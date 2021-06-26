@@ -42,6 +42,8 @@ const (
 	optionExec = "exec"
 	// optionCreate creates a secret if it doesn't exist
 	optionCreate = "create"
+	// optionAppend appends to the secret if it already exists
+	optionAppend = "append"
 	// optionSize sets the initial size of a password secret
 	optionSize = "size"
 	// optionsMode is the file permissions on the secret
@@ -86,6 +88,7 @@ func defaultVaultResource() *VaultResource {
 		options:   make(map[string]string, 0),
 		renewable: false,
 		revoked:   false,
+		append:    false,
 		size:      defaultSize,
 	}
 }
@@ -108,6 +111,8 @@ type VaultResource struct {
 	update time.Duration
 	// whether the resource should be created?
 	create bool
+	// whether the resource should be appended to?
+	append bool
 	// the size of a secret to create
 	size int64
 	// the filename to save the secret
