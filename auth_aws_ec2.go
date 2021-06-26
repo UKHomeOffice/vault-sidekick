@@ -31,7 +31,7 @@ type authAWSEC2Plugin struct {
 	client *api.Client
 }
 
-// NewUserTokenPlugin creates a new User Token plugin
+// NewAWSEC2Plugin creates a new User Token plugin
 func NewAWSEC2Plugin(client *api.Client) AuthInterface {
 	return &authAWSEC2Plugin{
 		client: client,
