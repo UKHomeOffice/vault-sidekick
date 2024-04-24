@@ -1,4 +1,4 @@
-FROM alpine:3.12
+FROM alpine:3.19.1
 MAINTAINER Rohith <gambol99@gmail.com>
 
 RUN apk update && \
