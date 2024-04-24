@@ -2,7 +2,7 @@
 NAME=vault-sidekick
 AUTHOR ?= ukhomeofficedigital
 REGISTRY ?= quay.io
-GOVERSION ?= 1.15.10
+GOVERSION ?= 1.22.2
 HARDWARE=$(shell uname -m)
 VERSION ?= $(shell awk '/release =/ { print $$3 }' main.go | sed 's/"//g')
 GIT_SHA=$(shell git --no-pager describe --always --dirty)
