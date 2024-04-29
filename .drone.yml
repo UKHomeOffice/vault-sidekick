@@ -12,8 +12,8 @@ steps:
   image: 340268328991.dkr.ecr.eu-west-2.amazonaws.com/acp/dind
   commands:
   - /usr/local/bin/wait
-  - docker build -t vault-sidekick:$${DRONE_COMMIT_SHA} .
   - GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags "-X main.gitsha=${DRONE_COMMIT_SHA:-git+${DRONE_COMMIT_SHA}}" -o bin/vault-sidekick_linux_amd64
+  - docker build -t vault-sidekick:$${DRONE_COMMIT_SHA} .
   when:
     event:
     - push
