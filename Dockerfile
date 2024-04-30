@@ -9,6 +9,7 @@ RUN make build
 FROM alpine:3.19.1
 
 RUN apk update
+RUN apk upgrade
 RUN apk add ca-certificates bash
 RUN adduser -D vault
 
