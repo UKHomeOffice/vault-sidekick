@@ -69,6 +69,7 @@ var (
 		"gcp":       true,
 		"secret":    true,
 		"mysql":     true,
+		"rabbitmq":  true,
 		"tpl":       true,
 		"postgres":  true,
 		"transit":   true,
