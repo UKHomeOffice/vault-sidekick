@@ -1,12 +1,20 @@
-FROM alpine:3.12
-MAINTAINER Rohith <gambol99@gmail.com>
+FROM golang:1.21 as builder
 
-RUN apk update && \
-    apk add ca-certificates bash
+WORKDIR /go/src/github.com/ukhomeoffice/vault-sidekick
 
+COPY . .
+
+RUN make build
+
+FROM alpine:3.19.1
+
+RUN apk update
+RUN apk upgrade
+RUN apk add ca-certificates bash
 RUN adduser -D vault
 
-ADD bin/vault-sidekick /vault-sidekick
+COPY --from=builder /go/src/github.com/ukhomeoffice/vault-sidekick /vault-sidekick
+
 RUN chmod 755 /vault-sidekick
 
 USER vault

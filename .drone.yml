@@ -1,0 +1,74 @@
+---
+kind: pipeline
+name: default
+type: kubernetes
+
+platform:
+  os: linux
+  arch: amd64
+
+steps:
+- name: build-image
+  image: 340268328991.dkr.ecr.eu-west-2.amazonaws.com/acp/dind
+  commands:
+  - /usr/local/bin/wait
+  - docker build -t vault-sidekick:$${DRONE_COMMIT_SHA} .
+  when:
+    event:
+    - push
+    - pull_request
+
+- name: scan-image
+  pull: Always
+  image: 340268328991.dkr.ecr.eu-west-2.amazonaws.com/acp/trivy/client:latest
+  resources:
+    limits:
+      cpu: 1000
+      memory: 1024Mi
+  environment:
+    IMAGE_NAME: vault-sidekick:${DRONE_COMMIT_SHA}
+    IGNORE_UNFIXED: "true"
+  when:
+    event:
+    - pull_request
+    - push
+
+- name: publish-latest
+  image: plugins/docker
+  settings:
+    registry: quay.io
+    repo: quay.io/ukhomeofficedigital/vault-sidekick
+    tags:
+      - latest
+      - ${DRONE_COMMIT_SHA}
+  environment:
+    DOCKER_USERNAME: ukhomeofficedigital+vault_sidekick
+    DOCKER_PASSWORD:
+      from_secret: DOCKER_PASSWORD
+  when:
+    branch:
+    - main
+    event:
+    - push
+
+- name: publish-tag
+  image: plugins/docker
+  settings:
+    registry: quay.io
+    repo: quay.io/ukhomeofficedigital/vault-sidekick
+    tags: ${DRONE_TAG}
+  environment:
+    DOCKER_USERNAME: ukhomeofficedigital+vault_sidekick
+    DOCKER_PASSWORD:
+      from_secret: DOCKER_PASSWORD
+  when:
+    event:
+    - tag
+
+services:
+- name: docker
+  image: 340268328991.dkr.ecr.eu-west-2.amazonaws.com/acp/dind
+  when:
+    event:
+    - push
+    - pull_request
