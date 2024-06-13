@@ -510,6 +510,8 @@ func newVaultClient(opts *config) (*api.Client, error) {
 		opts.vaultAuthOptions.FileName = options.vaultAuthFile
 		opts.vaultAuthOptions.FileFormat = options.vaultAuthFileFormat
 		token, err = NewUserTokenPlugin(client).Create(opts.vaultAuthOptions)
+	case "ibm-cloud":
+		token, err = NewIBMCloudPlugin(client).Create(opts.vaultAuthOptions)
 	default:
 		return nil, fmt.Errorf("unsupported authentication plugin: %s", plugin)
 	}
