@@ -21,6 +21,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 	"strings"
@@ -30,44 +31,44 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-func writeIniFile(filename string, data map[string]interface{}, mode os.FileMode) error {
+func writeIniFile(filename string, data map[string]interface{}, mode os.FileMode, append bool) error {
 	var buf bytes.Buffer
 	for key, val := range data {
 		buf.WriteString(fmt.Sprintf("%s = %v\n", key, val))
 	}
 
-	return writeFile(filename, buf.Bytes(), mode)
+	return writeFile(filename, buf.Bytes(), mode, append)
 }
 
-func writeCSVFile(filename string, data map[string]interface{}, mode os.FileMode) error {
+func writeCSVFile(filename string, data map[string]interface{}, mode os.FileMode, append bool) error {
 	var buf bytes.Buffer
 	for key, val := range data {
 		buf.WriteString(fmt.Sprintf("%s,%v\n", key, val))
 	}
 
-	return writeFile(filename, buf.Bytes(), mode)
+	return writeFile(filename, buf.Bytes(), mode, append)
 }
 
-func writeYAMLFile(filename string, data map[string]interface{}, mode os.FileMode) error {
+func writeYAMLFile(filename string, data map[string]interface{}, mode os.FileMode, append bool) error {
 	// marshall the content to yaml
 	content, err := yaml.Marshal(data)
 	if err != nil {
 		return err
 	}
 
-	return writeFile(filename, content, mode)
+	return writeFile(filename, content, mode, append)
 }
 
-func writeEnvFile(filename string, data map[string]interface{}, mode os.FileMode) error {
+func writeEnvFile(filename string, data map[string]interface{}, mode os.FileMode, append bool) error {
 	var buf bytes.Buffer
 	for key, val := range data {
 		buf.WriteString(fmt.Sprintf("%s='%v'\n", strings.ToUpper(key), val))
 	}
 
-	return writeFile(filename, buf.Bytes(), mode)
+	return writeFile(filename, buf.Bytes(), mode, append)
 }
 
-func writeCAChain(filename string, data map[string]interface{}, mode os.FileMode) error {
+func writeCAChain(filename string, data map[string]interface{}, mode os.FileMode, append bool) error {
 	const element = "ca_chain"
 	const suffix = "ca"
 
@@ -89,14 +90,14 @@ func writeCAChain(filename string, data map[string]interface{}, mode os.FileMode
 		}
 	}
 
-	if err := writeFile(name, []byte(fmt.Sprintf("%s", certChain)), mode); err != nil {
+	if err := writeFile(name, []byte(fmt.Sprintf("%s", certChain)), mode, append); err != nil {
 		return fmt.Errorf("failed to write resource: %s, element: %s, filename: %s, error: %s", filename, suffix, name, err)
 	}
 
 	return nil
 }
-func writeCertificateFile(filename string, data map[string]interface{}, mode os.FileMode) error {
-	if err := writeCAChain(filename, data, mode); err != nil {
+func writeCertificateFile(filename string, data map[string]interface{}, mode os.FileMode, append bool) error {
+	if err := writeCAChain(filename, data, mode, append); err != nil {
 		glog.Errorf("failed to write CA chain: %s", err)
 	}
 
@@ -114,7 +115,7 @@ func writeCertificateFile(filename string, data map[string]interface{}, mode os.
 		}
 
 		// step: write the file
-		if err := writeFile(name, []byte(fmt.Sprintf("%s", content)), mode); err != nil {
+		if err := writeFile(name, []byte(fmt.Sprintf("%s", content)), mode, append); err != nil {
 			glog.Errorf("failed to write resource: %s, element: %s, filename: %s, error: %s", filename, suffix, name, err)
 			continue
 		}
@@ -124,7 +125,7 @@ func writeCertificateFile(filename string, data map[string]interface{}, mode os.
 
 }
 
-func writeCertificateBundleFile(filename string, data map[string]interface{}, mode os.FileMode) error {
+func writeCertificateBundleFile(filename string, data map[string]interface{}, mode os.FileMode, append bool) error {
 	bundleFile := fmt.Sprintf("%s-bundle.pem", filename)
 	keyFile := fmt.Sprintf("%s-key.pem", filename)
 	caFile := fmt.Sprintf("%s-ca.pem", filename)
@@ -135,22 +136,22 @@ func writeCertificateBundleFile(filename string, data map[string]interface{}, mo
 	ca := fmt.Sprintf("%s\n", data["issuing_ca"])
 	certificate := fmt.Sprintf("%s\n", data["certificate"])
 
-	if err := writeFile(bundleFile, []byte(bundle), mode); err != nil {
+	if err := writeFile(bundleFile, []byte(bundle), mode, append); err != nil {
 		glog.Errorf("failed to write the bundled certificate file, error: %s", err)
 		return err
 	}
 
-	if err := writeFile(certFile, []byte(certificate), mode); err != nil {
+	if err := writeFile(certFile, []byte(certificate), mode, append); err != nil {
 		glog.Errorf("failed to write the certificate file, errro: %s", err)
 		return err
 	}
 
-	if err := writeFile(caFile, []byte(ca), mode); err != nil {
+	if err := writeFile(caFile, []byte(ca), mode, append); err != nil {
 		glog.Errorf("failed to write the ca file, errro: %s", err)
 		return err
 	}
 
-	if err := writeFile(keyFile, []byte(key), mode); err != nil {
+	if err := writeFile(keyFile, []byte(key), mode, append); err != nil {
 		glog.Errorf("failed to write the key file, errro: %s", err)
 		return err
 	}
@@ -158,7 +159,7 @@ func writeCertificateBundleFile(filename string, data map[string]interface{}, mo
 	return nil
 }
 
-func writeCredentialFile(filename string, data map[string]interface{}, mode os.FileMode) error {
+func writeCredentialFile(filename string, data map[string]interface{}, mode os.FileMode, append bool) error {
 	privateKeyData := fmt.Sprintf("%s", data["private_key_data"])
 	key, err := base64.StdEncoding.DecodeString(privateKeyData)
 	if err != nil {
@@ -166,7 +167,7 @@ func writeCredentialFile(filename string, data map[string]interface{}, mode os.F
 		return err
 	}
 
-	if err := writeFile(filename, key, mode); err != nil {
+	if err := writeFile(filename, key, mode, append); err != nil {
 		glog.Errorf("failed to write the bundled certificate file, error: %s", err)
 		return err
 	}
@@ -174,8 +175,8 @@ func writeCredentialFile(filename string, data map[string]interface{}, mode os.F
 	return nil
 }
 
-func writeAwsCredentialFile(filename string, data map[string]interface{}, mode os.FileMode) error {
-	if err := writeFile(filename, generateAwsCredentialFile(data), mode); err != nil {
+func writeAwsCredentialFile(filename string, data map[string]interface{}, mode os.FileMode, append bool) error {
+	if err := writeFile(filename, generateAwsCredentialFile(data), mode, append); err != nil {
 		glog.Errorf("failed to write aws credentials file, error: %s", err)
 		return err
 	}
@@ -201,14 +202,14 @@ func generateAwsCredentialFile(data map[string]interface{}) []byte {
 	return []byte(fmt.Sprintf("%s\n%s\n%s\n", profileName, accessKey, secretKey))
 }
 
-func writeTxtFile(filename string, data map[string]interface{}, mode os.FileMode) error {
+func writeTxtFile(filename string, data map[string]interface{}, mode os.FileMode, append bool) error {
 	keys := getKeys(data)
 	if len(keys) > 1 {
 		// step: for plain formats we need to iterate the keys and produce a file per key
 		for suffix, content := range data {
 			name := fmt.Sprintf("%s.%s", filename, suffix)
-			if err := writeFile(name, []byte(fmt.Sprintf("%v", content)), mode); err != nil {
-				glog.Errorf("failed to write resource: %s, elemment: %s, filename: %s, error: %s",
+			if err := writeFile(name, []byte(fmt.Sprintf("%v", content)), mode, append); err != nil {
+				glog.Errorf("failed to write resource: %s, element: %s, filename: %s, error: %s",
 					filename, suffix, name, err)
 				continue
 			}
@@ -220,19 +221,19 @@ func writeTxtFile(filename string, data map[string]interface{}, mode os.FileMode
 	value, _ := data[keys[0]]
 	content := []byte(fmt.Sprintf("%s", value))
 
-	return writeFile(filename, content, mode)
+	return writeFile(filename, content, mode, append)
 }
 
-func writeJSONFile(filename string, data map[string]interface{}, mode os.FileMode) error {
+func writeJSONFile(filename string, data map[string]interface{}, mode os.FileMode, append bool) error {
 	content, err := json.MarshalIndent(data, "", "    ")
 	if err != nil {
 		return err
 	}
 
-	return writeFile(filename, content, mode)
+	return writeFile(filename, content, mode, append)
 }
 
-func writeTemplateFile(filename string, data map[string]interface{}, mode os.FileMode, templateFile string) error {
+func writeTemplateFile(filename string, data map[string]interface{}, mode os.FileMode, templateFile string, append bool) error {
 	tpl := template.Must(template.ParseFiles(templateFile))
 
 	var templateOutput bytes.Buffer
@@ -242,11 +243,11 @@ func writeTemplateFile(filename string, data map[string]interface{}, mode os.Fil
 
 	content := []byte(fmt.Sprintf("%s", templateOutput.String()))
 
-	return writeFile(filename, content, mode)
+	return writeFile(filename, content, mode, append)
 }
 
 // writeFile writes the file to stdout or an actual file
-func writeFile(filename string, content []byte, mode os.FileMode) error {
+func writeFile(filename string, content []byte, mode os.FileMode, append bool) error {
 	if options.dryRun {
 		glog.Infof("dry-run: filename: %s, content:", filename)
 		fmt.Printf("%s\n", string(content))
@@ -254,5 +255,27 @@ func writeFile(filename string, content []byte, mode os.FileMode) error {
 	}
 	glog.V(3).Infof("saving the file: %s", filename)
 
+	if append == true {
+		return appendFile(filename, content, mode)
+	}
+
 	return ioutil.WriteFile(filename, content, mode)
+}
+
+// appendFile writes data to a file named by filename.
+// If the file does not exist, appendFile creates it with permissions perm;
+// otherwise appendFile appends to it.
+func appendFile(filename string, data []byte, perm os.FileMode) error {
+	f, err := os.OpenFile(filename, os.O_APPEND|os.O_WRONLY|os.O_CREATE, perm)
+	if err != nil {
+		return err
+	}
+	n, err := f.Write(data)
+	if err == nil && n < len(data) {
+		err = io.ErrShortWrite
+	}
+	if err1 := f.Close(); err == nil {
+		err = err1
+	}
+	return err
 }
