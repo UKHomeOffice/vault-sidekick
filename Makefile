@@ -2,7 +2,7 @@
 NAME=vault-sidekick
 AUTHOR ?= ukhomeofficedigital
 REGISTRY ?= quay.io
-GOVERSION ?= 1.22.2
+GOVERSION ?= 1.23.1
 HARDWARE=$(shell uname -m)
 VERSION ?= $(shell awk '/release =/ { print $$3 }' main.go | sed 's/"//g')
 GIT_SHA=$(shell git --no-pager describe --always --dirty)
@@ -13,8 +13,8 @@ VETARGS?=-asmdecl -atomic -bool -buildtags -copylocks -methods -nilfunc -printf 
 
 default: build
 
-
 mod:
+	go mod tidy
 	@echo "--> Downloading dependencies"
 	go mod download
 

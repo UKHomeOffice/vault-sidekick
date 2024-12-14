@@ -28,7 +28,7 @@ import (
 
 var (
 	prog    = "vault-sidekick"
-	release = "v0.3.19rc1"
+	release = "v0.3.20rc1"
 	gitsha  = ""
 )
 
