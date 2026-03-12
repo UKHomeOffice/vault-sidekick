@@ -33,24 +33,6 @@ steps:
     - pull_request
     - push
 
-- name: publish-latest
-  image: plugins/docker
-  settings:
-    registry: quay.io
-    repo: quay.io/ukhomeofficedigital/vault-sidekick
-    tags:
-      - latest
-      - ${DRONE_COMMIT_SHA}
-  environment:
-    DOCKER_USERNAME: ukhomeofficedigital+vault_sidekick
-    DOCKER_PASSWORD:
-      from_secret: DOCKER_PASSWORD
-  when:
-    branch:
-    - main
-    event:
-    - push
-
 - name: publish-tag
   image: plugins/docker
   settings:
