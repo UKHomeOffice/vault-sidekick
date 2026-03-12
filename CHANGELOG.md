@@ -1,3 +1,10 @@
+#### **Version v0.3.20**
+* Bumped Go builder image from `golang:1.21` to `golang:1.26.1-alpine3.23`.
+* Bumped Alpine runtime base image from `3.19.1` to `3.23`.
+* Updated all Go dependencies to latest versions.
+* Fixed Dockerfile `COPY` to copy only the compiled binary rather than the entire source tree.
+* Removed publishing with the `:latest` tag as a best practice.
+
 #### **Version v0.3.18**
 * 880585b request auth token feature [#PR112](https://github.com/UKHomeOffice/vault-sidekick/pull/112)
 
