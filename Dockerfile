@@ -1,4 +1,4 @@
-FROM golang:1.26.1-alpine3.23 as builder
+FROM golang:1.26.2-alpine3.23 as builder
 
 WORKDIR /go/src/github.com/ukhomeoffice/vault-sidekick
 
@@ -8,7 +8,7 @@ COPY . .
 
 RUN make build
 
-FROM alpine:3.23
+FROM alpine:3.23.4
 
 RUN apk update
 RUN apk upgrade

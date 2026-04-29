@@ -1,3 +1,12 @@
+#### **Version v0.3.21**
+* Bumped Go builder image from `golang:1.26.1-alpine3.23` to `golang:1.26.2-alpine3.23`.
+* Pinned Alpine runtime base image to `3.23.4`.
+* Updated `go.mod` toolchain to `go1.26.2`.
+* Upgraded `github.com/hashicorp/vault/api` v1.22.0 to v1.23.0.
+* Upgraded `github.com/go-jose/go-jose/v4` v4.1.3 to v4.1.4.
+* Upgraded `golang.org/x/net` v0.52.0 to v0.53.0.
+* Upgraded `golang.org/x/crypto` v0.49.0 to v0.50.0.
+
 #### **Version v0.3.20**
 * Bumped Go builder image from `golang:1.21` to `golang:1.26.1-alpine3.23`.
 * Bumped Alpine runtime base image from `3.19.1` to `3.23`.
