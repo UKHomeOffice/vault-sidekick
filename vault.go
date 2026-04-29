@@ -569,6 +569,7 @@ func newVaultClient(opts *config) (*api.Client, error) {
 
 // buildHTTPTransport constructs a http transport for the http client
 func buildHTTPTransport(opts *config) (*http.Transport, error) {
+
 	// step: create the vault sidekick
 	transport := &http.Transport{
 		Proxy: http.ProxyFromEnvironment,
@@ -579,11 +580,23 @@ func buildHTTPTransport(opts *config) (*http.Transport, error) {
 		TLSHandshakeTimeout: 10 * time.Second,
 		TLSClientConfig: &tls.Config{
 			InsecureSkipVerify: opts.skipTLSVerify,
+			Certificates:       []tls.Certificate{},
 		},
 	}
+
 	if opts.skipTLSVerify {
 		glog.Warning("skipping TLS verification is not recommended")
 	}
+
+	// step: are we using client authentication
+	if opts.vaultClientCertFile != "" && opts.vaultClientKeyFile != "" {
+		cert, err := tls.LoadX509KeyPair(opts.vaultClientCertFile, opts.vaultClientKeyFile)
+		if err != nil {
+			return nil, fmt.Errorf("unable to read the client keypair, reason: %s", err)
+		}
+		transport.TLSClientConfig.Certificates = []tls.Certificate{cert}
+	}
+
 	// step: are we loading a CA file
 	if opts.vaultCaFile != "" {
 		glog.V(3).Infof("loading the ca certificate: %s", opts.vaultCaFile)
